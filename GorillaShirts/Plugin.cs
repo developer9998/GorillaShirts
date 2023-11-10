@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using Bepinject;
+using GorillaShirts.Behaviors.Tools;
 using GorillaShirts.Patches;
 using HarmonyLib;
 using System;
@@ -13,6 +14,9 @@ namespace GorillaShirts
     {
         public Plugin()
         {
+            // Prepare a selection of tools the mod uses
+            Logging.Initalize(Constants.Name);
+
             // Prepare our installer with Bepinject
             Zenjector.Install<MainInstaller>().OnProject().WithConfig(Config).WithLog(Logger);
 

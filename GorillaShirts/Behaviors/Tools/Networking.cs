@@ -19,12 +19,14 @@ namespace GorillaShirts.Behaviors.Tools
         private bool isPropertiesSwitching;
         private float propertySwitchTime;
 
-        private Events _Events;
+        private Events events;
         private Dictionary<string, Shirt> _ShirtDict;
-        private Dictionary<VRRig, Rig> _RigDict = new();
+        private readonly Dictionary<VRRig, Rig> _RigDict = new();
 
         public void Initialize()
         {
+            events = new Events();
+
             Events.RigAdded += delegate (Player player, VRRig vrRig)
             {
                 if (player.IsLocal || vrRig.gameObject.GetComponent<RigInstance>() != null) return;
@@ -104,23 +106,20 @@ namespace GorillaShirts.Behaviors.Tools
                 {
                     if (rigInstance.Rig.ActiveShirt != myShirt)
                     {
-                        _Events ??= new Events();
-                        _Events.TriggerPlayShirtAudio(currentRig, 0, 0.5f);
+                        events.TriggerPlayShirtAudio(currentRig, 0, 0.5f);
                     }
                     rigInstance.Rig.Wear(myShirt);
                 }
                 else
                 {
-                    if (shirtName != "None" && !string.IsNullOrEmpty(shirtName))
+                    if (shirtName != "None" && !string.IsNullOrEmpty(shirtName) && rigInstance.Rig.ActiveShirt != null)
                     {
-                        _Events ??= new Events();
-                        _Events.TriggerPlayShirtAudio(currentRig, 6, 0.6f);
+                        events.TriggerPlayShirtAudio(currentRig, 6, 0.6f);
                     }
 
                     if (rigInstance.Rig.ActiveShirt != myShirt)
                     {
-                        _Events ??= new Events();
-                        _Events.TriggerPlayShirtAudio(currentRig, 1, 0.5f);
+                        events.TriggerPlayShirtAudio(currentRig, 1, 0.5f);
                     }
 
                     rigInstance.Rig.Remove();

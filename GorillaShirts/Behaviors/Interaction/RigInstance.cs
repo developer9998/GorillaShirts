@@ -13,7 +13,7 @@ namespace GorillaShirts.Behaviors.Interaction
         public Player Player;
         public bool IsNetwork;
 
-        private Events _Events;
+        private Events _events;
         private bool _Initialized;
 
         private SkinnedMeshRenderer Skin;
@@ -24,10 +24,11 @@ namespace GorillaShirts.Behaviors.Interaction
             if (_Initialized) return;
             _Initialized = true;
 
+            _events = new Events(); 
             VRRig vrRig = GetComponent<VRRig>();
             if (Rig == null)
             {
-                Rig ??= new Rig
+                Rig = new Rig
                 {
                     Head = vrRig.headMesh.transform,
                     Toggle = !IsNetwork
@@ -48,8 +49,8 @@ namespace GorillaShirts.Behaviors.Interaction
 
             try
             {
-                Rig.ShirtWorn += OnShirtWorn;
-                Rig.ShirtRemoved += OnShirtRemoved;
+                Rig.OnShirtWorn += OnShirtWorn;
+                Rig.OnShirtRemoved += OnShirtRemoved;
             }
             catch
             {
@@ -60,13 +61,12 @@ namespace GorillaShirts.Behaviors.Interaction
             {
                 await Task.Delay(PhotonNetwork.NetworkingClient != null ? Mathf.Max(PhotonNetwork.GetPing(), Constants.NetworkOffset) : Constants.NetworkOffset);
 
-                _Events ??= new Events();
-                _Events.TriggerCustomPropUpdate(Player, Player.CustomProperties);
+                _events.TriggerCustomPropUpdate(Player, Player.CustomProperties);
             }
         }
 
         public void OnShirtWorn()
-        {
+		{
             SetInvisiblityState(Rig.ActiveShirt.Invisibility);
         }
 

@@ -8,7 +8,17 @@ namespace GorillaShirts
 {
     public class MainInstaller : Installer
     {
-        public GameObject Player = Object.FindObjectOfType<Player>().gameObject;
+        private GameObject GSObject;
+
+        public GameObject Player(InjectContext ctx)
+        {
+            if (GSObject == null)
+            {
+                GSObject = new GameObject("GorillaShirts Handler");
+                GSObject.transform.SetParent(Object.FindObjectOfType<Player>().transform);
+            }
+            return GSObject;
+        }
 
         public override void InstallBindings()
         {

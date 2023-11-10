@@ -21,37 +21,37 @@ namespace GorillaShirts.Behaviors.Tools
 
         public async Task<List<Pack>> FindShirtsFromDirectory(string myDirectory)
         {
-            // Check our current directory
             await FindShirtsFromPackDirectory(myDirectory);
 
             var shirtPackDirectories = Directory.GetDirectories(myDirectory, "*", SearchOption.AllDirectories);
             if (shirtPackDirectories.Length > 0)
             {
                 shirtPackDirectories = shirtPackDirectories.OrderBy(a => Path.GetFileName(a) == "Default Shirts" ? 0 : 1).ToArray();
-                foreach (var folderDirectory in shirtPackDirectories)
-                {
-                    // Check this new directory
-                    await FindShirtsFromPackDirectory(folderDirectory);
-                }
+                foreach (var folderDirectory in shirtPackDirectories) await FindShirtsFromPackDirectory(folderDirectory);
             }
 
             return _packDictionary.Values.ToList();
         }
 
+        public void TryCreateDirectory(string path)
+        {
+            if (Directory.Exists(path)) return;
+            Directory.CreateDirectory(path);
+        }
+
 
         private async Task FindShirtsFromPackDirectory(string path)
         {
-            // Check to see if a directory exists at our current path
             if (!Directory.Exists(path)) return;
+            var directoryInfo = new DirectoryInfo(path);
 
-            var dirInfo = new DirectoryInfo(path);
-            FileInfo[] fileInfoArray = dirInfo.GetFiles("*.shirt");
+            FileInfo[] fileInfos = directoryInfo.GetFiles("*.shirt");
+            if (fileInfos.Length == 0) return;
 
-            // Check to see if this directory has any shirt files
-            if (fileInfoArray.Length == 0) return;
+            Logging.Info($"Locating shirt files from directory '{Path.GetFileName(path)}'");
 
             Pack currentPack = null;
-            foreach (var fileInfo in fileInfoArray)
+            foreach (var fileInfo in fileInfos)
             {
                 string fileDirectory = Path.GetFileNameWithoutExtension(fileInfo.Name);
                 string filePath = Path.Combine(path, fileInfo.Name);
@@ -59,27 +59,32 @@ namespace GorillaShirts.Behaviors.Tools
                 AssetBundle shirtResourceBundle = null;
                 ShirtJSON shirtDataJSON = null;
 
+                Logging.Info($"Opening file '{Path.GetFileName(filePath)}'");
                 using var archive = ZipFile.OpenRead(filePath);
                 try
                 {
                     var packageEntry = archive.Entries.FirstOrDefault(i => i.Name == "ShirtData.json");
                     if (packageEntry == null) continue;
 
+                    Logging.Info(" > Reading entry");
                     using var stream = new StreamReader(packageEntry.Open(), Encoding.UTF8);
 
                     string packageReadContents = await stream.ReadToEndAsync();
                     shirtDataJSON = Newtonsoft.Json.JsonConvert.DeserializeObject<ShirtJSON>(packageReadContents);
 
+                    Logging.Info(" > Deserializing contents");
                     var shirtResourceEntry = archive.Entries.FirstOrDefault(i => i.Name == shirtDataJSON.assetName);
                     if (shirtResourceEntry == null) continue;
 
                     using var SeekableStream = new MemoryStream();
                     await shirtResourceEntry.Open().CopyToAsync(SeekableStream);
+
+                    Logging.Info(" > Loading resource bundle");
                     shirtResourceBundle = await LoadFromStream(SeekableStream);
                 }
                 catch (Exception ex)
                 {
-                    Logging.Error("Failed to load archive from path " + filePath + ": " + ex.ToString());
+                    Logging.Warning($"Failed to parse file '{Path.GetFileName(filePath)}' as a shirt for the mod: {ex}");
                     continue;
                 }
 
@@ -89,6 +94,8 @@ namespace GorillaShirts.Behaviors.Tools
                 newShirt.Pair = newPair;
                 newShirt.Author = shirtDataJSON.infoDescriptor.shirtAuthor;
                 newShirt.Description = shirtDataJSON.infoDescriptor.shirtDescription;
+
+                Logging.Info(" > Loading shirt asset");
                 newShirt.RawAsset = await LoadAsset<GameObject>(shirtResourceBundle, "ExportShirt");
                 shirtResourceBundle.Unload(false);
 
@@ -103,12 +110,14 @@ namespace GorillaShirts.Behaviors.Tools
                     Transform tempSector = newShirt.RawAsset.transform.Find(sectorName);
                     if (tempSector != null)
                     {
-                        Sector newSector = new();
-                        newSector.Object = tempSector.gameObject;
-                        newSector.Type = sectorType;
-                        newSector.Position = tempSector.localPosition;
-                        newSector.Euler = tempSector.localEulerAngles;
-                        newSector.Scale = tempSector.localScale;
+                        Sector newSector = new()
+                        {
+                            Object = tempSector.gameObject,
+                            Type = sectorType,
+                            Position = tempSector.localPosition,
+                            Euler = tempSector.localEulerAngles,
+                            Scale = tempSector.localScale
+                        };
                         newShirt.SectorList.Add(newSector);
 
                         var sectorVP = newSector.Object.AddComponent<VisualParent>();
@@ -148,6 +157,7 @@ namespace GorillaShirts.Behaviors.Tools
 
                 currentPack.PackagedShirts.Add(newShirt);
                 currentPack.ShirtNameDictionary.AddOrUpdate(newShirt.Name, newShirt);
+                Logging.Info($" > Completed, '{newShirt.DisplayName}' is included in pack '{shirtDataJSON.packName}'");
             }
 
             var random = new System.Random();

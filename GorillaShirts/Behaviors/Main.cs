@@ -1,4 +1,5 @@
-﻿using GorillaNetworking;
+﻿using GorillaLocomotion;
+using GorillaNetworking;
 using GorillaShirts.Behaviors.Data;
 using GorillaShirts.Behaviors.Interaction;
 using GorillaShirts.Behaviors.Models;
@@ -6,6 +7,7 @@ using GorillaShirts.Behaviors.Tools;
 using GorillaShirts.Behaviors.UI;
 using GorillaShirts.Extensions;
 using GorillaShirts.Utilities;
+using HarmonyLib;
 using Photon.Pun;
 using System;
 using System.Collections.Generic;
@@ -17,7 +19,11 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
+using System.Collections;
 using Button = GorillaShirts.Behaviors.Interaction.Button;
+using BepInEx;
+using static BoingKit.BoingBones;
+using GorillaShirts.Patches;
 
 namespace GorillaShirts.Behaviors
 {
@@ -32,8 +38,10 @@ namespace GorillaShirts.Behaviors
         private Installation _shirtInstaller;
         private Configuration _config;
 
-        private event Action<bool> _advancedState;
+        private event Action<bool> OnInfoMenuChanged;
         private bool _advancedVisible;
+
+        private Camera _currentCamera;
 
         private List<AudioClip> _shirtAudioList;
         private Dictionary<GTZone, Vector3[]> _standLocationData = new()
@@ -105,13 +113,13 @@ namespace GorillaShirts.Behaviors
 
         private RigInstance _localRig;
 
-        private List<Stand> _standList = new();
+        private Stand _stand;
         private Dictionary<ButtonType, Action> _buttonDict;
 
         private int _currentPack;
         private List<Pack> _packList = new();
 
-        private Events _Events;
+        private Events _events;
 
         private Shirt CurrentShirt => CurrentPack.PackagedShirts[CurrentPack.CurrentItem];
         private Pack CurrentPack => _packList[_currentPack];
@@ -124,6 +132,8 @@ namespace GorillaShirts.Behaviors
             _assetLoader = assetLoader;
             _shirtInstaller = shirtInstaller;
             _config = config;
+
+            _events = new Events();
         }
 
         public async void Initialize()
@@ -133,6 +143,7 @@ namespace GorillaShirts.Behaviors
 
             // Prepares much of the audio-related functions
             #region Audio Initialization
+
             _shirtAudioList = new List<AudioClip>
             {
                 await _assetLoader.LoadAsset<AudioClip>("Wear"),
@@ -141,7 +152,8 @@ namespace GorillaShirts.Behaviors
                 await _assetLoader.LoadAsset<AudioClip>("SillyTXT"),
                 await _assetLoader.LoadAsset<AudioClip>("SteadyTXT"),
                 await _assetLoader.LoadAsset<AudioClip>("Randomize"),
-                await _assetLoader.LoadAsset<AudioClip>("Error")
+                await _assetLoader.LoadAsset<AudioClip>("Error"),
+                await _assetLoader.LoadAsset<AudioClip>("Shutter")
             };
 
             Events.PlayShirtAudio += delegate (VRRig vrRig, int index, float volume)
@@ -149,10 +161,19 @@ namespace GorillaShirts.Behaviors
                 if (vrRig == null || index > (_shirtAudioList.Count - 1)) return;
                 vrRig.tagSound.PlayOneShot(_shirtAudioList[index], volume);
             };
+
+            Player.Instance.materialData.Add(new Player.MaterialData()
+            {
+                overrideAudio = true,
+                audio = _shirtAudioList[2],
+                matName = "gorillashirtbuttonpress"
+            });
+
             #endregion
 
             // Prepares the dictionary for button actions
             #region Button Initialization
+
             _buttonDict = new Dictionary<ButtonType, Action>()
             {
                 {
@@ -160,7 +181,7 @@ namespace GorillaShirts.Behaviors
                     delegate
                     {
                         SetShirt(CurrentShirt);
-                        _standList.ForEach(stand => stand.Display.SetEquipped(CurrentShirt, _localRig.Rig.ActiveShirt));
+                        _stand.Display.SetEquipped(CurrentShirt, _localRig.Rig.ActiveShirt);
                     }
                 },
                 {
@@ -170,13 +191,8 @@ namespace GorillaShirts.Behaviors
                         var currentPack = _packList[_currentPack];
                         currentPack.CurrentItem = currentPack.CurrentItem == 0 ? currentPack.PackagedShirts.Count - 1 : currentPack.CurrentItem - 1;
 
-                        _standList.ForEach(stand =>
-                        {
-                            stand.Rig.Wear(CurrentShirt);
-                            stand.Display.SetDisplay(CurrentShirt);
-                            stand.Display.SetSlots(CurrentShirt.GetSlotData());
-                            stand.Display.SetEquipped(CurrentShirt, _localRig.Rig.ActiveShirt);
-                        });
+                        _stand.Rig.Wear(CurrentShirt);
+                        _stand.Display.UpdateDisplay(CurrentShirt, _localRig.Rig.ActiveShirt, CurrentPack);
                     }
                 },
                 {
@@ -186,13 +202,8 @@ namespace GorillaShirts.Behaviors
                         var currentPack = _packList[_currentPack];
                         currentPack.CurrentItem = (currentPack.CurrentItem + 1) % currentPack.PackagedShirts.Count;
 
-                        _standList.ForEach(stand =>
-                        {
-                            stand.Rig.Wear(CurrentShirt);
-                            stand.Display.SetDisplay(CurrentShirt);
-                            stand.Display.SetSlots(CurrentShirt.GetSlotData());
-                            stand.Display.SetEquipped(CurrentShirt, _localRig.Rig.ActiveShirt);
-                        });
+                        _stand.Rig.Wear(CurrentShirt);
+                        _stand.Display.UpdateDisplay(CurrentShirt, _localRig.Rig.ActiveShirt, CurrentPack);
                     }
                 },
                 {
@@ -202,11 +213,8 @@ namespace GorillaShirts.Behaviors
                         _currentPack = _currentPack == 0 ? _packList.Count - 1 : _currentPack - 1;
                         SetPackInfo(_packList[_currentPack], _packList[_currentPack].PackagedShirts[_packList[_currentPack].CurrentItem]);
 
-                        _standList.ForEach(stand =>
-                        {
-                            stand.Rig.Wear(CurrentShirt);
-                            stand.Display.UpdateDisplay(CurrentShirt, _localRig.Rig.ActiveShirt, CurrentPack);
-                        });
+                        _stand.Rig.Wear(CurrentShirt);
+                        _stand.Display.UpdateDisplay(CurrentShirt, _localRig.Rig.ActiveShirt, CurrentPack);
                     }
                 },
                 {
@@ -216,11 +224,8 @@ namespace GorillaShirts.Behaviors
                         _currentPack = (_currentPack + 1) % _packList.Count;
                         SetPackInfo(_packList[_currentPack], _packList[_currentPack].PackagedShirts[_packList[_currentPack].CurrentItem]);
 
-                        _standList.ForEach(stand =>
-                        {
-                            stand.Rig.Wear(CurrentShirt);
-                            stand.Display.UpdateDisplay(CurrentShirt, _localRig.Rig.ActiveShirt, CurrentPack);
-                        });
+                        _stand.Rig.Wear(CurrentShirt);
+                        _stand.Display.UpdateDisplay(CurrentShirt, _localRig.Rig.ActiveShirt, CurrentPack);
                     }
                 },
                 {
@@ -228,13 +233,7 @@ namespace GorillaShirts.Behaviors
                     delegate
                     {
                         _config.SetCurrentPreview(_config.CurrentPreview.Value == Configuration.PreviewTypes.Silly, true);
-
-                        _standList.ForEach(stand =>
-                        {
-                            stand.Rig.SetAppearance(_config.CurrentPreview.Value == Configuration.PreviewTypes.Silly);
-                            stand.Rig.Wear(CurrentShirt);
-                            stand.Display.UpdateDisplay(CurrentShirt, _localRig.Rig.ActiveShirt, CurrentPack);
-                        });
+                        _stand.Rig.SetAppearance(_config.CurrentPreview.Value == Configuration.PreviewTypes.Silly);
                     }
                 },
                 {
@@ -243,15 +242,12 @@ namespace GorillaShirts.Behaviors
                     {
                         CurrentPack.Randomize();
 
-                        _standList.ForEach(stand =>
-                        {
-                            stand.Rig.Wear(CurrentShirt);
-                            stand.Display.UpdateDisplay(CurrentShirt, _localRig.Rig.ActiveShirt, CurrentPack);
+                        _stand.Rig.Wear(CurrentShirt);
+                        _stand.Display.UpdateDisplay(CurrentShirt, _localRig.Rig.ActiveShirt, CurrentPack);
 
-                            AudioSource mainSource = stand.Object.transform.Find("MainSource").GetComponent<AudioSource>();
-                            mainSource.clip = _shirtAudioList[5];
-                            mainSource.PlayOneShot(mainSource.clip, 1);
-                        });
+                        AudioSource mainSource = _stand.Object.transform.Find("MainSource").GetComponent<AudioSource>();
+                        mainSource.clip = _shirtAudioList[5];
+                        mainSource.PlayOneShot(mainSource.clip, 1);
                     }
                 },
                 {
@@ -264,11 +260,9 @@ namespace GorillaShirts.Behaviors
                             _networking.UpdateProperties(_networking.GenerateHashtable(_localRig.Rig.ActiveShirt, _config.CurrentTagOffset.Value));
                         }
 
-                        _standList.ForEach(stand =>
-                        {
-                            stand.Rig.SetTagOffset(_config.CurrentTagOffset.Value);
-                            stand.Display.SetTag(_config.CurrentTagOffset.Value);
-                        });
+                        _stand.Rig.SetTagOffset(_config.CurrentTagOffset.Value);
+                        _stand.Display.SetTag(_config.CurrentTagOffset.Value);
+
                         if (_localRig.Rig.ActiveShirt != null) _localRig.Rig.SetTagOffset(_config.CurrentTagOffset.Value);
                     }
                 },
@@ -282,11 +276,9 @@ namespace GorillaShirts.Behaviors
                             _networking.UpdateProperties(_networking.GenerateHashtable(_localRig.Rig.ActiveShirt, _config.CurrentTagOffset.Value));
                         }
 
-                        _standList.ForEach(stand =>
-                        {
-                            stand.Rig.SetTagOffset(_config.CurrentTagOffset.Value);
-                            stand.Display.SetTag(_config.CurrentTagOffset.Value);
-                        });
+                        _stand.Rig.SetTagOffset(_config.CurrentTagOffset.Value);
+                        _stand.Display.SetTag(_config.CurrentTagOffset.Value);
+
                         if (_localRig.Rig.ActiveShirt != null) _localRig.Rig.SetTagOffset(_config.CurrentTagOffset.Value);
                     }
                 },
@@ -295,83 +287,263 @@ namespace GorillaShirts.Behaviors
                     delegate
                     {
                         _advancedVisible ^= true;
-                        _advancedState?.Invoke(_advancedVisible);
+                        OnInfoMenuChanged?.Invoke(_advancedVisible);
+                    }
+                },
+                {
+                    ButtonType.Capture,
+                    delegate
+                    {
+                        // Re-enable our camera, just so it has enough time to render
+                        _currentCamera.gameObject.SetActive(true);
+
+                        AudioSource mainSource = _stand.Object.transform.Find("MainSource").GetComponent<AudioSource>();
+                        mainSource.clip = _shirtAudioList[7];
+                        mainSource.PlayOneShot(mainSource.clip, 1);
+
+                        StartCoroutine(Capture());
+                        _currentCamera.gameObject.SetActive(false);
                     }
                 }
             };
+
             #endregion
 
             // Creates the shirt stands used for interaction with the mod
             #region Stand Initialization
-            // Prepare the stands placed around the game
-            var _locations = _standLocationData.Keys.ToArray();
-            for (int i = 0; i < _locations.Length; i++)
-            {
-                try
-                {
-                    float _currentTime = Time.unscaledTime;
-                    Stand _stand = await CreateStand(_locations[i], _standLocationData[_locations[i]]);
-                    _standList.Add(_stand);
-
-                    Logging.Log($"Created stand for {_locations[i]} in {Math.Round(Mathf.Abs(Time.unscaledTime - _currentTime), 2)} seconds");
-                }
-                catch (Exception e)
-                {
-                    Logging.Error($"Unable to create stand for {_locations[i]}\n{e.GetType().Name} ({e.Message})");
-                }
-            }
-            #endregion
 
             _localRig = GorillaTagger.Instance.offlineVRRig.gameObject.AddComponent<RigInstance>();
 
+            GameObject shirtStand = Instantiate(await _assetLoader.LoadAsset<GameObject>("ShirtStand"));
+            shirtStand.name = $"Shirt Stand";
+            shirtStand.transform.position = _standLocationData[GTZone.forest][0];
+            shirtStand.transform.rotation = Quaternion.Euler(_standLocationData[GTZone.forest][1]);
+
+            GeometryPatch.OnMapUpdate += delegate (GTZone zone)
+            {
+                if (_standLocationData.TryGetValue(zone, out Vector3[] zoneData))
+                {
+                    shirtStand.transform.position = zoneData[0];
+                    shirtStand.transform.rotation = Quaternion.Euler(zoneData[1]);
+                }
+            };
+
+            StandRig standRig = new()
+            {
+                Toggle = false,
+                RigParent = shirtStand.transform.Find("Preview Gorilla")
+            };
+            standRig.RigParent.Find("Rig").gameObject.AddComponent<Punch>();
+
+            _currentCamera = shirtStand.transform.Find("Camera").GetComponent<Camera>();
+            _currentCamera.gameObject.SetActive(false);
+
+            standRig.RigSkin = standRig.RigParent.GetComponentInChildren<SkinnedMeshRenderer>();
+            standRig.Nametag = standRig.RigParent.GetComponentInChildren<Text>();
+            standRig.Head = standRig.RigParent.Find("Rig/body/head");
+            standRig.Body = standRig.RigParent.Find("Rig/body");
+            standRig.LeftHand = standRig.RigParent.Find("Rig/body/shoulder.L/upper_arm.L/forearm.L/hand.L");
+            standRig.RightHand = standRig.RigParent.Find("Rig/body/shoulder.R/upper_arm.R/forearm.R/hand.R");
+            standRig.LeftLower = standRig.LeftHand.parent;
+            standRig.RightLower = standRig.RightHand.parent;
+            standRig.LeftUpper = standRig.LeftLower.parent;
+            standRig.RightUpper = standRig.RightLower.parent;
+
+            // Register the IK
+            GorillaIK gorillaIk = (standRig.RigParent).gameObject.AddComponent<GorillaIK>();
+            gorillaIk.enabled = true;
+            gorillaIk.targetLeft = shirtStand.transform.Find("Preview Gorilla/Rig/LeftTarget");
+            gorillaIk.targetRight = shirtStand.transform.Find("Preview Gorilla/Rig/RightTarget");
+            gorillaIk.targetHead = standRig.Head;
+            gorillaIk.headBone = standRig.Head;
+            gorillaIk.leftUpperArm = standRig.LeftUpper;
+            gorillaIk.leftLowerArm = standRig.LeftLower;
+            gorillaIk.leftHand = standRig.LeftHand;
+            gorillaIk.rightUpperArm = standRig.RightUpper;
+            gorillaIk.rightLowerArm = standRig.RightLower;
+            gorillaIk.rightHand = standRig.RightHand;
+
+            gorillaIk.dU = (gorillaIk.leftUpperArm.position - gorillaIk.leftLowerArm.position).magnitude;
+            gorillaIk.dL = (gorillaIk.leftLowerArm.position - gorillaIk.leftHand.position).magnitude;
+            gorillaIk.dMax = gorillaIk.dU + gorillaIk.dL - gorillaIk.eps;
+            gorillaIk.initialUpperLeft = gorillaIk.leftUpperArm.localRotation;
+            gorillaIk.initialLowerLeft = gorillaIk.leftLowerArm.localRotation;
+            gorillaIk.initialUpperRight = gorillaIk.rightUpperArm.localRotation;
+            gorillaIk.initialLowerRight = gorillaIk.rightLowerArm.localRotation;
+
+            // De-register and Re-register the IK
+            gorillaIk.enabled = false;
+            gorillaIk.enabled = true;
+
+            standRig.OnAppearanceChange += delegate (Configuration.PreviewTypes previewType)
+            {
+                shirtStand.transform.Find("UI/PrimaryDisplay/Text/Interaction/Silly Icon").gameObject.SetActive(previewType == Configuration.PreviewTypes.Silly);
+                shirtStand.transform.Find("UI/PrimaryDisplay/Text/Interaction/Steady Icon").gameObject.SetActive(previewType == Configuration.PreviewTypes.Steady);
+
+                AudioSource component2 = shirtStand.transform.Find("MainSource").GetComponent<AudioSource>();
+                component2.clip = (previewType == Configuration.PreviewTypes.Silly) ? _shirtAudioList[3] : _shirtAudioList[4];
+                component2.PlayOneShot(component2.clip, 1f);
+            };
+
+            standRig.OnShirtWorn += delegate
+            {
+                bool invisibility = standRig.ActiveShirt.Invisibility;
+
+                standRig.RigSkin.forceRenderingOff = invisibility;
+                standRig.Head.Find("Face").gameObject.SetActive(!invisibility);
+                standRig.Body.Find("Chest").gameObject.SetActive(!invisibility);
+
+                standRig.SillyHat.forceRenderingOff = invisibility || standRig.ActiveShirt.SectorList.Any((Sector a) => a.Type == SectorType.Head);
+                standRig.SteadyHat.forceRenderingOff = invisibility || standRig.ActiveShirt.SectorList.Any((Sector a) => a.Type == SectorType.Head);
+
+                standRig.CachedObjects[standRig.ActiveShirt].DoIf(a => a.GetComponentInChildren<AudioSource>(), a =>
+                {
+                    a.GetComponentsInChildren<AudioSource>().Do(src =>
+                    {
+                        src.playOnAwake = false;
+                        src.Stop();
+                    });
+                });
+            };
+
+            OnInfoMenuChanged += delegate (bool isActive)
+            {
+                shirtStand.transform.Find("UI/PrimaryDisplay/Text").gameObject.SetActive(!isActive);
+                shirtStand.transform.Find("UI/PrimaryDisplay/AdvancedText").gameObject.SetActive(isActive);
+
+                StringBuilder stringBuilder = new();
+                stringBuilder.Append("Shirts: ").Append(_packList.Select((Pack a) => a.PackagedShirts.Count).Sum()).AppendLine();
+                stringBuilder.Append("Packs: ").Append(_packList.Count);
+                shirtStand.transform.Find("UI/PrimaryDisplay/AdvancedText/Left Body").GetComponent<Text>().text = stringBuilder.ToString();
+
+                stringBuilder = new StringBuilder();
+                stringBuilder.Append("Build Type: ");
+                stringBuilder.AppendLine("Debug");
+                stringBuilder.Append("Build Version: ").Append("1.0.0");
+                shirtStand.transform.Find("UI/PrimaryDisplay/AdvancedText/Right Body").GetComponent<Text>().text = stringBuilder.ToString();
+            };
+
+            standRig.SillyHat = standRig.Head.Find("SillyFlowerCrown").GetComponent<MeshRenderer>();
+            standRig.SteadyHat = standRig.Head.Find("SteadyHeadphones").GetComponent<MeshRenderer>();
+            standRig.SetAppearance(_config.CurrentPreview.Value == Configuration.PreviewTypes.Silly);
+            standRig.SetTagOffset(_config.CurrentTagOffset.Value);
+
+            Transform uiDisplayParent = shirtStand.transform.Find("UI/PrimaryDisplay/Text");
+            ShirtDisplay standDisplay = new()
+            {
+                Main = uiDisplayParent.Find("Main").GetComponent<Text>(),
+                Body = uiDisplayParent.Find("Body").GetComponent<Text>(),
+                Version = uiDisplayParent.Find("Version").GetComponent<Text>(),
+                Equip = uiDisplayParent.Find("Interaction/Equip").GetComponent<Text>(),
+                Pack = uiDisplayParent.Find("Interaction/Pack").GetComponent<Text>(),
+                Tag = uiDisplayParent.Find("Interaction/Nametag").GetComponent<Text>(),
+                SlotParent = uiDisplayParent.Find("Interaction/Slots").gameObject
+            };
+
+            for (int x = 0; x < standDisplay.SlotParent.transform.childCount; x++)
+            {
+                Transform slotItem = standDisplay.SlotParent.transform.GetChild(x);
+                standDisplay.SlotItems.Add(slotItem.gameObject);
+            }
+
+            standDisplay.SetSlots(null);
+
+            Transform uiButtonsParent = shirtStand.transform.Find("UI/PrimaryDisplay/Buttons");
+            var buttonList = uiButtonsParent.GetComponentsInChildren<BoxCollider>();
+            buttonList.Do(btn =>
+            {
+                Button newButton = btn.gameObject.AddComponent<Button>();
+                newButton.Type = Button.GetButtonType(btn.name);
+                newButton.OnPress += delegate (GorillaTriggerColliderHandIndicator component)
+                {
+                    GorillaTagger.Instance.offlineVRRig.PlayHandTapLocal(Player.Instance.materialData.Count - 1, component.isLeftHand, 0.07f);
+
+                    if (PhotonNetwork.InRoom && GorillaTagger.Instance.myVRRig != null)
+                    {
+                        GorillaTagger.Instance.myVRRig.RPC("PlayHandTap", (RpcTarget)1, new object[3]
+                        {
+                            Player.Instance.materialData.Count - 1,
+                            component.isLeftHand,
+                            0.07f
+                        });
+                    }
+
+                    if (_packList.Count == 0) return;
+                    _buttonDict[newButton.Type]?.Invoke();
+                };
+
+                OnInfoMenuChanged += delegate (bool isActive)
+                {
+                    ButtonType type = newButton.Type;
+                    newButton.gameObject.SetActive(!isActive || type == ButtonType.AdvancedTab);
+                };
+            });
+
+            StringBuilder str = new();
+            str.Append("<size=10>- Loading Shirts -</size>").AppendLines(4);
+            str.Append("The mod is currently loading in").AppendLines(2).Append("Shirts found within your files.").AppendLines(3);
+            str.Append("Please wait for these files to").AppendLines(2).Append("be loaded into the mod.");
+            standDisplay.SetDisplay(str.ToString(), string.Empty);
+            standDisplay.SetVersion("v1.0.0");
+
+            _stand = new Stand()
+            {
+                Display = standDisplay,
+                Rig = standRig,
+                Object = shirtStand
+            };
+
+            #endregion
+
             // Loads a set of packs from our plugins directory and attempts to wear our shirt from a previous session
             #region Pack Initialization
+
             _packList = await _shirtInstaller.FindShirtsFromDirectory(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+
+            // Sort the packs based on their name, and prioritize the "Default" pack
+            _packList.Sort((x, y) => string.Compare(x.Name, y.Name));
+            _packList = _packList.OrderBy(a => a.Name == "Default" ? 0 : 1).ToList();
+
             foreach (var myPack in _packList)
             {
-                if (myPack.DisplayName == "Shirts") myPack.Randomize();
-                if (_config.CurrentShirt.Value == "None" || myPack.PackagedShirts.Count == 0) continue;
+                if (myPack.DisplayName == "Default") myPack.Randomize();
+                else myPack.PackagedShirts.Sort((x, y) => string.Compare(x.Name, y.Name));
 
                 foreach (var myShirt in myPack.PackagedShirts)
                 {
-                    ShirtUtils.ShirtDict.Add(myShirt.Name, myShirt);
+                    ShirtUtils.ShirtDict.TryAdd(myShirt.Name, myShirt);
                     if (myShirt.Name == _config.CurrentShirt.Value && _localRig.Rig.ActiveShirt != myShirt)
                     {
-                        Logging.Log("Found Shirt from previous session (" + myShirt.DisplayName + ") In Pack " + myShirt.DisplayName);
+                        Logging.Info("Using shirt from previous session '" + myShirt.DisplayName + "' in pack '" + myShirt.DisplayName + "'");
                         SetPackInfo(myPack, myShirt);
                         SetShirt(myShirt);
                     }
                 }
             }
+
             #endregion
 
             if (_packList == null || _packList.Count == 0)
             {
-                _standList.ForEach(stand =>
-                {
-                    stand.Object.transform.Find("Activation Source").GetComponent<AudioSource>().PlayOneShot(_shirtAudioList[6]);
+                _stand.Object.transform.Find("Activation Source").GetComponent<AudioSource>().PlayOneShot(_shirtAudioList[6]);
 
-                    StringBuilder str = new();
-                    str.Append("<size=10>- No shirts found! -</size>").AppendLines(3);
-                    str.AppendLine("The mod could not find any shirts.").AppendLines(2);
-                    str.AppendLine("If you believe the mod ran into").AppendLine();
-                    str.AppendLine("an error, please let us know:").AppendLines(2);
-                    str.Append("Discord: <size=5>discord.gg/dev9998</size>");
+                str = new();
+                str.Append("<size=10>- No shirts found! -</size>").AppendLines(3);
+                str.AppendLine("The mod could not find any shirts.").AppendLines(2);
+                str.AppendLine("If you believe the mod ran into").AppendLine();
+                str.AppendLine("an error, please let us know:").AppendLines(2);
+                str.Append("Discord: <size=5>discord.gg/dev9998</size>");
 
-                    stand.Display.Main.text = str.ToString();
-                });
+                _stand.Display.Main.text = str.ToString();
             }
             else
             {
-                _standList.ForEach(stand =>
-                {
-                    stand.Object.transform.Find("Activation Source").GetComponent<AudioSource>().Play();
+                _stand.Object.transform.Find("Activation Source").GetComponent<AudioSource>().Play();
 
-                    // Adjust the stand to display our currently worn shirt
-                    stand.Display.UpdateDisplay(CurrentShirt, _localRig.Rig.ActiveShirt, CurrentPack);
-                    stand.Display.SetTag(_config.CurrentTagOffset.Value);
-                    stand.Rig.Wear(CurrentShirt);
-                });
+                // Adjust the stand to display our currently worn shirt
+                _stand.Display.UpdateDisplay(CurrentShirt, _localRig.Rig.ActiveShirt, CurrentPack);
+                _stand.Display.SetTag(_config.CurrentTagOffset.Value);
+                _stand.Rig.Wear(CurrentShirt);
             }
         }
 
@@ -385,215 +557,45 @@ namespace GorillaShirts.Behaviors
         {
             if (myShirt == null) return;
 
-            // Equip this shirt, and set our nametag offset accordingly
             _localRig.Rig.Wear(myShirt);
             _localRig.Rig.SetTagOffset(_localRig.Rig.ActiveShirt != null ? _config.CurrentTagOffset.Value : 0);
-
-            // Update our configuration to take note of our current shirt
             _config.SetCurrentShirt(_localRig.Rig.ActiveShirt != null ? myShirt.Name : "None");
 
-            // Remove our current badge item if we're both wearing a shirt and our confiruration has that option enabled
             if (_config.RemoveBaseItem.Value && _localRig.Rig.ActiveShirt != null)
-                ShirtUtils.RemoveItem(GorillaNetworking.CosmeticsController.CosmeticCategory.Badge, GorillaNetworking.CosmeticsController.CosmeticSlots.Badge);
+                ShirtUtils.RemoveItem(CosmeticsController.CosmeticCategory.Badge, CosmeticsController.CosmeticSlots.Badge);
 
-            // Notify our events to play a sound based on if we're wearing a shirt
-            _Events ??= new Events();
-            _Events.TriggerPlayShirtAudio(_localRig.GetComponent<VRRig>(), _localRig.Rig.ActiveShirt != null ? 0 : 1, 0.33f);
-
-            // Update our CustomProperties which will network our shirt for other players
+            _events.TriggerPlayShirtAudio(_localRig.GetComponent<VRRig>(), _localRig.Rig.ActiveShirt != null ? 0 : 1, 0.33f);
             _networking.UpdateProperties(_networking.GenerateHashtable(_localRig.Rig.ActiveShirt, _config.CurrentTagOffset.Value));
         }
 
-        public async Task<Stand> CreateStand(GTZone _zone, Vector3[] _locationData)
+        public IEnumerator Capture()
         {
-            var shirtStand = Instantiate(await _assetLoader.LoadAsset<GameObject>(Constants.StandName));
-            shirtStand.name = $"Shirt Stand ({_zone})";
-            shirtStand.transform.position = _locationData[0];
-            shirtStand.transform.rotation = Quaternion.Euler(_locationData[1]);
+            string directory = Path.Combine(Paths.BepInExRootPath, "GorillaShirts Captures");
+            string file = Path.Combine(directory, string.Format("{0:yy-MM-dd-HH-mm-ss-ff}.png", DateTime.Now));
+            _shirtInstaller.TryCreateDirectory(directory);
 
-            var standRig = new StandRig
-            {
-                Toggle = false,
-                RigParent = shirtStand.transform.Find("Preview Gorilla")
-            };
-            standRig.RigSkin = standRig.RigParent.GetComponentInChildren<SkinnedMeshRenderer>();
-            standRig.Nametag = standRig.RigParent.GetComponentInChildren<Text>();
-            standRig.Head = standRig.RigParent.Find("Rig/body/head");
-            standRig.Body = standRig.RigParent.Find("Rig/body");
-            standRig.LeftHand = standRig.RigParent.Find("Rig/body/shoulder.L/upper_arm.L/forearm.L/hand.L");
-            standRig.RightHand = standRig.RigParent.Find("Rig/body/shoulder.R/upper_arm.R/forearm.R/hand.R");
-            standRig.LeftLower = standRig.LeftHand.parent;
-            standRig.RightLower = standRig.RightHand.parent;
-            standRig.LeftUpper = standRig.LeftLower.parent;
-            standRig.RightUpper = standRig.RightLower.parent;
+            yield return new WaitForEndOfFrame();
 
-            // Add additional components
-            standRig.RigParent.Find("Rig").gameObject.AddComponent<Punch>();
-            #region Prepare IK (Inverse Kinematics)
+            RenderTexture renderTexture = _currentCamera.targetTexture;
+            RenderTexture.active = renderTexture;
+            int width = renderTexture.width;
+            int height = renderTexture.height;
 
-            GorillaIK gorillaIk = standRig.RigParent.gameObject.AddComponent<GorillaIK>();
-            gorillaIk.enabled = true;
+            RenderTexture renderTex = RenderTexture.GetTemporary(width, height, 16, RenderTextureFormat.ARGB32);
+            Texture2D tex = new(width, height, TextureFormat.RGB24, false);
 
-            gorillaIk.targetLeft = shirtStand.transform.Find("Preview Gorilla/Rig/LeftTarget");
-            gorillaIk.targetRight = shirtStand.transform.Find("Preview Gorilla/Rig/RightTarget");
+            RenderTexture.active = renderTex;
+            _currentCamera.targetTexture = renderTex;
 
-            gorillaIk.targetHead = standRig.Head;
-            gorillaIk.headBone = standRig.Head;
+            _currentCamera.Render();
+            _currentCamera.targetTexture = renderTexture;
+            tex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
 
-            gorillaIk.leftUpperArm = standRig.LeftUpper;
-            gorillaIk.leftLowerArm = standRig.LeftLower;
-            gorillaIk.leftHand = standRig.LeftHand;
+            RenderTexture.active = null;
+            RenderTexture.ReleaseTemporary(renderTex);
 
-            gorillaIk.rightUpperArm = standRig.RightUpper;
-            gorillaIk.rightLowerArm = standRig.RightLower;
-            gorillaIk.rightHand = standRig.RightHand;
-
-            // Manually do this part - Awake doesn't work out
-            gorillaIk.dU = (gorillaIk.leftUpperArm.position - gorillaIk.leftLowerArm.position).magnitude;
-            gorillaIk.dL = (gorillaIk.leftLowerArm.position - gorillaIk.leftHand.position).magnitude;
-            gorillaIk.dMax = gorillaIk.dU + gorillaIk.dL - gorillaIk.eps;
-            gorillaIk.initialUpperLeft = gorillaIk.leftUpperArm.localRotation;
-            gorillaIk.initialLowerLeft = gorillaIk.leftLowerArm.localRotation;
-            gorillaIk.initialUpperRight = gorillaIk.rightUpperArm.localRotation;
-            gorillaIk.initialLowerRight = gorillaIk.rightLowerArm.localRotation;
-            gorillaIk.enabled = false;
-            gorillaIk.enabled = true;
-
-            #endregion
-
-            standRig.OnAppearanceChange += delegate (Configuration.PreviewTypes previewType)
-            {
-                // Update the stand based on our current preview type
-                shirtStand.transform.Find("UI/PrimaryDisplay/Text/Interaction/Silly Icon").gameObject.SetActive(previewType == Configuration.PreviewTypes.Silly);
-                shirtStand.transform.Find("UI/PrimaryDisplay/Text/Interaction/Steady Icon").gameObject.SetActive(previewType == Configuration.PreviewTypes.Steady);
-
-                AudioSource mainSource = shirtStand.transform.Find("MainSource").GetComponent<AudioSource>();
-                mainSource.clip = previewType == Configuration.PreviewTypes.Silly ? _shirtAudioList[3] : _shirtAudioList[4];
-                mainSource.PlayOneShot(mainSource.clip, 1);
-            };
-
-            standRig.ShirtWorn += delegate ()
-            {
-                bool isActivated = standRig.ActiveShirt.Invisibility;
-                standRig.RigSkin.forceRenderingOff = isActivated;
-                standRig.Head.Find("Face").gameObject.SetActive(!isActivated);
-                standRig.Body.Find("Chest").gameObject.SetActive(!isActivated);
-                standRig.SillyHat.forceRenderingOff = isActivated;
-                standRig.SteadyHat.forceRenderingOff = isActivated;
-            };
-
-            _advancedState += delegate (bool isActive)
-            {
-                // Update the stand based on our current advanced state
-                shirtStand.transform.Find("UI/PrimaryDisplay/Text").gameObject.SetActive(!isActive);
-                shirtStand.transform.Find("UI/PrimaryDisplay/AdvancedText").gameObject.SetActive(isActive);
-
-                StringBuilder str = new();
-                str.Append("Shirts: ").Append(_packList.Select(a => a.PackagedShirts.Count).Sum()).AppendLine();
-                str.Append("Packs: ").Append(_packList.Count);
-                shirtStand.transform.Find("UI/PrimaryDisplay/AdvancedText/Left Body").GetComponent<Text>().text = str.ToString();
-
-                str = new();
-                str.Append("Build Type: ");
-#if DEBUG
-                str.AppendLine("Debug");
-#else
-                str.AppendLine("Release");
-#endif
-                str.Append("Build Version: ").Append(Constants.Version);
-                shirtStand.transform.Find("UI/PrimaryDisplay/AdvancedText/Right Body").GetComponent<Text>().text = str.ToString();
-            };
-
-            standRig.SillyHat = standRig.Head.Find("SillyFlowerCrown").GetComponent<MeshRenderer>();
-            standRig.SteadyHat = standRig.Head.Find("SteadyHeadphones").GetComponent<MeshRenderer>();
-            standRig.SetAppearance(_config.CurrentPreview.Value == Configuration.PreviewTypes.Silly);
-            standRig.SetTagOffset(_config.CurrentTagOffset.Value);
-
-            var uiDisplayParent = shirtStand.transform.Find("UI/PrimaryDisplay/Text");
-            var standDisplay = new ShirtDisplay
-            {
-                Main = uiDisplayParent.Find("Main").GetComponent<Text>(),
-                Body = uiDisplayParent.Find("Body").GetComponent<Text>(),
-                Version = uiDisplayParent.Find("Version").GetComponent<Text>(),
-                Equip = uiDisplayParent.Find("Interaction/Equip").GetComponent<Text>(),
-                Pack = uiDisplayParent.Find("Interaction/Pack").GetComponent<Text>(),
-                Tag = uiDisplayParent.Find("Interaction/Nametag").GetComponent<Text>(),
-                SlotParent = uiDisplayParent.Find("Interaction/Slots").gameObject
-            };
-
-            for (int x = 0; x < standDisplay.SlotParent.transform.childCount; x++)
-            {
-                var slotItem = standDisplay.SlotParent.transform.GetChild(x);
-                standDisplay.SlotItems.Add(slotItem.gameObject);
-            }
-            standDisplay.SetSlots(null);
-
-            // Primary button selection
-            var uiButtonsParent = shirtStand.transform.Find("UI/PrimaryDisplay/Buttons");
-            var buttonList = uiButtonsParent.GetComponentsInChildren<BoxCollider>().ToList();
-            buttonList.ForEach(a =>
-            {
-                var newButton = a.gameObject.AddComponent<Button>();
-                newButton.btnType = Button.GetButtonType(a.name);
-                newButton.btnAction += delegate (GorillaTriggerColliderHandIndicator component)
-                {
-                    var audioSource = component.isLeftHand ? GorillaTagger.Instance.offlineVRRig.leftHandPlayer : GorillaTagger.Instance.offlineVRRig.rightHandPlayer;
-                    audioSource.clip = _shirtAudioList[2];
-                    audioSource.PlayOneShot(audioSource.clip, 0.44f);
-
-                    ButtonType currentType = newButton.btnType;
-                    if (_buttonDict.TryGetValue(currentType, out Action value))
-                    {
-                        if (_packList.Count == 0) return;
-                        value.Invoke();
-                    }
-                };
-                _advancedState += delegate (bool isActive)
-                {
-                    ButtonType currentType = newButton.btnType;
-                    newButton.gameObject.SetActive(!isActive || currentType == ButtonType.AdvancedTab);
-                };
-            });
-
-            // Top button selection
-            uiButtonsParent = shirtStand.transform.Find("UI/TopSelector/Buttons");
-            buttonList = uiButtonsParent.GetComponentsInChildren<BoxCollider>().ToList();
-            buttonList.ForEach(a =>
-            {
-                var newButton = a.gameObject.AddComponent<Button>();
-                newButton.btnType = Button.GetButtonType(a.name);
-                newButton.btnAction += delegate (GorillaTriggerColliderHandIndicator component)
-                {
-                    var audioSource = component.isLeftHand ? GorillaTagger.Instance.offlineVRRig.leftHandPlayer : GorillaTagger.Instance.offlineVRRig.rightHandPlayer;
-                    audioSource.clip = _shirtAudioList[2];
-                    audioSource.PlayOneShot(audioSource.clip, 0.44f);
-
-                    ButtonType currentType = newButton.btnType;
-                    if (_buttonDict.TryGetValue(currentType, out Action value))
-                    {
-                        if (_packList.Count == 0) return;
-                        value.Invoke();
-                    }
-                };
-                _advancedState += delegate (bool isActive)
-                {
-                    ButtonType currentType = newButton.btnType;
-                    newButton.gameObject.SetActive(!isActive || currentType == ButtonType.AdvancedTab);
-                };
-            });
-
-            StringBuilder str = new StringBuilder().Append("<size=10>- Loading Shirts -</size>").AppendLines(4);
-            str.Append("The mod is currently loading in").AppendLines(2).Append("Shirts found within your files.").AppendLines(3);
-            str.Append("Please wait for these files to").AppendLines(2).Append("be loaded into the mod.");
-            standDisplay.SetDisplay(str.ToString(), string.Empty);
-            standDisplay.SetVersion("v" + "1.0.0");
-
-            return new Stand()
-            {
-                Object = shirtStand,
-                Display = standDisplay,
-                Rig = standRig
-            };
+            File.WriteAllBytes(file, ImageConversion.EncodeToPNG(tex));
+            yield break;
         }
 
         public override async void OnJoinedRoom()

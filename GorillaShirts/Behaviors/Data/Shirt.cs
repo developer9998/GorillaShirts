@@ -20,6 +20,7 @@ namespace GorillaShirts.Behaviors.Data
         public GameObject RawAsset;
         public List<Sector> SectorList = new();
         public List<Renderer> FurMatchList = new();
+        public List<bool> SlotData;
 
         public Shirt(string name, string displayName, string fileName)
         {
@@ -31,7 +32,8 @@ namespace GorillaShirts.Behaviors.Data
         public List<bool> GetSlotData()
         {
             if (RawAsset == null || Pair.myDataJSON == null) return null;
-            return new List<bool>()
+
+            SlotData ??= new List<bool>()
             {
                 RawAsset.GetComponentInChildren<AudioSource>(),
                 Pair.myDataJSON.infoConfig.customColors,
@@ -39,6 +41,8 @@ namespace GorillaShirts.Behaviors.Data
                 RawAsset.GetComponentInChildren<Light>(),
                 RawAsset.GetComponentInChildren<ParticleSystem>()
             };
+
+            return SlotData;
         }
     }
 }

@@ -12,8 +12,8 @@ namespace GorillaShirts.Behaviors.Models
     {
         private bool Cooldown;
 
-        public event Action ShirtWorn;
-        public event Action ShirtRemoved;
+        public event Action OnShirtWorn;
+        public event Action OnShirtRemoved;
 
         public Transform RigParent;
         public SkinnedMeshRenderer RigSkin;
@@ -56,7 +56,7 @@ namespace GorillaShirts.Behaviors.Models
                     a.SetActive(true);
                     a.GetComponent<VisualParent>().Rig = this;
                 });
-                ShirtWorn?.Invoke();
+                OnShirtWorn?.Invoke();
                 return;
             }
 
@@ -85,7 +85,7 @@ namespace GorillaShirts.Behaviors.Models
             }
             Cooldown = false;
             CachedObjects.Add(myShirt, newObjects);
-            ShirtWorn?.Invoke();
+            OnShirtWorn?.Invoke();
         }
 
         public void Remove()
@@ -94,7 +94,7 @@ namespace GorillaShirts.Behaviors.Models
             {
                 var setObjects = CachedObjects[ActiveShirt];
                 setObjects.ForEach(a => a.SetActive(false));
-                ShirtRemoved?.Invoke();
+                OnShirtRemoved?.Invoke();
             }
             ActiveShirt = null;
         }

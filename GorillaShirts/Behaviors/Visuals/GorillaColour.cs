@@ -30,7 +30,7 @@ namespace GorillaShirts.Behaviors.Visuals
 
             float deltaTime = 15f * Time.deltaTime;
             _currentColour = new(Mathf.Lerp(_currentColour.r, _targetColour.r, deltaTime), Mathf.Lerp(_currentColour.g, _targetColour.g, deltaTime), Mathf.Lerp(_currentColour.b, _targetColour.b, deltaTime));
-            _material.color = BetterColour(_currentColour);
+            _material.SetColor("_BaseColor", BetterColour(_currentColour));
         }
 
         private Color BetterColour(Color original)

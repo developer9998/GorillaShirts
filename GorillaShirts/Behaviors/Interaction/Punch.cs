@@ -52,12 +52,12 @@ namespace GorillaShirts.Behaviors.Interaction
             if (other.TryGetComponent(out GorillaTriggerColliderHandIndicator component))
             {
                 GorillaVelocityEstimator _velocityEstimator = component.isLeftHand ? _leftVelocity : _rightVelocity;
-                if (_velocityEstimator.linearVelocity.magnitude < 2.2f) return;
+                if (_velocityEstimator.linearVelocity.magnitude < 2.4f) return;
 
                 if (PunchMethod())
                 {
                     _punchSource.Play();
-                    GorillaTagger.Instance.StartVibration(component.isLeftHand, GorillaTagger.Instance.taggedHapticStrength / 1.5f, GorillaTagger.Instance.tapHapticDuration / 1.25f);
+                    GorillaTagger.Instance.StartVibration(component.isLeftHand, GorillaTagger.Instance.taggedHapticStrength / 1.3f, GorillaTagger.Instance.tapHapticDuration / 1.25f);
                 }
             }
         }
