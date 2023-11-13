@@ -18,7 +18,7 @@ In the [latest release](https://github.com/developer9998/GorillaShirts/releases/
 <b>Make sure you extract the folder as ``GorillaShirts`` before installation.</b>
 
 ## Installation
-Using [MonkeModManager](https://github.com/DeadlyKitten/MonkeModManager/releases), install ``Bepinject``, ``Extenject``, and ``Utilla``.<br>
+Using [MonkeModManager](https://github.com/developer9998/GorillaShirts/releases/latest), install ``Bepinject``, ``Extenject``, and ``Newtonsoft.Json``.<br>
 Go to the ``Utilites`` tab, click on ``BepInEx Folder``, place the ``GorillaShirts`` folder in the ``plugins`` folder.
 
 ## Issues
