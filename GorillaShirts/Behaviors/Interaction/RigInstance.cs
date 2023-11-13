@@ -24,7 +24,7 @@ namespace GorillaShirts.Behaviors.Interaction
             if (_Initialized) return;
             _Initialized = true;
 
-            _events = new Events(); 
+            _events = new Events();
             VRRig vrRig = GetComponent<VRRig>();
             if (Rig == null)
             {
@@ -66,7 +66,7 @@ namespace GorillaShirts.Behaviors.Interaction
         }
 
         public void OnShirtWorn()
-		{
+        {
             SetInvisiblityState(Rig.ActiveShirt.Invisibility);
         }
 

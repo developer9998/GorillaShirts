@@ -24,10 +24,10 @@ namespace GorillaShirts.Behaviors.Tools
             await FindShirtsFromPackDirectory(myDirectory);
 
             var shirtPackDirectories = Directory.GetDirectories(myDirectory, "*", SearchOption.AllDirectories);
-            if (shirtPackDirectories.Length > 0)
+            foreach (var directory in shirtPackDirectories)
             {
-                shirtPackDirectories = shirtPackDirectories.OrderBy(a => Path.GetFileName(a) == "Default Shirts" ? 0 : 1).ToArray();
-                foreach (var folderDirectory in shirtPackDirectories) await FindShirtsFromPackDirectory(folderDirectory);
+                Logging.Info($"Locating shirt files from directory '{Path.GetFileName(directory)}'");
+                await FindShirtsFromPackDirectory(directory);
             }
 
             return _packDictionary.Values.ToList();
@@ -47,8 +47,6 @@ namespace GorillaShirts.Behaviors.Tools
 
             FileInfo[] fileInfos = directoryInfo.GetFiles("*.shirt");
             if (fileInfos.Length == 0) return;
-
-            Logging.Info($"Locating shirt files from directory '{Path.GetFileName(path)}'");
 
             Pack currentPack = null;
             foreach (var fileInfo in fileInfos)

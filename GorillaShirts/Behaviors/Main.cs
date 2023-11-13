@@ -1,4 +1,5 @@
-﻿using GorillaLocomotion;
+﻿using BepInEx;
+using GorillaLocomotion;
 using GorillaNetworking;
 using GorillaShirts.Behaviors.Data;
 using GorillaShirts.Behaviors.Interaction;
@@ -6,10 +7,12 @@ using GorillaShirts.Behaviors.Models;
 using GorillaShirts.Behaviors.Tools;
 using GorillaShirts.Behaviors.UI;
 using GorillaShirts.Extensions;
+using GorillaShirts.Patches;
 using GorillaShirts.Utilities;
 using HarmonyLib;
 using Photon.Pun;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -19,11 +22,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
-using System.Collections;
 using Button = GorillaShirts.Behaviors.Interaction.Button;
-using BepInEx;
-using static BoingKit.BoingBones;
-using GorillaShirts.Patches;
 
 namespace GorillaShirts.Behaviors
 {
@@ -409,18 +408,18 @@ namespace GorillaShirts.Behaviors
             OnInfoMenuChanged += delegate (bool isActive)
             {
                 shirtStand.transform.Find("UI/PrimaryDisplay/Text").gameObject.SetActive(!isActive);
-                shirtStand.transform.Find("UI/PrimaryDisplay/AdvancedText").gameObject.SetActive(isActive);
+                shirtStand.transform.Find("UI/PrimaryDisplay/Info Text").gameObject.SetActive(isActive);
 
                 StringBuilder stringBuilder = new();
                 stringBuilder.Append("Shirts: ").Append(_packList.Select((Pack a) => a.PackagedShirts.Count).Sum()).AppendLine();
                 stringBuilder.Append("Packs: ").Append(_packList.Count);
-                shirtStand.transform.Find("UI/PrimaryDisplay/AdvancedText/Left Body").GetComponent<Text>().text = stringBuilder.ToString();
+                shirtStand.transform.Find("UI/PrimaryDisplay/Info Text/Left Body").GetComponent<Text>().text = stringBuilder.ToString();
 
                 stringBuilder = new StringBuilder();
                 stringBuilder.Append("Build Type: ");
                 stringBuilder.AppendLine("Debug");
                 stringBuilder.Append("Build Version: ").Append("1.0.0");
-                shirtStand.transform.Find("UI/PrimaryDisplay/AdvancedText/Right Body").GetComponent<Text>().text = stringBuilder.ToString();
+                shirtStand.transform.Find("UI/PrimaryDisplay/Info Text/Right Body").GetComponent<Text>().text = stringBuilder.ToString();
             };
 
             standRig.SillyHat = standRig.Head.Find("SillyFlowerCrown").GetComponent<MeshRenderer>();
@@ -464,7 +463,7 @@ namespace GorillaShirts.Behaviors
                         {
                             Player.Instance.materialData.Count - 1,
                             component.isLeftHand,
-                            0.07f
+                            0.035f
                         });
                     }
 
@@ -521,6 +520,12 @@ namespace GorillaShirts.Behaviors
                 }
             }
 
+            WardrobePatches.CosmeticUpdated += delegate (CosmeticsController.CosmeticCategory category)
+            {
+                bool condition = _localRig.Rig.ActiveShirt != null && _config.RemoveBaseItem.Value ? (_localRig.Rig.ActiveShirt.SectorList.Any(a => a.Type == SectorType.Head) && category == CosmeticsController.CosmeticCategory.Hat) || category == CosmeticsController.CosmeticCategory.Badge : false;
+                if (condition) SetShirt(_localRig.Rig.ActiveShirt);
+            };
+
             #endregion
 
             if (_packList == null || _packList.Count == 0)
@@ -561,6 +566,11 @@ namespace GorillaShirts.Behaviors
             _localRig.Rig.SetTagOffset(_localRig.Rig.ActiveShirt != null ? _config.CurrentTagOffset.Value : 0);
             _config.SetCurrentShirt(_localRig.Rig.ActiveShirt != null ? myShirt.Name : "None");
 
+            if (_localRig.Rig.ActiveShirt != null && _config.RemoveBaseItem.Value)
+            {
+                ShirtUtils.RemoveItem(CosmeticsController.CosmeticCategory.Badge, CosmeticsController.CosmeticSlots.Badge);
+                if (_localRig.Rig.ActiveShirt.SectorList.Any(a => a.Type == SectorType.Head)) ShirtUtils.RemoveItem(CosmeticsController.CosmeticCategory.Hat, CosmeticsController.CosmeticSlots.Hat);
+            }
             if (_config.RemoveBaseItem.Value && _localRig.Rig.ActiveShirt != null)
                 ShirtUtils.RemoveItem(CosmeticsController.CosmeticCategory.Badge, CosmeticsController.CosmeticSlots.Badge);
 

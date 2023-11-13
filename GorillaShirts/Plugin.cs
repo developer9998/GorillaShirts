@@ -4,7 +4,6 @@ using GorillaShirts.Behaviors.Tools;
 using GorillaShirts.Patches;
 using HarmonyLib;
 using System;
-using System.Reflection;
 
 namespace GorillaShirts
 {
