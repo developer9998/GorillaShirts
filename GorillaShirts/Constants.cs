@@ -3,7 +3,7 @@
     public class Constants
     {
         // General
-        public const string Guid = "dev.gorillashirts", Name = "GorillaShirts", Version = "1.0.0";
+        public const string Guid = "dev.gorillashirts", Name = "GorillaShirts", Version = "1.0.1";
 
         // Assets
         public const string BundlePath = "GorillaShirts.Resources.shirtbundle", StandName = "ShirtStand";
