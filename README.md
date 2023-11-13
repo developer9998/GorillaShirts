@@ -18,8 +18,8 @@ In the [latest release](https://github.com/developer9998/GorillaShirts/releases/
 <b>Make sure you extract the folder as ``GorillaShirts`` before installation.</b>
 
 ## Installation
-Using [MonkeModManager](https://github.com/DeadlyKitten/MonkeModManager/releases), download ``Bepinject``, ``Extenject``, and ``Utilla``.<br>
-When downloaded, go to the ``Utilites`` tab, and click on ``BepInEx Folder``. From there simply place your ``GorillaShirts`` folder in the ``plugins`` folder.
+Using [MonkeModManager](https://github.com/DeadlyKitten/MonkeModManager/releases), install ``Bepinject``, ``Extenject``, and ``Utilla``.<br>
+Go to the ``Utilites`` tab, click on ``BepInEx Folder``, place the ``GorillaShirts`` folder in the ``plugins`` folder.
 
 ## Issues
 If you run into any issues with the mod, please create an issue under the [Issues](https://github.com/developer9998/GorillaShirts/issues) tab of the repository.
@@ -34,6 +34,4 @@ If you run into any issues with the mod, please create an issue under the [Issue
 - **ojsauce** - Ideas
 - **ch7ken** - "Turtleneck" creation help
 
-<h2>
-  <i>This product is not affiliated with Gorilla Tag or Another Axiom LLC and is not endorsed or otherwise sponsored by Another Axiom LLC. Portions of the materials contained herein are property of Another Axiom LLC. © 2021 Another Axiom LLC.</i>
-</h2>
+### <i>This product is not affiliated with Gorilla Tag or Another Axiom LLC and is not endorsed or otherwise sponsored by Another Axiom LLC. Portions of the materials contained herein are property of Another Axiom LLC. © 2021 Another Axiom LLC.</i>
