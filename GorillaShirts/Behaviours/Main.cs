@@ -417,7 +417,12 @@ namespace GorillaShirts.Behaviors
 
                 stringBuilder = new StringBuilder();
                 stringBuilder.Append("Build Type: ");
+#if DEBUG
                 stringBuilder.AppendLine("Debug");
+#else
+                stringBuilder.AppendLine("Release");
+#endif
+
                 stringBuilder.Append("Build Version: ").Append("1.0.0");
                 shirtStand.transform.Find("UI/PrimaryDisplay/Info Text/Right Body").GetComponent<Text>().text = stringBuilder.ToString();
             };
@@ -425,7 +430,6 @@ namespace GorillaShirts.Behaviors
             standRig.SillyHat = standRig.Head.Find("SillyFlowerCrown").GetComponent<MeshRenderer>();
             standRig.SteadyHat = standRig.Head.Find("SteadyHeadphones").GetComponent<MeshRenderer>();
             standRig.SetAppearance(_config.CurrentPreview.Value == Configuration.PreviewTypes.Silly);
-            standRig.SetTagOffset(_config.CurrentTagOffset.Value);
 
             Transform uiDisplayParent = shirtStand.transform.Find("UI/PrimaryDisplay/Text");
             ShirtDisplay standDisplay = new()
@@ -492,7 +496,7 @@ namespace GorillaShirts.Behaviors
                 Object = shirtStand
             };
 
-            #endregion
+#endregion
 
             // Loads a set of packs from our plugins directory and attempts to wear our shirt from a previous session
             #region Pack Initialization
@@ -543,6 +547,7 @@ namespace GorillaShirts.Behaviors
             }
             else
             {
+                standRig.SetTagOffset(_config.CurrentTagOffset.Value);
                 _stand.Object.transform.Find("Activation Source").GetComponent<AudioSource>().Play();
 
                 // Adjust the stand to display our currently worn shirt
