@@ -36,5 +36,6 @@ namespace GorillaShirts.Behaviours.Editor
         public bool wobbleLoose = true;
         public bool wobbleLockHorizontal;
         public bool wobbleLockVertical;
+        public bool wobbleLockRoot;
     }
 }

@@ -181,7 +181,8 @@ namespace GorillaShirts.Behaviours.Tools
                                     ParamsOverride = new()
                                     {
                                         Params = boneComponent.Params
-                                    }
+                                    },
+                                    LooseRoot = !shirtDataJSON.infoConfig.wobbleLockRoot
                                 } : new()
                                 {
                                     Root = bone,
@@ -191,7 +192,8 @@ namespace GorillaShirts.Behaviours.Tools
                                     ParamsOverride = new()
                                     {
                                         Params = boneComponent.Params
-                                    }
+                                    },
+                                    LooseRoot = !shirtDataJSON.infoConfig.wobbleLockRoot
                                 };
                                 boneChainList.Add(chain);
                             }
