@@ -1,7 +1,7 @@
-﻿using GorillaShirts.Behaviors.Models;
+﻿using GorillaShirts.Behaviours.Models;
 using UnityEngine;
 
-namespace GorillaShirts.Behaviors.Visuals
+namespace GorillaShirts.Behaviours.Visuals
 {
     public class VisualParent : MonoBehaviour
     {

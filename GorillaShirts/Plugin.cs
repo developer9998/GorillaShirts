@@ -1,6 +1,6 @@
 ﻿using BepInEx;
 using Bepinject;
-using GorillaShirts.Behaviors.Tools;
+using GorillaShirts.Behaviours.Tools;
 using GorillaShirts.Patches;
 using HarmonyLib;
 using System;

@@ -1,7 +1,9 @@
-﻿using GorillaNetworking;
-using GorillaShirts.Behaviors.Data;
-using GorillaShirts.Behaviors.Editor;
-using GorillaShirts.Behaviors.Visuals;
+﻿using BoingKit;
+using GorillaExtensions;
+using GorillaNetworking;
+using GorillaShirts.Behaviours.Data;
+using GorillaShirts.Behaviours.Editor;
+using GorillaShirts.Behaviours.Visuals;
 using GorillaShirts.Extensions;
 using System;
 using System.Collections.Generic;
@@ -11,9 +13,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using static BoingKit.BoingBones;
 using Object = UnityEngine.Object;
 
-namespace GorillaShirts.Behaviors.Tools
+namespace GorillaShirts.Behaviours.Tools
 {
     public class Installation
     {
@@ -118,20 +121,82 @@ namespace GorillaShirts.Behaviors.Tools
                         };
                         newShirt.SectorList.Add(newSector);
 
-                        var sectorVP = newSector.Object.AddComponent<VisualParent>();
-                        foreach (var itemObject in newSector.Object.GetComponentsInChildren<Transform>(false))
+                        VisualParent visualParent = newSector.Object.AddComponent<VisualParent>();
+
+                        List<Transform> bones = new(), ignoreBones = new();
+                        foreach (var itemObject in newSector.Object.GetComponentsInChildren<Transform>(true))
                         {
-                            if (itemObject.transform.GetComponentsInChildren<Transform>().FirstOrDefault(a => a.name.StartsWith("G_Fur")) != null && itemObject.GetComponent<Renderer>() != null)
+                            bool colourSupport = itemObject.GetComponent<Renderer>();
+                            bool customColour = shirtDataJSON.infoConfig.customColors;
+
+                            if (itemObject.childCount > 0)
                             {
-                                itemObject.gameObject.AddComponent<GorillaFur>()._visualParent = sectorVP;
-                                continue;
+                                for (int i = 0; i < itemObject.childCount; i++)
+                                {
+                                    Transform child = itemObject.GetChild(i);
+                                    if (child.name == "Wobble0")
+                                    {
+                                        bones.Add(itemObject);
+                                    }
+                                    else if (child.name == "Wobble1")
+                                    {
+                                        ignoreBones.Add(itemObject);
+                                    }
+
+                                    if (child.name.StartsWith("G_Fur") && colourSupport)
+                                    {
+                                        itemObject.gameObject.GetOrAddComponent<GorillaFur>()._visualParent = visualParent;
+                                    }
+                                }
                             }
 
-                            if (itemObject.GetComponent<Renderer>() != null && itemObject.GetComponent<Renderer>().material.HasProperty("_BaseColor"))
+                            bool isFur = itemObject.GetComponent<GorillaFur>();
+
+                            if (colourSupport && customColour && !isFur && itemObject.GetComponent<Renderer>().material.HasProperty("_BaseColor"))
                             {
-                                if (!shirtDataJSON.infoConfig.customColors) continue;
-                                itemObject.gameObject.AddComponent<GorillaColour>()._visualParent = sectorVP;
+                                itemObject.gameObject.AddComponent<GorillaColour>()._visualParent = visualParent;
                             }
+                        }
+
+                        if (bones.Count > 0)
+                        {
+                            BoingBones boneComponent = newSector.Object.AddComponent<BoingBones>();
+                            boneComponent.LockTranslationX = shirtDataJSON.infoConfig.wobbleLockHorizontal;
+                            boneComponent.LockTranslationY = shirtDataJSON.infoConfig.wobbleLockVertical;
+                            boneComponent.LockTranslationZ = shirtDataJSON.infoConfig.wobbleLockHorizontal;
+
+                            List<Chain> boneChainList = new();
+                            foreach (var bone in bones)
+                            {
+                                Chain chain = !shirtDataJSON.infoConfig.wobbleLoose ? new()
+                                {
+                                    Root = bone,
+                                    Exclusion = ignoreBones.ToArray(),
+                                    PoseStiffnessCurveType = Chain.CurveType.Custom,
+                                    PoseStiffnessCustomCurve = AnimationCurve.Linear(0f, 0.7f, 1f, 0.6f),
+                                    BendAngleCapCurveType = Chain.CurveType.Custom,
+                                    BendAngleCapCustomCurve = AnimationCurve.Linear(0f, 0.1f, 1f, 0.06f),
+                                    SquashAndStretchCurveType = Chain.CurveType.ConstantZero,
+                                    LengthStiffnessCurveType = Chain.CurveType.ConstantOne,
+                                    ParamsOverride = new()
+                                    {
+                                        Params = boneComponent.Params
+                                    }
+                                } : new()
+                                {
+                                    Root = bone,
+                                    Exclusion = ignoreBones.ToArray(),
+                                    SquashAndStretchCurveType = Chain.CurveType.ConstantZero,
+                                    LengthStiffnessCurveType = Chain.CurveType.ConstantOne,
+                                    ParamsOverride = new()
+                                    {
+                                        Params = boneComponent.Params
+                                    }
+                                };
+                                boneChainList.Add(chain);
+                            }
+
+                            boneComponent.BoneChains = boneChainList.ToArray();
                         }
                     }
                 }

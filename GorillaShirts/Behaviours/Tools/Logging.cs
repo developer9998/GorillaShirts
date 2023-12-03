@@ -1,6 +1,6 @@
 ﻿using BepInEx.Logging;
 
-namespace GorillaShirts.Behaviors.Tools
+namespace GorillaShirts.Behaviours.Tools
 {
     public class Logging
     {

@@ -1,11 +1,11 @@
-﻿using GorillaShirts.Behaviors.Data;
+﻿using GorillaShirts.Behaviours.Data;
 using GorillaShirts.Extensions;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace GorillaShirts.Behaviors.UI
+namespace GorillaShirts.Behaviours.UI
 {
     public class ShirtDisplay
     {

@@ -1,8 +1,8 @@
-﻿using GorillaShirts.Behaviors.Tools;
+﻿using GorillaShirts.Behaviours.Tools;
 using System;
 using UnityEngine;
 
-namespace GorillaShirts.Behaviors.Models
+namespace GorillaShirts.Behaviours.Models
 {
     public class StandRig : Rig
     {

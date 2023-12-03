@@ -2,7 +2,7 @@
 using Bepinject;
 using UnityEngine;
 
-namespace GorillaShirts.Behaviors.Tools
+namespace GorillaShirts.Behaviours.Tools
 {
     public class Configuration
     {

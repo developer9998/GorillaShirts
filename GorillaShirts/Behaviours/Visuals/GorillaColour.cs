@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace GorillaShirts.Behaviors.Visuals
+namespace GorillaShirts.Behaviours.Visuals
 {
     public class GorillaColour : MonoBehaviour
     {
@@ -20,7 +20,7 @@ namespace GorillaShirts.Behaviors.Visuals
         {
             if (_visualParent.Rig == null) return;
             _actualPlayer ??= _visualParent.Rig.RigParent.GetComponent<VRRig>();
-            _targetColour = _actualPlayer != null ? (_actualPlayer.materialsToChangeTo[_actualPlayer.setMatIndex].color == Color.white ? _actualPlayer.materialsToChangeTo[0].color : _actualPlayer.materialsToChangeTo[_actualPlayer.setMatIndex].color) : _visualParent.Rig.RigSkin.material.color;
+            _targetColour = _actualPlayer != null ? _actualPlayer.materialsToChangeTo[_actualPlayer.setMatIndex].color == Color.white ? _actualPlayer.materialsToChangeTo[0].color : _actualPlayer.materialsToChangeTo[_actualPlayer.setMatIndex].color : _visualParent.Rig.RigSkin.material.color;
 
             if (!_colourInitialized)
             {

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace GorillaShirts.Behaviors.Visuals
+namespace GorillaShirts.Behaviours.Visuals
 {
     public class GorillaFur : MonoBehaviour
     {
@@ -19,15 +19,17 @@ namespace GorillaShirts.Behaviors.Visuals
             _renderer = GetComponent<Renderer>();
             _actualPlayer ??= _visualParent.Rig.RigParent.GetComponent<VRRig>();
 
-            mode = name[^1].ToString();
+            mode = transform.GetChild(transform.childCount - 1).name[^1].ToString();
             switch (mode)
             {
                 case "0":
-                    _renderer.material = _actualPlayer.materialsToChangeTo[0];
+                    _renderer.material = _actualPlayer != null ? _actualPlayer.materialsToChangeTo[0] : _visualParent.Rig.RigSkin.material;
                     break;
                 case "1":
-                    _material = new Material(_actualPlayer.materialsToChangeTo[0]);
-                    _material.color = Color.white;
+                    _material = new Material(_actualPlayer != null ? _actualPlayer.materialsToChangeTo[0] : _visualParent.Rig.RigSkin.material)
+                    {
+                        color = Color.white
+                    };
                     _renderer.material = _material;
                     break;
             }
@@ -39,7 +41,7 @@ namespace GorillaShirts.Behaviors.Visuals
             if (mode != "2") return;
 
             _actualPlayer ??= _visualParent.Rig.RigParent.GetComponent<VRRig>();
-            _renderer.material = _actualPlayer.mainSkin.material;
+            _renderer.material = _actualPlayer != null ? _actualPlayer.mainSkin.material : _visualParent.Rig.RigSkin.material;
         }
     }
 }

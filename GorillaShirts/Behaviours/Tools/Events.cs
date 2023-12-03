@@ -2,7 +2,7 @@
 using Photon.Realtime;
 using System;
 
-namespace GorillaShirts.Behaviors.Tools
+namespace GorillaShirts.Behaviours.Tools
 {
     public class Events
     {

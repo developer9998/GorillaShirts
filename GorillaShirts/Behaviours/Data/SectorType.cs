@@ -1,4 +1,4 @@
-﻿namespace GorillaShirts.Behaviors.Data
+﻿namespace GorillaShirts.Behaviours.Data
 {
     public enum SectorType
     {

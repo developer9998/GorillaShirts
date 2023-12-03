@@ -1,11 +1,14 @@
 ﻿using System;
 
-namespace GorillaShirts.Behaviors.Editor
+namespace GorillaShirts.Behaviours.Editor
 {
     [Serializable]
     public class SConfig
     {
         public bool customColors;
         public bool invisibility;
+        public bool wobbleLoose;
+        public bool wobbleLockHorizontal;
+        public bool wobbleLockVertical;
     }
 }

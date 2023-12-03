@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace GorillaShirts.Behaviors.Editor
+namespace GorillaShirts.Behaviours.Editor
 {
     [AddComponentMenu("GorillaShirts/ShirtDescriptor")]
     public class ShirtDescriptor : MonoBehaviour
@@ -12,6 +12,8 @@ namespace GorillaShirts.Behaviors.Editor
         // Base data
         public string Name;
         public string Author;
+
+        [TextArea(1, 2)]
         public string Info;
 
         // Objects 
@@ -29,5 +31,10 @@ namespace GorillaShirts.Behaviors.Editor
         public bool customColors;
         public bool invisibility;
         public List<GameObject> FurTextures;
+
+        // Settings
+        public bool wobbleLoose = true;
+        public bool wobbleLockHorizontal;
+        public bool wobbleLockVertical;
     }
 }

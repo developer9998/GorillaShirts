@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace GorillaShirts.Behaviors.Interaction
+namespace GorillaShirts.Behaviours.Interaction
 {
     public class Button : MonoBehaviour
     {

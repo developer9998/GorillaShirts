@@ -1,8 +1,8 @@
 ﻿using ExitGames.Client.Photon;
 using GorillaNetworking;
-using GorillaShirts.Behaviors.Data;
-using GorillaShirts.Behaviors.Interaction;
-using GorillaShirts.Behaviors.Models;
+using GorillaShirts.Behaviours.Data;
+using GorillaShirts.Behaviours.Interaction;
+using GorillaShirts.Behaviours.Models;
 using GorillaShirts.Utilities;
 using Photon.Pun;
 using Photon.Realtime;
@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
 
-namespace GorillaShirts.Behaviors.Tools
+namespace GorillaShirts.Behaviours.Tools
 {
     public class Networking : MonoBehaviourPunCallbacks, IInitializable
     {

@@ -1,11 +1,11 @@
-﻿using GorillaShirts.Behaviors.Models;
-using GorillaShirts.Behaviors.Tools;
+﻿using GorillaShirts.Behaviours.Models;
+using GorillaShirts.Behaviours.Tools;
 using Photon.Pun;
 using Photon.Realtime;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace GorillaShirts.Behaviors.Interaction
+namespace GorillaShirts.Behaviours.Interaction
 {
     public class RigInstance : MonoBehaviour
     {

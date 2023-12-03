@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace GorillaShirts.Behaviors.Editor
+namespace GorillaShirts.Behaviours.Editor
 {
     [Serializable]
     public class SDescriptor

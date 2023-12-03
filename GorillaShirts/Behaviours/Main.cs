@@ -1,11 +1,11 @@
 ﻿using BepInEx;
 using GorillaLocomotion;
 using GorillaNetworking;
-using GorillaShirts.Behaviors.Data;
-using GorillaShirts.Behaviors.Interaction;
-using GorillaShirts.Behaviors.Models;
-using GorillaShirts.Behaviors.Tools;
-using GorillaShirts.Behaviors.UI;
+using GorillaShirts.Behaviours.Data;
+using GorillaShirts.Behaviours.Interaction;
+using GorillaShirts.Behaviours.Models;
+using GorillaShirts.Behaviours.Tools;
+using GorillaShirts.Behaviours.UI;
 using GorillaShirts.Extensions;
 using GorillaShirts.Patches;
 using GorillaShirts.Utilities;
@@ -22,9 +22,9 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
-using Button = GorillaShirts.Behaviors.Interaction.Button;
+using Button = GorillaShirts.Behaviours.Interaction.Button;
 
-namespace GorillaShirts.Behaviors
+namespace GorillaShirts.Behaviours
 {
     public class Main : MonoBehaviourPunCallbacks, IInitializable
     {
@@ -157,7 +157,7 @@ namespace GorillaShirts.Behaviors
 
             Events.PlayShirtAudio += delegate (VRRig vrRig, int index, float volume)
             {
-                if (vrRig == null || index > (_shirtAudioList.Count - 1)) return;
+                if (vrRig == null || index > _shirtAudioList.Count - 1) return;
                 vrRig.tagSound.PlayOneShot(_shirtAudioList[index], volume);
             };
 
@@ -349,7 +349,7 @@ namespace GorillaShirts.Behaviors
             standRig.RightUpper = standRig.RightLower.parent;
 
             // Register the IK
-            GorillaIK gorillaIk = (standRig.RigParent).gameObject.AddComponent<GorillaIK>();
+            GorillaIK gorillaIk = standRig.RigParent.gameObject.AddComponent<GorillaIK>();
             gorillaIk.enabled = true;
             gorillaIk.targetLeft = shirtStand.transform.Find("Preview Gorilla/Rig/LeftTarget");
             gorillaIk.targetRight = shirtStand.transform.Find("Preview Gorilla/Rig/RightTarget");
@@ -380,7 +380,7 @@ namespace GorillaShirts.Behaviors
                 shirtStand.transform.Find("UI/PrimaryDisplay/Text/Interaction/Steady Icon").gameObject.SetActive(previewType == Configuration.PreviewTypes.Steady);
 
                 AudioSource component2 = shirtStand.transform.Find("MainSource").GetComponent<AudioSource>();
-                component2.clip = (previewType == Configuration.PreviewTypes.Silly) ? _shirtAudioList[3] : _shirtAudioList[4];
+                component2.clip = previewType == Configuration.PreviewTypes.Silly ? _shirtAudioList[3] : _shirtAudioList[4];
                 component2.PlayOneShot(component2.clip, 1f);
             };
 
@@ -392,8 +392,8 @@ namespace GorillaShirts.Behaviors
                 standRig.Head.Find("Face").gameObject.SetActive(!invisibility);
                 standRig.Body.Find("Chest").gameObject.SetActive(!invisibility);
 
-                standRig.SillyHat.forceRenderingOff = invisibility || standRig.ActiveShirt.SectorList.Any((Sector a) => a.Type == SectorType.Head);
-                standRig.SteadyHat.forceRenderingOff = invisibility || standRig.ActiveShirt.SectorList.Any((Sector a) => a.Type == SectorType.Head);
+                standRig.SillyHat.forceRenderingOff = invisibility || standRig.ActiveShirt.SectorList.Any((a) => a.Type == SectorType.Head);
+                standRig.SteadyHat.forceRenderingOff = invisibility || standRig.ActiveShirt.SectorList.Any((a) => a.Type == SectorType.Head);
 
                 standRig.CachedObjects[standRig.ActiveShirt].DoIf(a => a.GetComponentInChildren<AudioSource>(), a =>
                 {
@@ -411,7 +411,7 @@ namespace GorillaShirts.Behaviors
                 shirtStand.transform.Find("UI/PrimaryDisplay/Info Text").gameObject.SetActive(isActive);
 
                 StringBuilder stringBuilder = new();
-                stringBuilder.Append("Shirts: ").Append(_packList.Select((Pack a) => a.PackagedShirts.Count).Sum()).AppendLine();
+                stringBuilder.Append("Shirts: ").Append(_packList.Select((a) => a.PackagedShirts.Count).Sum()).AppendLine();
                 stringBuilder.Append("Packs: ").Append(_packList.Count);
                 shirtStand.transform.Find("UI/PrimaryDisplay/Info Text/Left Body").GetComponent<Text>().text = stringBuilder.ToString();
 
@@ -496,7 +496,7 @@ namespace GorillaShirts.Behaviors
                 Object = shirtStand
             };
 
-#endregion
+            #endregion
 
             // Loads a set of packs from our plugins directory and attempts to wear our shirt from a previous session
             #region Pack Initialization
@@ -526,7 +526,7 @@ namespace GorillaShirts.Behaviors
 
             WardrobePatches.CosmeticUpdated += delegate (CosmeticsController.CosmeticCategory category)
             {
-                bool condition = _localRig.Rig.ActiveShirt != null && _config.RemoveBaseItem.Value ? (_localRig.Rig.ActiveShirt.SectorList.Any(a => a.Type == SectorType.Head) && category == CosmeticsController.CosmeticCategory.Hat) || category == CosmeticsController.CosmeticCategory.Badge : false;
+                bool condition = _localRig.Rig.ActiveShirt != null && _config.RemoveBaseItem.Value ? _localRig.Rig.ActiveShirt.SectorList.Any(a => a.Type == SectorType.Head) && category == CosmeticsController.CosmeticCategory.Hat || category == CosmeticsController.CosmeticCategory.Badge : false;
                 if (condition) SetShirt(_localRig.Rig.ActiveShirt);
             };
 
@@ -609,7 +609,7 @@ namespace GorillaShirts.Behaviors
             RenderTexture.active = null;
             RenderTexture.ReleaseTemporary(renderTex);
 
-            File.WriteAllBytes(file, ImageConversion.EncodeToPNG(tex));
+            File.WriteAllBytes(file, tex.EncodeToPNG());
             yield break;
         }
 

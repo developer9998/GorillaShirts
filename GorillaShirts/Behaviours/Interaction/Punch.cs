@@ -2,7 +2,7 @@
 using GorillaLocomotion;
 using UnityEngine;
 
-namespace GorillaShirts.Behaviors.Interaction
+namespace GorillaShirts.Behaviours.Interaction
 {
     public class Punch : MonoBehaviour
     {
@@ -30,7 +30,7 @@ namespace GorillaShirts.Behaviors.Interaction
 
         public void Update()
         {
-            if (_punchState && Time.time > (_punchTimeLast + _punchDebounce))
+            if (_punchState && Time.time > _punchTimeLast + _punchDebounce)
             {
                 _animator.SetBool("Punch", false);
                 _punchState = false;
