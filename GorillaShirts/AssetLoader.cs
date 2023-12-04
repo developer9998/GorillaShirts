@@ -33,7 +33,6 @@ namespace GorillaShirts
 
         public async Task<T> LoadAsset<T>(string name) where T : Object
         {
-            // Check our object cache before potentially causing even more delays
             if (_assetCache.TryGetValue(name, out var _loadedObject)) return _loadedObject as T;
 
             if (!_bundleLoaded)

@@ -42,70 +42,70 @@ namespace GorillaShirts.Behaviours
 
         private Camera _currentCamera;
 
-        private List<AudioClip> _shirtAudioList;
+        private List<AudioClip> _shirtAudioList = new();
         private Dictionary<GTZone, Vector3[]> _standLocationData = new()
         {
             {
                 GTZone.forest,
                 new Vector3[] {
-                    new Vector3(-67.6651f, 12.07f, -80.438f),
-                    new Vector3(0f, 171.1801f, 0f)
+                    new(-67.6651f, 12.07f, -80.438f),
+                    new(0f, 171.1801f, 0f)
                 }
             },
             {
                 GTZone.cave,
                 new Vector3[] {
-                    new Vector3(-60.525f, -11.7064f, -41.7656f),
-                    new Vector3(0f, 267.9607f, 0f)
+                    new(-60.525f, -11.7064f, -41.7656f),
+                    new(0f, 267.9607f, 0f)
                 }
             },
             {
                 GTZone.canyon,
                 new Vector3[] {
-                    new Vector3(-100.246f, 17.9809f, -169.374f),
-                    new Vector3(0f, 297.5797f, 0f)
+                    new(-100.246f, 17.9809f, -169.374f),
+                    new(0f, 297.5797f, 0f)
                 }
             },
             {
                 GTZone.city,
                 new Vector3[] {
-                    new Vector3(-56.8213f, 17.0026f, -120.0597f),
-                    new Vector3(0f, 316.1757f, 0f)
+                    new(-56.8213f, 17.0026f, -120.0597f),
+                    new(0f, 316.1757f, 0f)
                 }
             },
             {
                 GTZone.mountain,
                 new Vector3[] {
-                    new Vector3(-24.1866f, 18.1936f, -95.9086f),
-                    new Vector3(0f, 250.1091f, 0f)
+                    new(-24.1866f, 18.1936f, -95.9086f),
+                    new(0f, 250.1091f, 0f)
                 }
             },
             {
                 GTZone.basement,
                 new Vector3[] {
-                    new Vector3(-34.8884f, 14.4027f, -95.1101f),
-                    new Vector3(0f, 11.5272f, 0f)
+                    new(-34.8884f, 14.4027f, -95.1101f),
+                    new(0f, 11.5272f, 0f)
                 }
             },
             {
                 GTZone.beach,
                 new Vector3[] {
-                    new Vector3(27.21f, 10.2008f, -1.6763f),
-                    new Vector3(0f, 263.709f, 0f)
+                    new(27.21f, 10.2008f, -1.6763f),
+                    new(0f, 263.709f, 0f)
                 }
             },
             {
                 GTZone.skyJungle,
                 new Vector3[] {
-                    new Vector3(-76.7905f, 162.7874f, -100.4427f),
-                    new Vector3(0f, 342.6743f, 0f)
+                    new(-76.7905f, 162.7874f, -100.4427f),
+                    new(0f, 342.6743f, 0f)
                 }
             },
             {
                 GTZone.tutorial,
                 new Vector3[] {
-                    new Vector3(-98.9992f, 37.6046f, -72.6943f),
-                    new Vector3(0f, 8.7437f, 0f)
+                    new(-98.9992f, 37.6046f, -72.6943f),
+                    new(0f, 8.7437f, 0f)
                 }
             }
         };
@@ -139,36 +139,6 @@ namespace GorillaShirts.Behaviours
         {
             if (_initalized) return;
             _initalized = true;
-
-            // Prepares much of the audio-related functions
-            #region Audio Initialization
-
-            _shirtAudioList = new List<AudioClip>
-            {
-                await _assetLoader.LoadAsset<AudioClip>("Wear"),
-                await _assetLoader.LoadAsset<AudioClip>("Remove"),
-                await _assetLoader.LoadAsset<AudioClip>("Button"),
-                await _assetLoader.LoadAsset<AudioClip>("SillyTXT"),
-                await _assetLoader.LoadAsset<AudioClip>("SteadyTXT"),
-                await _assetLoader.LoadAsset<AudioClip>("Randomize"),
-                await _assetLoader.LoadAsset<AudioClip>("Error"),
-                await _assetLoader.LoadAsset<AudioClip>("Shutter")
-            };
-
-            Events.PlayShirtAudio += delegate (VRRig vrRig, int index, float volume)
-            {
-                if (vrRig == null || index > _shirtAudioList.Count - 1) return;
-                vrRig.tagSound.PlayOneShot(_shirtAudioList[index], volume);
-            };
-
-            Player.Instance.materialData.Add(new Player.MaterialData()
-            {
-                overrideAudio = true,
-                audio = _shirtAudioList[2],
-                matName = "gorillashirtbuttonpress"
-            });
-
-            #endregion
 
             // Prepares the dictionary for button actions
             #region Button Initialization
@@ -379,9 +349,12 @@ namespace GorillaShirts.Behaviours
                 shirtStand.transform.Find("UI/PrimaryDisplay/Text/Interaction/Silly Icon").gameObject.SetActive(previewType == Configuration.PreviewTypes.Silly);
                 shirtStand.transform.Find("UI/PrimaryDisplay/Text/Interaction/Steady Icon").gameObject.SetActive(previewType == Configuration.PreviewTypes.Steady);
 
-                AudioSource component2 = shirtStand.transform.Find("MainSource").GetComponent<AudioSource>();
-                component2.clip = previewType == Configuration.PreviewTypes.Silly ? _shirtAudioList[3] : _shirtAudioList[4];
-                component2.PlayOneShot(component2.clip, 1f);
+                if (_shirtAudioList.Count > 0)
+                {
+                    AudioSource component2 = shirtStand.transform.Find("MainSource").GetComponent<AudioSource>();
+                    component2.clip = previewType == Configuration.PreviewTypes.Silly ? _shirtAudioList[3] : _shirtAudioList[4];
+                    component2.PlayOneShot(component2.clip, 1f);
+                }
             };
 
             standRig.OnShirtWorn += delegate
@@ -459,6 +432,8 @@ namespace GorillaShirts.Behaviours
                 newButton.Type = Button.GetButtonType(btn.name);
                 newButton.OnPress += delegate (GorillaTriggerColliderHandIndicator component)
                 {
+                    if (_shirtAudioList.Count == 0) return;
+
                     GorillaTagger.Instance.offlineVRRig.PlayHandTapLocal(Player.Instance.materialData.Count - 1, component.isLeftHand, 0.07f);
 
                     if (PhotonNetwork.InRoom && GorillaTagger.Instance.myVRRig != null)
@@ -495,6 +470,36 @@ namespace GorillaShirts.Behaviours
                 Rig = standRig,
                 Object = shirtStand
             };
+
+            #endregion
+
+            // Prepares much of the audio-related functions
+            #region Audio Initialization
+
+            _shirtAudioList = new List<AudioClip>
+            {
+                await _assetLoader.LoadAsset<AudioClip>("Wear"),
+                await _assetLoader.LoadAsset<AudioClip>("Remove"),
+                await _assetLoader.LoadAsset<AudioClip>("Button"),
+                await _assetLoader.LoadAsset<AudioClip>("SillyTXT"),
+                await _assetLoader.LoadAsset<AudioClip>("SteadyTXT"),
+                await _assetLoader.LoadAsset<AudioClip>("Randomize"),
+                await _assetLoader.LoadAsset<AudioClip>("Error"),
+                await _assetLoader.LoadAsset<AudioClip>("Shutter")
+            };
+
+            Events.PlayShirtAudio += delegate (VRRig vrRig, int index, float volume)
+            {
+                if (vrRig == null || index > _shirtAudioList.Count - 1) return;
+                vrRig.tagSound.PlayOneShot(_shirtAudioList[index], volume);
+            };
+
+            Player.Instance.materialData.Add(new Player.MaterialData()
+            {
+                overrideAudio = true,
+                audio = _shirtAudioList[2],
+                matName = "gorillashirtbuttonpress"
+            });
 
             #endregion
 

@@ -7,15 +7,8 @@ namespace GorillaShirts.Behaviours.Data
     {
         public ShirtPair Pair;
 
-        public string
-            Name, DisplayName, FileName;
-
-        public string
-            Author, Description;
-
-        public bool
-            CustomColor, IsVerified, HasAudio,
-            HasLight, HasParticles, Invisibility;
+        public string Name, DisplayName, FileName, Author, Description;
+        public bool CustomColor, IsVerified, HasAudio, HasLight, HasParticles, Invisibility, Wobble;
 
         public GameObject RawAsset;
         public List<Sector> SectorList = new();
@@ -39,7 +32,8 @@ namespace GorillaShirts.Behaviours.Data
                 Pair.myDataJSON.infoConfig.customColors,
                 Pair.myDataJSON.infoConfig.invisibility,
                 RawAsset.GetComponentInChildren<Light>(),
-                RawAsset.GetComponentInChildren<ParticleSystem>()
+                RawAsset.GetComponentInChildren<ParticleSystem>(),
+                Wobble
             };
 
             return SlotData;

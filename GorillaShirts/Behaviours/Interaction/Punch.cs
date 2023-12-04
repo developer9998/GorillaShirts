@@ -57,7 +57,7 @@ namespace GorillaShirts.Behaviours.Interaction
                 if (PunchMethod())
                 {
                     _punchSource.Play();
-                    GorillaTagger.Instance.StartVibration(component.isLeftHand, GorillaTagger.Instance.taggedHapticStrength / 1.3f, GorillaTagger.Instance.tapHapticDuration / 1.25f);
+                    GorillaTagger.Instance.StartVibration(component.isLeftHand, GorillaTagger.Instance.taggedHapticStrength / 1.1f, GorillaTagger.Instance.tapHapticDuration / 1.25f);
                 }
             }
         }

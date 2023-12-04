@@ -37,6 +37,7 @@ namespace GorillaShirts.Behaviours.Tools
                 if (player.IsLocal || !vrRig.TryGetComponent(out RigInstance rigInstance)) return;
                 rigInstance.Rig.Remove();
                 rigInstance.Rig.SetTagOffset(0);
+                rigInstance.OnShirtRemoved();
 
                 _RigDict.AddOrUpdate(vrRig, rigInstance.Rig);
                 Destroy(rigInstance);

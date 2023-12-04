@@ -2,6 +2,7 @@
 using GorillaShirts.Behaviours.Tools;
 using Photon.Pun;
 using Photon.Realtime;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -9,6 +10,8 @@ namespace GorillaShirts.Behaviours.Interaction
 {
     public class RigInstance : MonoBehaviour
     {
+        public static Dictionary<VRRig, Rig> RefDict = new();
+
         public Rig Rig;
         public Player Player;
         public bool IsNetwork;
@@ -26,7 +29,11 @@ namespace GorillaShirts.Behaviours.Interaction
 
             _events = new Events();
             VRRig vrRig = GetComponent<VRRig>();
-            if (Rig == null)
+            if (Rig == null && RefDict.ContainsKey(vrRig))
+            {
+                Rig = RefDict.TryGetValue(vrRig, out Rig instance) ? instance : null;
+            }
+            else if (Rig == null && !RefDict.ContainsKey(vrRig))
             {
                 Rig = new Rig
                 {
@@ -45,6 +52,8 @@ namespace GorillaShirts.Behaviours.Interaction
                 Rig.RightLower = Rig.RightHand.parent;
                 Rig.LeftUpper = Rig.LeftLower.parent;
                 Rig.RightUpper = Rig.RightLower.parent;
+
+                RefDict.Add(vrRig, Rig);
             }
 
             try
@@ -87,5 +96,27 @@ namespace GorillaShirts.Behaviours.Interaction
             Face.forceRenderingOff = isActivated;
             Chest.forceRenderingOff = isActivated;
         }
+
+        /*
+        private void OnDestroy()
+        {
+            if (Rig != null && Rig.CachedObjects.Count > 0)
+            {
+                try
+                {
+                    foreach (KeyValuePair<Shirt, List<GameObject>> keyValuePair in Rig.CachedObjects)
+                    {
+                        keyValuePair.Value.DoIf(a => a != null, a => Destroy(a));
+                        Rig.CachedObjects.Remove(keyValuePair.Key);
+                    }
+                    Rig.CachedObjects.Clear();
+                }
+                catch
+                {
+
+                }
+            }
+        }
+        */
     }
 }

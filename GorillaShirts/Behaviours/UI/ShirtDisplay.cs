@@ -53,7 +53,7 @@ namespace GorillaShirts.Behaviours.UI
 
         public void SetSlots(List<bool> slotList)
         {
-            slotList ??= new List<bool>() { false, false, false, false, false };
+            slotList ??= new List<bool>() { false, false, false, false, false, false };
             for (int i = 0; i < SlotItems.Count; i++)
             {
                 var currentSlot = SlotItems[i];
