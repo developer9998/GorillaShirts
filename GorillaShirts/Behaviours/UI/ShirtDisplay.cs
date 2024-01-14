@@ -32,9 +32,11 @@ namespace GorillaShirts.Behaviours.UI
 
         public void SetDisplay(Shirt myShirt)
         {
-            StringBuilder str = new StringBuilder().Append("<size=10>").Append(myShirt.DisplayName.LimitString(17)).Append("</size>").AppendLines(2);
-            str.Append("Author: <size=7>").Append(myShirt.Author.LimitString(20)).Append("</size>").AppendLines(3).Append("<size=10>Description:</size>");
-            SetDisplay(str.ToString(), myShirt.Description.LimitString(140));
+            StringBuilder str = new StringBuilder();
+            str.Append("<size=20>").Append(myShirt.DisplayName.LimitString(17)).Append("</size>").AppendLines(2);
+            str.Append("Author: <size=7>").Append(myShirt.Author.LimitString(20)).Append("</size>");
+
+            SetDisplay(str.ToString(), myShirt.Description.LimitString(258));
         }
 
         public void SetDisplay(Shirt myShirt, Pack myPack)
@@ -53,11 +55,10 @@ namespace GorillaShirts.Behaviours.UI
 
         public void SetSlots(List<bool> slotList)
         {
-            slotList ??= new List<bool>() { false, false, false, false, false, false };
             for (int i = 0; i < SlotItems.Count; i++)
             {
                 var currentSlot = SlotItems[i];
-                currentSlot.SetActive(slotList[i]);
+                currentSlot.SetActive(slotList != null && slotList[i]);
             }
         }
 

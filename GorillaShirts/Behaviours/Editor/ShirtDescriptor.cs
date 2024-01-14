@@ -12,14 +12,11 @@ namespace GorillaShirts.Behaviours.Editor
         // Base data
         public string Name;
         public string Author;
-
-        [TextArea(1, 2)]
         public string Info;
 
         // Objects 
         public GameObject Head;
         public GameObject Body;
-        public GameObject Boobs;
         public GameObject LeftUpperArm;
         public GameObject RightUpperArm;
         public GameObject LeftLowerArm;
@@ -27,15 +24,17 @@ namespace GorillaShirts.Behaviours.Editor
         public GameObject LeftHand;
         public GameObject RightHand;
 
-        // Additional data
+        // Settings
         public bool customColors;
         public bool invisibility;
         public List<GameObject> FurTextures;
 
-        // Settings
         public bool wobbleLoose = true;
         public bool wobbleLockHorizontal;
         public bool wobbleLockVertical;
         public bool wobbleLockRoot;
+
+        public AudioClip ShirtSound1;
+        public AudioClip ShirtSound2;
     }
 }

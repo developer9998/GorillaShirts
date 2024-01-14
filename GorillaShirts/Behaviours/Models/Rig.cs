@@ -11,31 +11,23 @@ namespace GorillaShirts.Behaviours.Models
     public class Rig
     {
         private bool Cooldown;
+        public event Action OnShirtWorn, OnShirtRemoved;
 
-        public event Action OnShirtWorn;
-        public event Action OnShirtRemoved;
-
-        public Transform RigParent;
+        public Transform RigParent, Body, Head, LeftUpper, RightUpper, LeftLower, RightLower, LeftHand, RightHand;
         public SkinnedMeshRenderer RigSkin;
-
-        public Transform
-            Body, Head;
-
-        public Transform
-            LeftUpper, RightUpper;
-
-        public Transform
-            LeftLower, RightLower;
-
-        public Transform
-            LeftHand, RightHand;
-
         public Text Nametag;
 
         public Shirt ActiveShirt;
         public Dictionary<Shirt, List<GameObject>> CachedObjects = new();
 
         public bool Toggle = true;
+
+        public void Wear(Shirt myShirt, out Shirt preShirt, out Shirt postShirt)
+        {
+            preShirt = ActiveShirt;
+            Wear(myShirt);
+            postShirt = ActiveShirt;
+        }
 
         public void Wear(Shirt myShirt)
         {

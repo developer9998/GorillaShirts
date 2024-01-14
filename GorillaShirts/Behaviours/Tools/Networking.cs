@@ -105,11 +105,14 @@ namespace GorillaShirts.Behaviours.Tools
                 _ShirtDict ??= ShirtUtils.ShirtDict;
                 if (_ShirtDict.TryGetValue(shirtName, out Shirt myShirt))
                 {
-                    if (rigInstance.Rig.ActiveShirt != myShirt)
+                    bool uniqueShirt = rigInstance.Rig.ActiveShirt != myShirt;
+                    rigInstance.Rig.Wear(myShirt);
+
+                    if (uniqueShirt)
                     {
                         events.TriggerPlayShirtAudio(currentRig, 0, 0.5f);
+                        if (myShirt.Wear) events.TriggerPlayCustomAudio(currentRig, myShirt.Wear, 0.5f);
                     }
-                    rigInstance.Rig.Wear(myShirt);
                 }
                 else
                 {
@@ -121,6 +124,7 @@ namespace GorillaShirts.Behaviours.Tools
                     if (rigInstance.Rig.ActiveShirt != myShirt)
                     {
                         events.TriggerPlayShirtAudio(currentRig, 1, 0.5f);
+                        if (rigInstance.Rig.ActiveShirt != null && rigInstance.Rig.ActiveShirt.Remove) events.TriggerPlayCustomAudio(currentRig, rigInstance.Rig.ActiveShirt.Remove, 0.5f);
                     }
 
                     rigInstance.Rig.Remove();

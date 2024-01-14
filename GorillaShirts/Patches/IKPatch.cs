@@ -6,6 +6,7 @@ namespace GorillaShirts.Patches
     [HarmonyPatch(typeof(GorillaIK), "Awake")]
     public class IKPatch
     {
-        public static bool Prefix(ref Transform ___leftUpperArm) => ___leftUpperArm != null;
+        // Check to see if the IK most likely isn't ready to be awaken, based on if the left upper arm has been assigned
+        public static bool Prefix(ref Transform ___leftUpperArm) => (bool)___leftUpperArm;
     }
 }

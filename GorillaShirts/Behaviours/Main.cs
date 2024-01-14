@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
 using GorillaLocomotion;
 using GorillaNetworking;
 using GorillaShirts.Behaviours.Data;
@@ -6,7 +7,6 @@ using GorillaShirts.Behaviours.Interaction;
 using GorillaShirts.Behaviours.Models;
 using GorillaShirts.Behaviours.Tools;
 using GorillaShirts.Behaviours.UI;
-using GorillaShirts.Extensions;
 using GorillaShirts.Patches;
 using GorillaShirts.Utilities;
 using HarmonyLib;
@@ -43,7 +43,7 @@ namespace GorillaShirts.Behaviours
         private Camera _currentCamera;
 
         private List<AudioClip> _shirtAudioList = new();
-        private Dictionary<GTZone, Vector3[]> _standLocationData = new()
+        private readonly Dictionary<GTZone, Vector3[]> _standLocationData = new()
         {
             {
                 GTZone.forest,
@@ -83,7 +83,7 @@ namespace GorillaShirts.Behaviours
             {
                 GTZone.basement,
                 new Vector3[] {
-                    new(-34.8884f, 14.4027f, -95.1101f),
+                    new(-36.0703f, 14.4027f, -94.4919f),
                     new(0f, 11.5272f, 0f)
                 }
             },
@@ -287,8 +287,9 @@ namespace GorillaShirts.Behaviours
             shirtStand.name = $"Shirt Stand";
             shirtStand.transform.position = _standLocationData[GTZone.forest][0];
             shirtStand.transform.rotation = Quaternion.Euler(_standLocationData[GTZone.forest][1]);
+            AudioSource standAudio = shirtStand.transform.Find("MainSource").GetComponent<AudioSource>();
 
-            GeometryPatch.OnMapUpdate += delegate (GTZone zone)
+            ZonePatches.OnMapUpdate += delegate (GTZone zone)
             {
                 if (_standLocationData.TryGetValue(zone, out Vector3[] zoneData))
                 {
@@ -351,9 +352,8 @@ namespace GorillaShirts.Behaviours
 
                 if (_shirtAudioList.Count > 0)
                 {
-                    AudioSource component2 = shirtStand.transform.Find("MainSource").GetComponent<AudioSource>();
-                    component2.clip = previewType == Configuration.PreviewTypes.Silly ? _shirtAudioList[3] : _shirtAudioList[4];
-                    component2.PlayOneShot(component2.clip, 1f);
+                    standAudio.clip = previewType == Configuration.PreviewTypes.Silly ? _shirtAudioList[3] : _shirtAudioList[4];
+                    standAudio.PlayOneShot(standAudio.clip, 1f);
                 }
             };
 
@@ -384,37 +384,37 @@ namespace GorillaShirts.Behaviours
                 shirtStand.transform.Find("UI/PrimaryDisplay/Info Text").gameObject.SetActive(isActive);
 
                 StringBuilder stringBuilder = new();
-                stringBuilder.Append("Shirts: ").Append(_packList.Select((a) => a.PackagedShirts.Count).Sum()).AppendLine();
-                stringBuilder.Append("Packs: ").Append(_packList.Count);
+                stringBuilder.Append("Shirts: ").Append(_packList.Select((a) => a.PackagedShirts.Count).Sum()).Append(" | Packs: ").Append(_packList.Count);
                 shirtStand.transform.Find("UI/PrimaryDisplay/Info Text/Left Body").GetComponent<Text>().text = stringBuilder.ToString();
 
                 stringBuilder = new StringBuilder();
-                stringBuilder.Append("Build Type: ");
+                stringBuilder.Append("Build: ");
 #if DEBUG
-                stringBuilder.AppendLine("Debug");
+                stringBuilder.Append("Debug");
 #else
-                stringBuilder.AppendLine("Release");
+                stringBuilder.Append("Release");
 #endif
 
-                stringBuilder.Append("Build Version: ").Append("1.0.0");
+                stringBuilder.Append(" | Version: ").Append(Constants.Version);
                 shirtStand.transform.Find("UI/PrimaryDisplay/Info Text/Right Body").GetComponent<Text>().text = stringBuilder.ToString();
             };
 
-            standRig.SillyHat = standRig.Head.Find("SillyFlowerCrown").GetComponent<MeshRenderer>();
-            standRig.SteadyHat = standRig.Head.Find("SteadyHeadphones").GetComponent<MeshRenderer>();
+            standRig.SillyHat = standRig.Head.Find("Flower Crown").GetComponent<MeshRenderer>();
+            standRig.SteadyHat = standRig.Head.Find("Headphones").GetComponent<MeshRenderer>();
             standRig.SetAppearance(_config.CurrentPreview.Value == Configuration.PreviewTypes.Silly);
 
-            Transform uiDisplayParent = shirtStand.transform.Find("UI/PrimaryDisplay/Text");
+            Transform UITextParent = shirtStand.transform.Find("UI/PrimaryDisplay/Text");
             ShirtDisplay standDisplay = new()
             {
-                Main = uiDisplayParent.Find("Main").GetComponent<Text>(),
-                Body = uiDisplayParent.Find("Body").GetComponent<Text>(),
-                Version = uiDisplayParent.Find("Version").GetComponent<Text>(),
-                Equip = uiDisplayParent.Find("Interaction/Equip").GetComponent<Text>(),
-                Pack = uiDisplayParent.Find("Interaction/Pack").GetComponent<Text>(),
-                Tag = uiDisplayParent.Find("Interaction/Nametag").GetComponent<Text>(),
-                SlotParent = uiDisplayParent.Find("Interaction/Slots").gameObject
+                Main = UITextParent.Find("Main").GetComponent<Text>(),
+                Body = UITextParent.Find("Body").GetComponent<Text>(),
+                Version = UITextParent.Find("Version").GetComponent<Text>(),
+                Equip = UITextParent.Find("Interaction/Equip").GetComponent<Text>(),
+                Pack = UITextParent.Find("Interaction/Pack").GetComponent<Text>(),
+                Tag = UITextParent.Find("Interaction/Nametag").GetComponent<Text>(),
+                SlotParent = UITextParent.Find("Interaction/Slots").gameObject
             };
+            UITextParent.gameObject.SetActive(false);
 
             for (int x = 0; x < standDisplay.SlotParent.transform.childCount; x++)
             {
@@ -424,17 +424,17 @@ namespace GorillaShirts.Behaviours
 
             standDisplay.SetSlots(null);
 
-            Transform uiButtonsParent = shirtStand.transform.Find("UI/PrimaryDisplay/Buttons");
-            var buttonList = uiButtonsParent.GetComponentsInChildren<BoxCollider>();
-            buttonList.Do(btn =>
+            Transform UIButtonParent = shirtStand.transform.Find("UI/PrimaryDisplay/Buttons");
+            BoxCollider[] UIButtonCollection = UIButtonParent.GetComponentsInChildren<BoxCollider>();
+            UIButtonCollection.Do(btn =>
             {
-                Button newButton = btn.gameObject.AddComponent<Button>();
-                newButton.Type = Button.GetButtonType(btn.name);
-                newButton.OnPress += delegate (GorillaTriggerColliderHandIndicator component)
+                Button UIButton = btn.gameObject.AddComponent<Button>();
+                UIButton.Type = Button.GetButtonType(btn.name);
+                UIButton.OnPress += delegate (GorillaTriggerColliderHandIndicator component)
                 {
                     if (_shirtAudioList.Count == 0) return;
 
-                    GorillaTagger.Instance.offlineVRRig.PlayHandTapLocal(Player.Instance.materialData.Count - 1, component.isLeftHand, 0.07f);
+                    GorillaTagger.Instance.offlineVRRig.PlayHandTapLocal(Player.Instance.materialData.Count - 1, component.isLeftHand, 0.028f);
 
                     if (PhotonNetwork.InRoom && GorillaTagger.Instance.myVRRig != null)
                     {
@@ -442,31 +442,26 @@ namespace GorillaShirts.Behaviours
                         {
                             Player.Instance.materialData.Count - 1,
                             component.isLeftHand,
-                            0.035f
+                            0.1f
                         });
                     }
 
                     if (_packList.Count == 0) return;
-                    _buttonDict[newButton.Type]?.Invoke();
+                    _buttonDict[UIButton.Type]?.Invoke();
                 };
 
                 OnInfoMenuChanged += delegate (bool isActive)
                 {
-                    ButtonType type = newButton.Type;
-                    newButton.gameObject.SetActive(!isActive || type == ButtonType.AdvancedTab);
+                    ButtonType type = UIButton.Type;
+                    UIButton.gameObject.SetActive(!isActive || type == ButtonType.AdvancedTab);
                 };
             });
-
-            StringBuilder str = new();
-            str.Append("<size=10>- Loading Shirts -</size>").AppendLines(4);
-            str.Append("The mod is currently loading in").AppendLines(2).Append("Shirts found within your files.").AppendLines(3);
-            str.Append("Please wait for these files to").AppendLines(2).Append("be loaded into the mod.");
-            standDisplay.SetDisplay(str.ToString(), string.Empty);
-            standDisplay.SetVersion("v1.0.0");
+            UIButtonParent.gameObject.SetActive(false);
 
             _stand = new Stand()
             {
                 Display = standDisplay,
+                Audio = standAudio,
                 Rig = standRig,
                 Object = shirtStand
             };
@@ -485,13 +480,21 @@ namespace GorillaShirts.Behaviours
                 await _assetLoader.LoadAsset<AudioClip>("SteadyTXT"),
                 await _assetLoader.LoadAsset<AudioClip>("Randomize"),
                 await _assetLoader.LoadAsset<AudioClip>("Error"),
-                await _assetLoader.LoadAsset<AudioClip>("Shutter")
+                await _assetLoader.LoadAsset<AudioClip>("Shutter"),
+                await _assetLoader.LoadAsset<AudioClip>("PackOpen"),
+                await _assetLoader.LoadAsset<AudioClip>("PackClose"),
             };
 
-            Events.PlayShirtAudio += delegate (VRRig vrRig, int index, float volume)
+            Events.PlayShirtAudio += delegate (VRRig p_Rig, int p_AudioIndex, float p_Volume)
             {
-                if (vrRig == null || index > _shirtAudioList.Count - 1) return;
-                vrRig.tagSound.PlayOneShot(_shirtAudioList[index], volume);
+                if (p_Rig == null || p_AudioIndex > _shirtAudioList.Count - 1) return;
+                p_Rig.tagSound.PlayOneShot(_shirtAudioList[p_AudioIndex], p_Volume);
+            };
+
+            Events.PlayCustomAudio += delegate (VRRig p_Rig, AudioClip p_Clip, float p_Volume)
+            {
+                if (!p_Rig || !p_Clip) return;
+                p_Rig.tagSound.PlayOneShot(p_Clip, p_Volume);
             };
 
             Player.Instance.materialData.Add(new Player.MaterialData()
@@ -500,6 +503,19 @@ namespace GorillaShirts.Behaviours
                 audio = _shirtAudioList[2],
                 matName = "gorillashirtbuttonpress"
             });
+
+            #endregion
+
+            #region Incompatibility Check
+
+            foreach (var pluginInfo in Chainloader.PluginInfos.Values)
+            {
+                if (pluginInfo.Metadata.GUID == "com.nachoengine.playermodel")
+                {
+                    shirtStand.transform.Find("UI").GetComponent<Animator>().Play("IncompFrame");
+                    return;
+                }
+            }
 
             #endregion
 
@@ -522,7 +538,7 @@ namespace GorillaShirts.Behaviours
                     ShirtUtils.ShirtDict.TryAdd(myShirt.Name, myShirt);
                     if (myShirt.Name == _config.CurrentShirt.Value && _localRig.Rig.ActiveShirt != myShirt)
                     {
-                        Logging.Info("Using shirt from previous session '" + myShirt.DisplayName + "' in pack '" + myShirt.DisplayName + "'");
+                        Logging.Info("Using shirt from previous session '" + myShirt.DisplayName + "' in pack '" + myPack.DisplayName + "'");
                         SetPackInfo(myPack, myShirt);
                         SetShirt(myShirt);
                     }
@@ -531,34 +547,24 @@ namespace GorillaShirts.Behaviours
 
             WardrobePatches.CosmeticUpdated += delegate (CosmeticsController.CosmeticCategory category)
             {
-                bool condition = _localRig.Rig.ActiveShirt != null && _config.RemoveBaseItem.Value ? _localRig.Rig.ActiveShirt.SectorList.Any(a => a.Type == SectorType.Head) && category == CosmeticsController.CosmeticCategory.Hat || category == CosmeticsController.CosmeticCategory.Badge : false;
+                bool condition = _localRig.Rig.ActiveShirt != null && _config.RemoveBaseItem.Value && (_localRig.Rig.ActiveShirt.SectorList.Any(a => a.Type == SectorType.Head) && category == CosmeticsController.CosmeticCategory.Hat || category == CosmeticsController.CosmeticCategory.Badge);
                 if (condition) SetShirt(_localRig.Rig.ActiveShirt);
             };
 
             #endregion
 
-            if (_packList == null || _packList.Count == 0)
-            {
-                _stand.Object.transform.Find("Activation Source").GetComponent<AudioSource>().PlayOneShot(_shirtAudioList[6]);
-
-                str = new();
-                str.Append("<size=10>- No shirts found! -</size>").AppendLines(3);
-                str.AppendLine("The mod could not find any shirts.").AppendLines(2);
-                str.AppendLine("If you believe the mod ran into").AppendLine();
-                str.AppendLine("an error, please let us know:").AppendLines(2);
-                str.Append("Discord: <size=5>discord.gg/dev9998</size>");
-
-                _stand.Display.Main.text = str.ToString();
-            }
-            else
+            if (_packList != null && _packList.Count > 0)
             {
                 standRig.SetTagOffset(_config.CurrentTagOffset.Value);
-                _stand.Object.transform.Find("Activation Source").GetComponent<AudioSource>().Play();
 
                 // Adjust the stand to display our currently worn shirt
                 _stand.Display.UpdateDisplay(CurrentShirt, _localRig.Rig.ActiveShirt, CurrentPack);
                 _stand.Display.SetTag(_config.CurrentTagOffset.Value);
                 _stand.Rig.Wear(CurrentShirt);
+
+                UIButtonParent.gameObject.SetActive(true);
+                UITextParent.gameObject.SetActive(true);
+                shirtStand.transform.Find("UI").GetComponent<Animator>().Play("FadeInFrame");
             }
         }
 
@@ -570,22 +576,36 @@ namespace GorillaShirts.Behaviours
 
         public void SetShirt(Shirt myShirt)
         {
-            if (myShirt == null) return;
-
-            _localRig.Rig.Wear(myShirt);
-            _localRig.Rig.SetTagOffset(_localRig.Rig.ActiveShirt != null ? _config.CurrentTagOffset.Value : 0);
-            _config.SetCurrentShirt(_localRig.Rig.ActiveShirt != null ? myShirt.Name : "None");
-
-            if (_localRig.Rig.ActiveShirt != null && _config.RemoveBaseItem.Value)
+            if (myShirt != null)
             {
-                ShirtUtils.RemoveItem(CosmeticsController.CosmeticCategory.Badge, CosmeticsController.CosmeticSlots.Badge);
-                if (_localRig.Rig.ActiveShirt.SectorList.Any(a => a.Type == SectorType.Head)) ShirtUtils.RemoveItem(CosmeticsController.CosmeticCategory.Hat, CosmeticsController.CosmeticSlots.Hat);
-            }
-            if (_config.RemoveBaseItem.Value && _localRig.Rig.ActiveShirt != null)
-                ShirtUtils.RemoveItem(CosmeticsController.CosmeticCategory.Badge, CosmeticsController.CosmeticSlots.Badge);
+                _localRig.Rig.Wear(myShirt, out Shirt preShirt, out Shirt postShirt);
+                _localRig.Rig.SetTagOffset(postShirt != null ? _config.CurrentTagOffset.Value : 0);
 
-            _events.TriggerPlayShirtAudio(_localRig.GetComponent<VRRig>(), _localRig.Rig.ActiveShirt != null ? 0 : 1, 0.33f);
-            _networking.UpdateProperties(_networking.GenerateHashtable(_localRig.Rig.ActiveShirt, _config.CurrentTagOffset.Value));
+                // Cosmetics
+                if (postShirt != null && _config.RemoveBaseItem.Value)
+                {
+                    ShirtUtils.RemoveItem(CosmeticsController.CosmeticCategory.Badge, CosmeticsController.CosmeticSlots.Badge);
+                    if (postShirt.SectorList.Any(a => a.Type == SectorType.Head)) ShirtUtils.RemoveItem(CosmeticsController.CosmeticCategory.Hat, CosmeticsController.CosmeticSlots.Hat);
+                }
+
+                // Audio
+                if (postShirt != null)
+                {
+                    if (postShirt.Wear) _events.TriggerPlayCustomAudio(_localRig.GetComponent<VRRig>(), postShirt.Wear, 0.3f);
+                    else _events.TriggerPlayShirtAudio(_localRig.GetComponent<VRRig>(), 0, 0.4f);
+                }
+                else if (preShirt != null)
+                {
+                    if (preShirt.Remove) _events.TriggerPlayCustomAudio(_localRig.GetComponent<VRRig>(), preShirt.Remove, 0.3f);
+                    else _events.TriggerPlayShirtAudio(_localRig.GetComponent<VRRig>(), 1, 0.4f);
+                }
+
+                // Networking
+                _networking.UpdateProperties(_networking.GenerateHashtable(_localRig.Rig.ActiveShirt, _config.CurrentTagOffset.Value));
+
+                // Configuration
+                _config.SetCurrentShirt(postShirt != null ? myShirt.Name : "None");
+            }
         }
 
         public IEnumerator Capture()

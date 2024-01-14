@@ -7,7 +7,7 @@ using System;
 
 namespace GorillaShirts
 {
-    [BepInDependency("dev.auros.bepinex.bepinject"), BepInIncompatibility("com.nachoengine.playermodel")]
+    [BepInDependency("dev.auros.bepinex.bepinject")]
     [BepInPlugin(Constants.Guid, Constants.Name, Constants.Version)]
     internal class Plugin : BaseUnityPlugin
     {

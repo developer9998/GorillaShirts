@@ -9,9 +9,6 @@ namespace GorillaShirts.Extensions
             => new(Array.FindAll(s.ToCharArray(), (c) => char.IsLetterOrDigit(c)));
 
         public static string LimitString(this string s, int length)
-        {
-            if (s.Length > Mathf.Abs(length)) s = string.Concat(s.Substring(0, length - 3), "..");
-            return s;
-        }
+            => s.Length > Mathf.Abs(length) ? string.Concat(s[..(length - 3)], "..") : s;
     }
 }

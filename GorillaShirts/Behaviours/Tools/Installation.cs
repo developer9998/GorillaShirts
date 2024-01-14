@@ -5,7 +5,6 @@ using GorillaShirts.Behaviours.Data;
 using GorillaShirts.Behaviours.Editor;
 using GorillaShirts.Behaviours.Visuals;
 using GorillaShirts.Extensions;
-using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,20 +21,17 @@ namespace GorillaShirts.Behaviours.Tools
     public class Installation
     {
         private readonly Dictionary<string, Pack> _packDictionary = new();
-        private int _packsComplete, _packCount;
 
         public async Task<List<Pack>> FindShirtsFromDirectory(string myDirectory)
         {
-            List<string> directoryList = new List<string> { myDirectory };
+            await FindShirtsFromPackDirectory(myDirectory);
 
-            string[] shirtPackDirectories = Directory.GetDirectories(myDirectory, "*", SearchOption.AllDirectories);
-            shirtPackDirectories.Do(a => directoryList.Add(a));
-
-            List<Task> tasks = new();
-            directoryList.Do(a => tasks.Add(Task.Run(() => { FindShirtsFromPackDirectory(a); })));
-
-            Task.WaitAll(tasks.ToArray());
-            do { await Task.Delay(100); } while (_packsComplete != _packCount);
+            var shirtPackDirectories = Directory.GetDirectories(myDirectory, "*", SearchOption.AllDirectories);
+            foreach (var directory in shirtPackDirectories)
+            {
+                Logging.Info($"Locating shirt files from directory '{Path.GetFileName(directory)}'");
+                await FindShirtsFromPackDirectory(directory);
+            }
 
             return _packDictionary.Values.ToList();
         }
@@ -47,14 +43,13 @@ namespace GorillaShirts.Behaviours.Tools
         }
 
 
-        private async void FindShirtsFromPackDirectory(string path)
+        private async Task FindShirtsFromPackDirectory(string path)
         {
             var directoryInfo = new DirectoryInfo(path);
 
             FileInfo[] fileInfos = directoryInfo.GetFiles("*.shirt");
             if (fileInfos.Length > 0)
             {
-                _packCount++;
                 Pack currentPack = null;
 
                 foreach (var fileInfo in fileInfos)
@@ -111,6 +106,10 @@ namespace GorillaShirts.Behaviours.Tools
                     newShirt.HasParticles = newShirt.RawAsset.GetComponentInChildren<ParticleSystem>() != null;
                     newShirt.Invisibility = shirtDataJSON.infoConfig.invisibility;
 
+                    Transform WearOverride = newShirt.RawAsset.transform.Find("OverrideWearClip"), RemoveOverride = newShirt.RawAsset.transform.Find("OverrideRemoveClip");
+                    if (WearOverride) newShirt.Wear = WearOverride.GetComponent<AudioSource>().clip;
+                    if (RemoveOverride) newShirt.Remove = RemoveOverride.GetComponent<AudioSource>().clip;
+
                     void PrepareSector(string sectorName, SectorType sectorType)
                     {
                         Transform tempSector = newShirt.RawAsset.transform.Find(sectorName);
@@ -149,6 +148,11 @@ namespace GorillaShirts.Behaviours.Tools
                                         {
                                             itemObject.gameObject.GetOrAddComponent<GorillaFur>()._visualParent = visualParent;
                                         }
+                                        if (child.name.StartsWith("G_BB"))
+                                        {
+                                            newShirt.Billboard = true;
+                                            itemObject.gameObject.GetOrAddComponent<Billboard>();
+                                        }
                                     }
                                 }
                                 bool isFur = itemObject.GetComponent<GorillaFur>();
@@ -173,7 +177,7 @@ namespace GorillaShirts.Behaviours.Tools
                                         Root = bone,
                                         Exclusion = ignoreBones.ToArray(),
                                         PoseStiffnessCurveType = Chain.CurveType.Custom,
-                                        PoseStiffnessCustomCurve = AnimationCurve.Linear(0f, 0.7f, 1f, 0.6f),
+                                        PoseStiffnessCustomCurve = AnimationCurve.Linear(0f, 0.9f, 1f, 0.7f),
                                         BendAngleCapCurveType = Chain.CurveType.Custom,
                                         BendAngleCapCustomCurve = AnimationCurve.Linear(0f, 0.1f, 1f, 0.06f),
                                         SquashAndStretchCurveType = Chain.CurveType.ConstantZero,
@@ -228,8 +232,6 @@ namespace GorillaShirts.Behaviours.Tools
 
                 var random = new System.Random();
                 currentPack.PackagedShirts = currentPack.Name == "Default" ? currentPack.PackagedShirts.OrderBy(a => random.Next()).ToList() : currentPack.PackagedShirts;
-
-                _packsComplete++;
             }
         }
 

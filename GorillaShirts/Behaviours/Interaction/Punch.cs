@@ -24,7 +24,7 @@ namespace GorillaShirts.Behaviours.Interaction
             _leftVelocity = Player.Instance.leftControllerTransform.gameObject.GetOrAddComponent<GorillaVelocityEstimator>();
             _rightVelocity = Player.Instance.rightControllerTransform.gameObject.GetOrAddComponent<GorillaVelocityEstimator>();
 
-            gameObject.layer = LayerMask.NameToLayer("GorillaInteractable");
+            gameObject.layer = (int)UnityLayer.GorillaInteractable;
             GetComponent<Collider>().isTrigger = true;
         }
 

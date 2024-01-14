@@ -19,7 +19,7 @@ namespace GorillaShirts.Behaviours.Interaction
         public void Start()
         {
             GetComponent<BoxCollider>().isTrigger = true;
-            gameObject.layer = LayerMask.NameToLayer("GorillaInteractable");
+            gameObject.layer = (int)UnityLayer.GorillaInteractable;
 
             _gradient = new Gradient();
             _renderer = GetComponent<Renderer>();
@@ -33,7 +33,7 @@ namespace GorillaShirts.Behaviours.Interaction
 
             // Now deal with the colours
             colourKeysH[0] = new GradientColorKey(new Color32(101, 101, 101, 255), 0);
-            colourKeysH[1] = new GradientColorKey(new Color32(140, 140, 140, 255), Debounce / 2f);
+            colourKeysH[1] = new GradientColorKey(new Color32(140, 140, 140, 255), Debounce / 3f);
             colourKeysH[2] = new GradientColorKey(new Color32(101, 101, 101, 255), Debounce);
 
             _gradient.SetKeys(colourKeysH, alphaKeysH);
@@ -50,14 +50,14 @@ namespace GorillaShirts.Behaviours.Interaction
 
         public void OnTriggerEnter(Collider other)
         {
-            if (!other.TryGetComponent(out GorillaTriggerColliderHandIndicator component) || _lastPress + Debounce > Time.unscaledTime)
-                return;
+            if (other.TryGetComponent(out GorillaTriggerColliderHandIndicator component) && Time.time > _lastPress + Debounce)
+            {
+                _timeStamp = 0;
+                _lastPress = Time.time;
 
-            _timeStamp = 0;
-            _lastPress = Time.unscaledTime;
-
-            OnPress?.Invoke(component);
-            GorillaTagger.Instance.StartVibration(component.isLeftHand, GorillaTagger.Instance.tapHapticStrength / 2f, GorillaTagger.Instance.tapHapticDuration);
+                OnPress?.Invoke(component);
+                GorillaTagger.Instance.StartVibration(component.isLeftHand, GorillaTagger.Instance.tapHapticStrength / 1.25f, GorillaTagger.Instance.tapHapticDuration / 1.1f);
+            }
         }
 
         public static ButtonType GetButtonType(string name) => (ButtonType)Enum.Parse(typeof(ButtonType), name);
