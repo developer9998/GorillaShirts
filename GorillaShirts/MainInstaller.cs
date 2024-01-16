@@ -1,6 +1,6 @@
 ﻿using GorillaLocomotion;
 using GorillaShirts.Behaviours;
-using GorillaShirts.Behaviours.Tools;
+using GorillaShirts.Tools;
 using UnityEngine;
 using Zenject;
 

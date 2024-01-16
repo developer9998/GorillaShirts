@@ -1,8 +1,7 @@
 ﻿using ExitGames.Client.Photon;
 using GorillaNetworking;
-using GorillaShirts.Behaviours.Data;
-using GorillaShirts.Behaviours.Interaction;
-using GorillaShirts.Behaviours.Models;
+using GorillaShirts.Interaction;
+using GorillaShirts.Models;
 using GorillaShirts.Utilities;
 using Photon.Pun;
 using Photon.Realtime;
@@ -10,28 +9,29 @@ using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
 
-namespace GorillaShirts.Behaviours.Tools
+namespace GorillaShirts.Tools
 {
     public class Networking : MonoBehaviourPunCallbacks, IInitializable
     {
-        public Hashtable myCustomProperties;
+        public Hashtable CustomProperties;
 
-        private bool isPropertiesSwitching;
-        private float propertySwitchTime;
+        private bool IsUpdatingProperties;
+        private float PropertyUpdateTime;
 
-        private Events events;
-        private Dictionary<string, Shirt> _ShirtDict;
-        private readonly Dictionary<VRRig, Rig> _RigDict = new();
+        private Events InstancedEvents;
+        private Dictionary<string, Shirt> Cache_ShirtInfo;
+        private readonly Dictionary<VRRig, Rig> Cache_RigInfo = new();
 
         public void Initialize()
         {
-            events = new Events();
+            InstancedEvents = new Events();
 
             Events.RigAdded += delegate (Player player, VRRig vrRig)
             {
                 if (player.IsLocal || vrRig.gameObject.GetComponent<RigInstance>() != null) return;
                 CreateRigInstance(vrRig.gameObject, player);
             };
+
             Events.RigRemoved += delegate (Player player, VRRig vrRig)
             {
                 if (player.IsLocal || !vrRig.TryGetComponent(out RigInstance rigInstance)) return;
@@ -39,9 +39,10 @@ namespace GorillaShirts.Behaviours.Tools
                 rigInstance.Rig.SetTagOffset(0);
                 rigInstance.OnShirtRemoved();
 
-                _RigDict.AddOrUpdate(vrRig, rigInstance.Rig);
+                Cache_RigInfo.AddOrUpdate(vrRig, rigInstance.Rig);
                 Destroy(rigInstance);
             };
+
             Events.CustomPropUpdate += delegate (Player player, Hashtable hashtable)
             {
                 OnPlayerPropertiesUpdate(player, hashtable);
@@ -50,12 +51,12 @@ namespace GorillaShirts.Behaviours.Tools
 
         public void Update()
         {
-            if (isPropertiesSwitching && Time.unscaledTime > propertySwitchTime)
+            if (IsUpdatingProperties && Time.unscaledTime > PropertyUpdateTime)
             {
-                PhotonNetwork.LocalPlayer.SetCustomProperties(myCustomProperties);
+                PhotonNetwork.LocalPlayer.SetCustomProperties(CustomProperties);
 
-                isPropertiesSwitching = false;
-                propertySwitchTime = Time.unscaledTime + Constants.NetworkCooldown;
+                IsUpdatingProperties = false;
+                PropertyUpdateTime = Time.unscaledTime + Constants.NetworkCooldown;
             }
         }
 
@@ -66,18 +67,26 @@ namespace GorillaShirts.Behaviours.Tools
 
             rigInstance.Player = player;
             rigInstance.IsNetwork = true;
-            rigInstance.Rig = _RigDict.TryGetValue(rigInstance.GetComponent<VRRig>(), out Rig rig) ? rig : null;
+            rigInstance.Rig = Cache_RigInfo.TryGetValue(rigInstance.GetComponent<VRRig>(), out Rig rig) ? rig : null;
 
             return rigInstance;
         }
 
+        /// <summary>
+        /// Prompt the class to update the player's custom properties. The properties are changed based on a given debounce, therefor it doesn't excessively set them right away
+        /// </summary>
+        /// <param name="customProperties">The hashtable representing the updated custom properties</param>
         public void UpdateProperties(Hashtable customProperties)
         {
-            myCustomProperties = customProperties;
-            isPropertiesSwitching = true;
+            CustomProperties = customProperties;
+            IsUpdatingProperties = true;
         }
 
-        public Hashtable GenerateHashtable(Shirt myShirt, int tagOffset) => new() { { Constants.ShirtKey, myShirt == null ? "None" : myShirt.Name }, { Constants.TagKey, tagOffset } };
+        public Hashtable GenerateHashtable(Shirt myShirt, int tagOffset) => new()
+        {
+            { Constants.ShirtKey, myShirt == null ? "None" : myShirt.Name },
+            { Constants.TagKey, tagOffset }
+        };
 
         public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
         {
@@ -88,6 +97,16 @@ namespace GorillaShirts.Behaviours.Tools
             {
                 VRRig rigCandidate = GorillaParent.instance.vrrigDict.ContainsKey(targetPlayer) ? GorillaParent.instance.vrrigDict[targetPlayer] : null;
                 VRRig targetRig = rigCandidate ?? RigUtils.GetRig(targetPlayer);
+
+                if (targetRig == rigCandidate)
+                {
+                    Logging.Info("GorillaParent was utilized when finding VRRig for player " + targetPlayer.ToString());
+                }
+                else
+                {
+                    Logging.Info("Reflection was utilized when finding VRRig for player " + targetPlayer.ToString());
+                }
+
                 RigInstance rigInstance = targetRig.gameObject.GetComponent<RigInstance>() ?? CreateRigInstance(targetRig.gameObject, targetPlayer);
 
                 CheckPlayerProps(changedProps.ContainsKey(Constants.ShirtKey) ? changedProps : targetPlayer.CustomProperties, targetRig, rigInstance);
@@ -102,29 +121,30 @@ namespace GorillaShirts.Behaviours.Tools
         {
             if (changedProps.TryGetValue(Constants.ShirtKey, out object shirtKey) && shirtKey is string shirtName)
             {
-                _ShirtDict ??= ShirtUtils.ShirtDict;
-                if (_ShirtDict.TryGetValue(shirtName, out Shirt myShirt))
+                Cache_ShirtInfo ??= ShirtUtils.ShirtDict;
+
+                if (Cache_ShirtInfo.TryGetValue(shirtName, out Shirt myShirt))
                 {
                     bool uniqueShirt = rigInstance.Rig.ActiveShirt != myShirt;
                     rigInstance.Rig.Wear(myShirt);
 
                     if (uniqueShirt)
                     {
-                        events.TriggerPlayShirtAudio(currentRig, 0, 0.5f);
-                        if (myShirt.Wear) events.TriggerPlayCustomAudio(currentRig, myShirt.Wear, 0.5f);
+                        InstancedEvents.TriggerPlayShirtAudio(currentRig, 0, 0.5f);
+                        if (myShirt.Wear) InstancedEvents.TriggerPlayCustomAudio(currentRig, myShirt.Wear, 0.5f);
                     }
                 }
                 else
                 {
                     if (shirtName != "None" && !string.IsNullOrEmpty(shirtName) && rigInstance.Rig.ActiveShirt != null)
                     {
-                        events.TriggerPlayShirtAudio(currentRig, 6, 0.6f);
+                        InstancedEvents.TriggerPlayShirtAudio(currentRig, 6, 0.6f);
                     }
 
                     if (rigInstance.Rig.ActiveShirt != myShirt)
                     {
-                        events.TriggerPlayShirtAudio(currentRig, 1, 0.5f);
-                        if (rigInstance.Rig.ActiveShirt != null && rigInstance.Rig.ActiveShirt.Remove) events.TriggerPlayCustomAudio(currentRig, rigInstance.Rig.ActiveShirt.Remove, 0.5f);
+                        InstancedEvents.TriggerPlayShirtAudio(currentRig, 1, 0.5f);
+                        if (rigInstance.Rig.ActiveShirt != null && rigInstance.Rig.ActiveShirt.Remove) InstancedEvents.TriggerPlayCustomAudio(currentRig, rigInstance.Rig.ActiveShirt.Remove, 0.5f);
                     }
 
                     rigInstance.Rig.Remove();

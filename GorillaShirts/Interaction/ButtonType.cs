@@ -1,4 +1,4 @@
-﻿namespace GorillaShirts.Behaviours.Interaction
+﻿namespace GorillaShirts.Interaction
 {
     public enum ButtonType
     {

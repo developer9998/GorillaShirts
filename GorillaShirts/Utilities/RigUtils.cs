@@ -7,23 +7,23 @@ namespace GorillaShirts.Utilities
 {
     public class RigUtils
     {
-        static Assembly _assembly;
-        static Type _rigCache, _container;
+        static Assembly GorillaAssembly;
+        static Type Type_RigCache, Type_RigContainer;
 
-        static object _rigCacheInstance;
+        static object Instance_RigCache;
 
         public static VRRig GetRig(Player player)
         {
-            _assembly = typeof(GorillaTagger).Assembly;
-            _rigCache = _assembly.GetType("VRRigCache");
-            _container = _assembly.GetType("RigContainer");
+            GorillaAssembly = typeof(GorillaTagger).Assembly;
+            Type_RigCache = GorillaAssembly.GetType("VRRigCache");
+            Type_RigContainer = GorillaAssembly.GetType("RigContainer");
 
-            _rigCacheInstance = AccessTools.Property(_rigCache, "Instance").GetValue(_rigCache, null);
-            if (_rigCacheInstance == null) return null;
+            Instance_RigCache = AccessTools.Property(Type_RigCache, "Instance").GetValue(Type_RigCache, null);
+            if (Instance_RigCache == null) return null;
 
             var GetVRRigParams = new object[] { player, null };
-            bool GetVRRigMethod = (bool)AccessTools.Method(_rigCache, "TryGetVrrig").Invoke(_rigCache, GetVRRigParams);
-            return GetVRRigMethod ? (VRRig)AccessTools.Field(_container, "vrrig").GetValue(GetVRRigParams[1]) : null;
+            bool GetVRRigMethod = (bool)AccessTools.Method(Type_RigCache, "TryGetVrrig").Invoke(Type_RigCache, GetVRRigParams);
+            return GetVRRigMethod ? (VRRig)AccessTools.Field(Type_RigContainer, "vrrig").GetValue(GetVRRigParams[1]) : null;
         }
     }
 }

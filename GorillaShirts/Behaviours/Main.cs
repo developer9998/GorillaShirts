@@ -2,12 +2,10 @@
 using BepInEx.Bootstrap;
 using GorillaLocomotion;
 using GorillaNetworking;
-using GorillaShirts.Behaviours.Data;
-using GorillaShirts.Behaviours.Interaction;
-using GorillaShirts.Behaviours.Models;
-using GorillaShirts.Behaviours.Tools;
-using GorillaShirts.Behaviours.UI;
+using GorillaShirts.Interaction;
+using GorillaShirts.Models;
 using GorillaShirts.Patches;
+using GorillaShirts.Tools;
 using GorillaShirts.Utilities;
 using HarmonyLib;
 using Photon.Pun;
@@ -22,7 +20,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
-using Button = GorillaShirts.Behaviours.Interaction.Button;
+using Button = GorillaShirts.Interaction.Button;
 
 namespace GorillaShirts.Behaviours
 {
@@ -506,11 +504,13 @@ namespace GorillaShirts.Behaviours
 
             #endregion
 
+            // Checks chainloader for any incompatible mods
             #region Incompatibility Check
 
             foreach (var pluginInfo in Chainloader.PluginInfos.Values)
             {
-                if (pluginInfo.Metadata.GUID == "com.nachoengine.playermodel")
+                Assembly pluginAssembly = pluginInfo.Instance.GetType().Assembly;
+                if (pluginInfo.Metadata.GUID == "com.nachoengine.playermodel" || pluginAssembly.GetTypes().Select(type => type.Name).Contains("WristMenu") || pluginAssembly.GetTypes().Select(type => type.Name).Contains("Cosmetx"))
                 {
                     shirtStand.transform.Find("UI").GetComponent<Animator>().Play("IncompFrame");
                     return;

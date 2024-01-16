@@ -1,6 +1,4 @@
-﻿using GorillaShirts.Behaviours.Editor;
-
-namespace GorillaShirts.Behaviours.Data
+﻿namespace GorillaShirts.Models
 {
     public class ShirtPair
     {

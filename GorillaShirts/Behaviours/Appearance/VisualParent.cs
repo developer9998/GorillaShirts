@@ -1,4 +1,4 @@
-﻿using GorillaShirts.Behaviours.Models;
+﻿using GorillaShirts.Models;
 using UnityEngine;
 
 namespace GorillaShirts.Behaviours.Visuals

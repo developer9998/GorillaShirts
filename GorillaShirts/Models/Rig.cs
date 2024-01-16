@@ -1,12 +1,11 @@
 ﻿using GorillaExtensions;
-using GorillaShirts.Behaviours.Data;
 using GorillaShirts.Behaviours.Visuals;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace GorillaShirts.Behaviours.Models
+namespace GorillaShirts.Models
 {
     public class Rig
     {

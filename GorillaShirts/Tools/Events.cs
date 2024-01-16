@@ -3,7 +3,7 @@ using Photon.Realtime;
 using System;
 using UnityEngine;
 
-namespace GorillaShirts.Behaviours.Tools
+namespace GorillaShirts.Tools
 {
     public class Events
     {

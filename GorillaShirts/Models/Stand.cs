@@ -1,7 +1,6 @@
-﻿using GorillaShirts.Behaviours.UI;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace GorillaShirts.Behaviours.Models
+namespace GorillaShirts.Models
 {
     public class Stand
     {

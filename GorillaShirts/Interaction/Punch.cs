@@ -2,7 +2,7 @@
 using GorillaLocomotion;
 using UnityEngine;
 
-namespace GorillaShirts.Behaviours.Interaction
+namespace GorillaShirts.Interaction
 {
     public class Punch : MonoBehaviour
     {

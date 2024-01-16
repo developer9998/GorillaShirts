@@ -1,6 +1,6 @@
 ﻿using GorillaNetworking;
-using GorillaShirts.Behaviours.Data;
-using GorillaShirts.Behaviours.Tools;
+using GorillaShirts.Models;
+using GorillaShirts.Tools;
 using System;
 using System.Collections.Generic;
 using UnityEngine;

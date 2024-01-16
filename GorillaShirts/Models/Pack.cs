@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GorillaShirts.Behaviours.Data
+namespace GorillaShirts.Models
 {
     public class Pack
     {

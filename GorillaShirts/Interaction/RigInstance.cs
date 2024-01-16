@@ -1,12 +1,12 @@
-﻿using GorillaShirts.Behaviours.Models;
-using GorillaShirts.Behaviours.Tools;
+﻿using GorillaShirts.Models;
+using GorillaShirts.Tools;
 using Photon.Pun;
 using Photon.Realtime;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace GorillaShirts.Behaviours.Interaction
+namespace GorillaShirts.Interaction
 {
     public class RigInstance : MonoBehaviour
     {
@@ -14,20 +14,20 @@ namespace GorillaShirts.Behaviours.Interaction
 
         public Rig Rig;
         public Player Player;
-        public bool IsNetwork;
+        public bool IsNetwork, IsInit;
 
-        private Events _events;
-        private bool _Initialized;
+        private Events Events;
 
         private SkinnedMeshRenderer Skin;
         private Renderer Face, Chest;
 
         public async void Start()
         {
-            if (_Initialized) return;
-            _Initialized = true;
+            if (IsInit) return;
+            IsInit = true;
 
-            _events = new Events();
+            Events = new Events();
+
             VRRig vrRig = GetComponent<VRRig>();
             if (Rig == null && RefDict.ContainsKey(vrRig))
             {
@@ -70,7 +70,7 @@ namespace GorillaShirts.Behaviours.Interaction
             {
                 await Task.Delay(PhotonNetwork.NetworkingClient != null ? Mathf.Max(PhotonNetwork.GetPing(), Constants.NetworkOffset) : Constants.NetworkOffset);
 
-                _events.TriggerCustomPropUpdate(Player, Player.CustomProperties);
+                Events.TriggerCustomPropUpdate(Player, Player.CustomProperties);
             }
         }
 
@@ -96,27 +96,5 @@ namespace GorillaShirts.Behaviours.Interaction
             Face.forceRenderingOff = isActivated;
             Chest.forceRenderingOff = isActivated;
         }
-
-        /*
-        private void OnDestroy()
-        {
-            if (Rig != null && Rig.CachedObjects.Count > 0)
-            {
-                try
-                {
-                    foreach (KeyValuePair<Shirt, List<GameObject>> keyValuePair in Rig.CachedObjects)
-                    {
-                        keyValuePair.Value.DoIf(a => a != null, a => Destroy(a));
-                        Rig.CachedObjects.Remove(keyValuePair.Key);
-                    }
-                    Rig.CachedObjects.Clear();
-                }
-                catch
-                {
-
-                }
-            }
-        }
-        */
     }
 }

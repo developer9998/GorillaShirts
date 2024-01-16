@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace GorillaShirts.Behaviours.Editor
+namespace GorillaShirts.Models
 {
     [Serializable]
     public class SConfig

@@ -1,7 +1,7 @@
 ﻿using BepInEx;
 using Bepinject;
-using GorillaShirts.Behaviours.Tools;
 using GorillaShirts.Patches;
+using GorillaShirts.Tools;
 using HarmonyLib;
 using System;
 
@@ -25,9 +25,9 @@ namespace GorillaShirts
 
             // Add some patches manually since they're under the internal and private keywords
             Type rigCacheType = typeof(GorillaTagger).Assembly.GetType("VRRigCache");
-            harmony.Patch(AccessTools.Method(rigCacheType, "Start", null, null), prefix: new HarmonyMethod(typeof(RigPatches), nameof(RigPatches.Prepare)));
-            harmony.Patch(AccessTools.Method(rigCacheType, "AddRigToGorillaParent", null, null), postfix: new HarmonyMethod(typeof(RigPatches), nameof(RigPatches.AddPatch)));
-            harmony.Patch(AccessTools.Method(rigCacheType, "RemoveRigFromGorillaParent", null, null), postfix: new HarmonyMethod(typeof(RigPatches), nameof(RigPatches.RemovePatch)));
+            harmony.Patch(AccessTools.Method(rigCacheType, "Start"), prefix: new HarmonyMethod(typeof(RigPatches), nameof(RigPatches.Prepare)));
+            harmony.Patch(AccessTools.Method(rigCacheType, "AddRigToGorillaParent"), postfix: new HarmonyMethod(typeof(RigPatches), nameof(RigPatches.AddPatch)));
+            harmony.Patch(AccessTools.Method(rigCacheType, "RemoveRigFromGorillaParent"), postfix: new HarmonyMethod(typeof(RigPatches), nameof(RigPatches.RemovePatch)));
         }
     }
 }

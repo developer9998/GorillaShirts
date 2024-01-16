@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace GorillaShirts.Behaviours.Data
+namespace GorillaShirts.Models
 {
     public struct Sector
     {

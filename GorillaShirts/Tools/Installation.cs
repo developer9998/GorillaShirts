@@ -1,10 +1,10 @@
 ﻿using BoingKit;
 using GorillaExtensions;
 using GorillaNetworking;
-using GorillaShirts.Behaviours.Data;
-using GorillaShirts.Behaviours.Editor;
 using GorillaShirts.Behaviours.Visuals;
 using GorillaShirts.Extensions;
+using GorillaShirts.Models;
+using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,14 +16,33 @@ using UnityEngine;
 using static BoingKit.BoingBones;
 using Object = UnityEngine.Object;
 
-namespace GorillaShirts.Behaviours.Tools
+namespace GorillaShirts.Tools
 {
     public class Installation
     {
-        private readonly Dictionary<string, Pack> _packDictionary = new();
+        private readonly Dictionary<string, Pack> Ref_CreatedPacks = new();
+        private readonly Dictionary<string, SectorType> Ref_SectorDict = new()
+        {
+            { "BodyObject", SectorType.Body         },
+            { "HeadObject", SectorType.Head         },
+            { "LUpperArm", SectorType.LeftUpper     },
+            { "LLowerArm", SectorType.LeftLower     },
+            { "LHand", SectorType.LeftHand          },
+            { "RUpperArm", SectorType.RightUpper    },
+            { "RLowerArm", SectorType.RightLower    },
+            { "RHand", SectorType.RightHand         },
+        };
+
+        public void TryCreateDirectory(string path)
+        {
+            if (Directory.Exists(path)) return;
+            Directory.CreateDirectory(path);
+        }
 
         public async Task<List<Pack>> FindShirtsFromDirectory(string myDirectory)
         {
+            Ref_CreatedPacks.Clear();
+
             await FindShirtsFromPackDirectory(myDirectory);
 
             var shirtPackDirectories = Directory.GetDirectories(myDirectory, "*", SearchOption.AllDirectories);
@@ -33,15 +52,8 @@ namespace GorillaShirts.Behaviours.Tools
                 await FindShirtsFromPackDirectory(directory);
             }
 
-            return _packDictionary.Values.ToList();
+            return Ref_CreatedPacks.Values.ToList();
         }
-
-        public void TryCreateDirectory(string path)
-        {
-            if (Directory.Exists(path)) return;
-            Directory.CreateDirectory(path);
-        }
-
 
         private async Task FindShirtsFromPackDirectory(string path)
         {
@@ -146,7 +158,7 @@ namespace GorillaShirts.Behaviours.Tools
                                         }
                                         if (child.name.StartsWith("G_Fur") && colourSupport)
                                         {
-                                            itemObject.gameObject.GetOrAddComponent<GorillaFur>()._visualParent = visualParent;
+                                            itemObject.gameObject.GetOrAddComponent<GorillaFur>().Ref_VisualParent = visualParent;
                                         }
                                         if (child.name.StartsWith("G_BB"))
                                         {
@@ -158,7 +170,7 @@ namespace GorillaShirts.Behaviours.Tools
                                 bool isFur = itemObject.GetComponent<GorillaFur>();
                                 if (colourSupport && customColour && !isFur && itemObject.GetComponent<Renderer>().material.HasProperty("_BaseColor"))
                                 {
-                                    itemObject.gameObject.AddComponent<GorillaColour>()._visualParent = visualParent;
+                                    itemObject.gameObject.AddComponent<GorillaColour>().Ref_VisualParent = visualParent;
                                 }
                             }
 
@@ -207,23 +219,15 @@ namespace GorillaShirts.Behaviours.Tools
                             }
                         }
                     }
+                    Ref_SectorDict.Do(pair => PrepareSector(pair.Key, pair.Value));
 
-                    PrepareSector("BodyObject", SectorType.Body);
-                    PrepareSector("HeadObject", SectorType.Head);
-                    PrepareSector("LUpperArm", SectorType.LeftUpper);
-                    PrepareSector("LLowerArm", SectorType.LeftLower);
-                    PrepareSector("LHand", SectorType.LeftHand);
-                    PrepareSector("RUpperArm", SectorType.RightUpper);
-                    PrepareSector("RLowerArm", SectorType.RightLower);
-                    PrepareSector("RHand", SectorType.RightHand);
-
-                    currentPack = _packDictionary.ContainsKey(shirtDataJSON.packName) ? _packDictionary[shirtDataJSON.packName] : new()
+                    currentPack = Ref_CreatedPacks.ContainsKey(shirtDataJSON.packName) ? Ref_CreatedPacks[shirtDataJSON.packName] : new()
                     {
                         Name = shirtDataJSON.packName,
                         DisplayName = shirtDataJSON.packName.NicknameFormat()
                     };
 
-                    if (!_packDictionary.ContainsKey(shirtDataJSON.packName)) _packDictionary.Add(shirtDataJSON.packName, currentPack);
+                    if (!Ref_CreatedPacks.ContainsKey(shirtDataJSON.packName)) Ref_CreatedPacks.Add(shirtDataJSON.packName, currentPack);
 
                     currentPack.PackagedShirts.Add(newShirt);
                     currentPack.ShirtNameDictionary.AddOrUpdate(newShirt.Name, newShirt);

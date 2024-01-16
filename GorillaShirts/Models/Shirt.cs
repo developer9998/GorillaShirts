@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace GorillaShirts.Behaviours.Data
+namespace GorillaShirts.Models
 {
     public class Shirt
     {

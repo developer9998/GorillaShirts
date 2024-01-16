@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace GorillaShirts.Behaviours.Editor
+namespace GorillaShirts.Behaviours
 {
     [AddComponentMenu("GorillaShirts/ShirtDescriptor")]
     public class ShirtDescriptor : MonoBehaviour

@@ -1,4 +1,4 @@
-﻿using GorillaShirts.Behaviours.Tools;
+﻿using GorillaShirts.Tools;
 using HarmonyLib;
 using Photon.Realtime;
 
