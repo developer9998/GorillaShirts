@@ -26,13 +26,13 @@ namespace GorillaShirts.Tools
         {
             InstancedEvents = new Events();
 
-            Events.RigAdded += delegate (Player player, VRRig vrRig)
+            Events.RigAdded += delegate (NetPlayer player, VRRig vrRig)
             {
                 if (player.IsLocal || vrRig.gameObject.GetComponent<RigInstance>() != null) return;
                 CreateRigInstance(vrRig.gameObject, player);
             };
 
-            Events.RigRemoved += delegate (Player player, VRRig vrRig)
+            Events.RigRemoved += delegate (NetPlayer player, VRRig vrRig)
             {
                 if (player.IsLocal || !vrRig.TryGetComponent(out RigInstance rigInstance)) return;
                 rigInstance.Rig.Remove();
@@ -60,12 +60,16 @@ namespace GorillaShirts.Tools
             }
         }
 
-        private RigInstance CreateRigInstance(GameObject gameObject, Player player)
+        private RigInstance CreateRigInstance(GameObject gameObject, NetPlayer player)
         {
             if (gameObject.TryGetComponent(out RigInstance instanceCandidate)) return instanceCandidate;
-            RigInstance rigInstance = gameObject.AddComponent<RigInstance>();
 
-            rigInstance.Player = player;
+            RigInstance rigInstance = gameObject.AddComponent<RigInstance>();
+            if (player is PunNetPlayer pnp)
+            {
+                rigInstance.Player = pnp.playerRef;
+            }
+
             rigInstance.IsNetwork = true;
             rigInstance.Rig = Cache_RigInfo.TryGetValue(rigInstance.GetComponent<VRRig>(), out Rig rig) ? rig : null;
 
@@ -100,7 +104,7 @@ namespace GorillaShirts.Tools
                 if (netPlayer != null)
                 {
                     VRRig rigCandidate = GorillaParent.instance.vrrigDict[netPlayer];
-                    VRRig targetRig = rigCandidate ?? RigUtils.GetRig(netPlayer);
+                    VRRig targetRig = rigCandidate ?? RigCacheUtils.GetField<VRRig>(netPlayer);
 
                     if (targetRig == rigCandidate)
                     {
@@ -111,7 +115,7 @@ namespace GorillaShirts.Tools
                         Logging.Info("Reflection was utilized when finding VRRig for player " + targetPlayer.ToString());
                     }
 
-                    RigInstance rigInstance = targetRig.gameObject.GetComponent<RigInstance>() ?? CreateRigInstance(targetRig.gameObject, targetPlayer);
+                    RigInstance rigInstance = targetRig.gameObject.GetComponent<RigInstance>() ?? CreateRigInstance(targetRig.gameObject, netPlayer);
 
                     CheckPlayerProps(changedProps.ContainsKey(Constants.ShirtKey) ? changedProps : targetPlayer.CustomProperties, targetRig, rigInstance);
                 }

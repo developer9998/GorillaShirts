@@ -26,6 +26,9 @@
 		<Reference Include="Bepinject">
 			<HintPath>$(PluginsPath)\Bepinject-Auros\Bepinject.dll</HintPath>
 		</Reference>
+		<Reference Include="Fusion.Runtime">
+		  <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Gorilla Tag\Gorilla Tag_Data\Managed\Fusion.Runtime.dll</HintPath>
+		</Reference>
 		<Reference Include="Newtonsoft.Json">
 		  <HintPath>$(BepInExAssemblyPath)\Newtonsoft.Json.dll</HintPath>
 		</Reference>

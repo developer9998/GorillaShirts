@@ -11,8 +11,8 @@ namespace GorillaShirts.Patches
 
         public static void Prepare() => _Events = new Events();
 
-        public static void AddPatch(Player player, VRRig vrrig) => _Events.TriggerRigAdded(player, vrrig);
+        public static void AddPatch(NetPlayer player, VRRig vrrig) => _Events.TriggerRigAdded(player, vrrig);
 
-        public static void RemovePatch(Player player, VRRig vrrig) => _Events.TriggerRigRemoved(player, vrrig);
+        public static void RemovePatch(NetPlayer player, VRRig vrrig) => _Events.TriggerRigRemoved(player, vrrig);
     }
 }
