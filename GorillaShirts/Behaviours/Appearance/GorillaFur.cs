@@ -4,32 +4,41 @@ namespace GorillaShirts.Behaviours.Visuals
 {
     public class GorillaFur : MonoBehaviour
     {
-        public VisualParent Ref_VisualParent;
-        private VRRig Ref_Rig;
+        public VRRig Rig
+        {
+            get
+            {
+                _rig ??= Fur_VisualParent.Rig.RigParent.GetComponent<VRRig>();
+                return _rig;
+            }
+        }
+        private VRRig _rig;
 
-        private Renderer Ref_Renderer;
+        public VisualParent Fur_VisualParent;
+        private string _furMode = "0";
 
-        private string Mode = "0";
+        public Material BaseFurMaterial;
+        private Material _localMaterial;
+
+        private Renderer _renderer;
 
         public void Start()
         {
-            if (Ref_VisualParent.Rig == null) return;
+            if (Fur_VisualParent.Rig == null) return;
 
-            Ref_Renderer = GetComponent<Renderer>();
-            Ref_Rig ??= Ref_VisualParent.Rig.RigParent.GetComponent<VRRig>();
+            _localMaterial = new Material(BaseFurMaterial);
 
-            Mode = transform.GetChild(transform.childCount - 1).name[^1].ToString();
-            switch (Mode)
+            _renderer = GetComponent<Renderer>();
+            _furMode = transform.GetChild(transform.childCount - 1).name[^1].ToString();
+            switch (_furMode)
             {
                 case "0":
-                    Ref_Renderer.material = Ref_Rig != null ? Ref_Rig.materialsToChangeTo[0] : Ref_VisualParent.Rig.RigSkin.material;
+                    _renderer.material = Rig != null ? _localMaterial : Fur_VisualParent.Rig.RigSkin.material;
+                    _localMaterial.color = Rig != null ? Rig.playerColor : Color.white;
                     break;
                 case "1":
-                    Material material = new(Ref_Rig != null ? Ref_Rig.materialsToChangeTo[0] : Ref_VisualParent.Rig.RigSkin.material)
-                    {
-                        color = Color.white
-                    };
-                    Ref_Renderer.material = material;
+                    _renderer.material = Rig != null ? _localMaterial : Fur_VisualParent.Rig.RigSkin.material;
+                    _renderer.material.color = Color.white;
                     break;
             }
         }
@@ -37,10 +46,9 @@ namespace GorillaShirts.Behaviours.Visuals
 
         public void Update()
         {
-            if (Mode != "2") return;
+            if (_furMode != "2") return;
 
-            Ref_Rig ??= Ref_VisualParent.Rig.RigParent.GetComponent<VRRig>();
-            Ref_Renderer.material = Ref_Rig != null ? Ref_Rig.mainSkin.material : Ref_VisualParent.Rig.RigSkin.material;
+            _renderer.material = Rig != null ? Rig.mainSkin.material : Fur_VisualParent.Rig.RigSkin.material;
         }
     }
 }

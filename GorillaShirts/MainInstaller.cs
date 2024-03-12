@@ -24,10 +24,10 @@ namespace GorillaShirts
         {
             Container.BindInterfacesAndSelfTo<Main>().FromNewComponentOn(Player).AsSingle();
             Container.BindInterfacesAndSelfTo<Networking>().FromNewComponentOn(Player).AsSingle();
+            Container.BindInterfacesAndSelfTo<Installation>().AsSingle();
+            Container.BindInterfacesAndSelfTo<Configuration>().AsSingle();
 
             Container.Bind<AssetLoader>().AsSingle();
-            Container.Bind<Configuration>().AsSingle();
-            Container.Bind<Installation>().AsSingle();
         }
     }
 }

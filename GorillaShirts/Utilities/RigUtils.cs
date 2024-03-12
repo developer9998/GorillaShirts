@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using Photon.Realtime;
 using System;
 using System.Reflection;
 
@@ -12,7 +11,7 @@ namespace GorillaShirts.Utilities
 
         static object Instance_RigCache;
 
-        public static VRRig GetRig(Player player)
+        public static VRRig GetRig(NetPlayer player)
         {
             GorillaAssembly = typeof(GorillaTagger).Assembly;
             Type_RigCache = GorillaAssembly.GetType("VRRigCache");
@@ -22,7 +21,7 @@ namespace GorillaShirts.Utilities
             if (Instance_RigCache == null) return null;
 
             var GetVRRigParams = new object[] { player, null };
-            bool GetVRRigMethod = (bool)AccessTools.Method(Type_RigCache, "TryGetVrrig").Invoke(Type_RigCache, GetVRRigParams);
+            bool GetVRRigMethod = (bool)AccessTools.Method(Type_RigCache, "TryGetVrrig", new Type[] { typeof(NetPlayer), Type_RigContainer }).Invoke(Type_RigCache, GetVRRigParams);
             return GetVRRigMethod ? (VRRig)AccessTools.Field(Type_RigContainer, "vrrig").GetValue(GetVRRigParams[1]) : null;
         }
     }

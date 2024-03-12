@@ -7,7 +7,7 @@ using System;
 
 namespace GorillaShirts
 {
-    [BepInDependency("dev.auros.bepinex.bepinject")]
+    [BepInDependency("dev.auros.bepinex.bepinject"), BepInIncompatibility("org.iidk.gorillatag.iimenu")] // yeah no..
     [BepInPlugin(Constants.Guid, Constants.Name, Constants.Version)]
     internal class Plugin : BaseUnityPlugin
     {

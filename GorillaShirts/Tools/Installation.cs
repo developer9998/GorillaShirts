@@ -13,13 +13,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using Zenject;
 using static BoingKit.BoingBones;
 using Object = UnityEngine.Object;
 
 namespace GorillaShirts.Tools
 {
-    public class Installation
+    public class Installation : IInitializable
     {
+        private AssetLoader _assetLoader;
+        private Material _furMaterial;
+
         private readonly Dictionary<string, Pack> Ref_CreatedPacks = new();
         private readonly Dictionary<string, SectorType> Ref_SectorDict = new()
         {
@@ -32,6 +36,25 @@ namespace GorillaShirts.Tools
             { "RLowerArm", SectorType.RightLower    },
             { "RHand", SectorType.RightHand         },
         };
+
+        [Inject]
+        public void Construct(AssetLoader assetLoader)
+        {
+            _assetLoader = assetLoader;
+        }
+
+        public async void Initialize()
+        {
+            Texture2D furTexture = await _assetLoader.LoadAsset<Texture2D>("lightfur");
+            Shader uberShader = Shader.Find("GorillaTag/UberShader");
+
+            _furMaterial = new Material(uberShader)
+            {
+                mainTexture = furTexture,
+                shaderKeywords = new string[] { "_USE_TEXTURE", "_ENVIRONMENTREFLECTIONS_OFF", "_GLOSSYREFLECTIONS_OFF", "_SPECULARHIGHLIGHTS_OFF" },
+                enabledKeywords = new UnityEngine.Rendering.LocalKeyword[] { new UnityEngine.Rendering.LocalKeyword(uberShader, "_USE_TEXTURE") }
+            };
+        }
 
         public void TryCreateDirectory(string path)
         {
@@ -158,7 +181,9 @@ namespace GorillaShirts.Tools
                                         }
                                         if (child.name.StartsWith("G_Fur") && colourSupport)
                                         {
-                                            itemObject.gameObject.GetOrAddComponent<GorillaFur>().Ref_VisualParent = visualParent;
+                                            GorillaFur gorillaFur = itemObject.gameObject.GetOrAddComponent<GorillaFur>();
+                                            gorillaFur.BaseFurMaterial = _furMaterial;
+                                            gorillaFur.Fur_VisualParent = visualParent;
                                         }
                                         if (child.name.StartsWith("G_BB"))
                                         {

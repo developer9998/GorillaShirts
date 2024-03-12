@@ -95,21 +95,26 @@ namespace GorillaShirts.Tools
 
             try
             {
-                VRRig rigCandidate = GorillaParent.instance.vrrigDict.ContainsKey(targetPlayer) ? GorillaParent.instance.vrrigDict[targetPlayer] : null;
-                VRRig targetRig = rigCandidate ?? RigUtils.GetRig(targetPlayer);
+                NetPlayer netPlayer = NetworkSystem.Instance.GetPlayer(targetPlayer.ActorNumber);
 
-                if (targetRig == rigCandidate)
+                if (netPlayer != null)
                 {
-                    Logging.Info("GorillaParent was utilized when finding VRRig for player " + targetPlayer.ToString());
-                }
-                else
-                {
-                    Logging.Info("Reflection was utilized when finding VRRig for player " + targetPlayer.ToString());
-                }
+                    VRRig rigCandidate = GorillaParent.instance.vrrigDict[netPlayer];
+                    VRRig targetRig = rigCandidate ?? RigUtils.GetRig(netPlayer);
 
-                RigInstance rigInstance = targetRig.gameObject.GetComponent<RigInstance>() ?? CreateRigInstance(targetRig.gameObject, targetPlayer);
+                    if (targetRig == rigCandidate)
+                    {
+                        Logging.Info("GorillaParent was utilized when finding VRRig for player " + targetPlayer.ToString());
+                    }
+                    else
+                    {
+                        Logging.Info("Reflection was utilized when finding VRRig for player " + targetPlayer.ToString());
+                    }
 
-                CheckPlayerProps(changedProps.ContainsKey(Constants.ShirtKey) ? changedProps : targetPlayer.CustomProperties, targetRig, rigInstance);
+                    RigInstance rigInstance = targetRig.gameObject.GetComponent<RigInstance>() ?? CreateRigInstance(targetRig.gameObject, targetPlayer);
+
+                    CheckPlayerProps(changedProps.ContainsKey(Constants.ShirtKey) ? changedProps : targetPlayer.CustomProperties, targetRig, rigInstance);
+                }
             }
             catch
             {
