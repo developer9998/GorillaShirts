@@ -52,7 +52,7 @@ namespace GorillaShirts.Tools
             {
                 mainTexture = furTexture,
                 shaderKeywords = new string[] { "_USE_TEXTURE", "_ENVIRONMENTREFLECTIONS_OFF", "_GLOSSYREFLECTIONS_OFF", "_SPECULARHIGHLIGHTS_OFF" },
-                enabledKeywords = new UnityEngine.Rendering.LocalKeyword[] { new UnityEngine.Rendering.LocalKeyword(uberShader, "_USE_TEXTURE") }
+                enabledKeywords = new UnityEngine.Rendering.LocalKeyword[] { new(uberShader, "_USE_TEXTURE") }
             };
         }
 
