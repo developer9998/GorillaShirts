@@ -17,7 +17,7 @@
         /// <summary>
         /// The version of the mod utilizing semantic versioning (major.minor.patch)
         /// </summary>
-        public const string Version = "1.1.0";
+        public const string Version = "1.1.1";
 
         // Assets
 
