@@ -2,7 +2,7 @@
 {
     public enum ButtonType
     {
-        ShirtEquip, ShirtLeft, ShirtRight, PackLeft, PackRight,
-        RigToggle, Randomize, TagIncrease, TagDecrease, AdvancedTab, Capture
+        ShirtEquip, ShirtIncrease, ShirtDecrease, PackDecrease, PackIncrease,
+        RigToggle, Randomize, TagIncrease, TagDecrease, Info, Capture
     }
 }

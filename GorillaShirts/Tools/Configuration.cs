@@ -1,12 +1,11 @@
 ﻿using BepInEx.Configuration;
-using Bepinject;
 using UnityEngine;
 
 namespace GorillaShirts.Tools
 {
     public class Configuration
     {
-        private readonly BepInConfig Config;
+        private ConfigFile File;
 
         public ConfigEntry<string> CurrentShirt;
         public ConfigEntry<int> CurrentTagOffset;
@@ -20,30 +19,30 @@ namespace GorillaShirts.Tools
 
         public ConfigEntry<bool> RemoveBaseItem;
 
-        public Configuration(BepInConfig config)
+        public Configuration(ConfigFile file)
         {
-            Config = config;
+            File = file;
 
-            CurrentShirt = Config.Config.Bind("Prior Data", "Current Shirt", "None", "The currently used shirt.");
-            CurrentTagOffset = Config.Config.Bind("Prior Data", "Current Tag Offset", 1, "The used offset on nametags.");
+            CurrentShirt = File.Bind("Prior Data", "Current Shirt", "None", "The currently used shirt.");
+            CurrentTagOffset = File.Bind("Prior Data", "Current Tag Offset", 1, "The used offset on nametags.");
             CurrentTagOffset.Value = Mathf.Clamp(CurrentTagOffset.Value, 0, Constants.TagOffsetLimit);
 
             PreviewTypes defaultPreview = (PreviewTypes)Random.Range(0, 2);
-            CurrentPreview = Config.Config.Bind("Prior Data", "Current Preview Character", defaultPreview, "The currently used preview character.");
+            CurrentPreview = File.Bind("Prior Data", "Current Preview Character", defaultPreview, "The currently used preview character.");
 
-            RemoveBaseItem = Config.Config.Bind("General Data", "Remove Game Item", true, "If enabled, the player cannot have a badge item and shirt on at the same time");
+            RemoveBaseItem = File.Bind("General Data", "Remove Game Item", true, "If enabled, the player cannot have a badge item and shirt on at the same time");
         }
 
         public void SetCurrentShirt(string shirtName)
         {
             CurrentShirt.Value = shirtName;
-            Config.Config.Save();
+            File.Save();
         }
 
         public void SetCurrentPreview(bool isSilly, bool opposite)
         {
             CurrentPreview.Value = isSilly ? opposite ? PreviewTypes.Steady : PreviewTypes.Silly : opposite ? PreviewTypes.Silly : PreviewTypes.Steady;
-            Config.Config.Save();
+            File.Save();
         }
     }
 }

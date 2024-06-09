@@ -1,6 +1,5 @@
 ﻿using GorillaShirts.Tools;
 using HarmonyLib;
-using Photon.Realtime;
 
 namespace GorillaShirts.Patches
 {

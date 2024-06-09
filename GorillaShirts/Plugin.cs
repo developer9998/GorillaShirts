@@ -1,33 +1,28 @@
 ﻿using BepInEx;
-using Bepinject;
+using GorillaShirts.Behaviours;
 using GorillaShirts.Patches;
-using GorillaShirts.Tools;
 using HarmonyLib;
 using System;
+using UnityEngine;
 
 namespace GorillaShirts
 {
-    [BepInDependency("dev.auros.bepinex.bepinject"), BepInIncompatibility("org.iidk.gorillatag.iimenu")] // yeah no..
     [BepInPlugin(Constants.Guid, Constants.Name, Constants.Version)]
-    internal class Plugin : BaseUnityPlugin
+    public class Plugin : BaseUnityPlugin
     {
+        private readonly Harmony _harmony;
+        private readonly Type _vrRigCacheType;
+
         public Plugin()
         {
-            // Prepare a selection of tools the mod uses
-            Logging.Initalize(Constants.Name);
+            _harmony = Harmony.CreateAndPatchAll(typeof(Plugin).Assembly, Constants.Guid);
+            _vrRigCacheType = typeof(GorillaTagger).Assembly.GetType("VRRigCache");
 
-            // Prepare our installer with Bepinject
-            Zenjector.Install<MainInstaller>().OnProject().WithConfig(Config).WithLog(Logger);
+            _harmony.Patch(AccessTools.Method(_vrRigCacheType, "Start"), prefix: new HarmonyMethod(typeof(RigPatches), nameof(RigPatches.Prepare)));
+            _harmony.Patch(AccessTools.Method(_vrRigCacheType, "AddRigToGorillaParent"), postfix: new HarmonyMethod(typeof(RigPatches), nameof(RigPatches.AddPatch)));
+            _harmony.Patch(AccessTools.Method(_vrRigCacheType, "RemoveRigFromGorillaParent"), postfix: new HarmonyMethod(typeof(RigPatches), nameof(RigPatches.RemovePatch)));
 
-            // Prepare our harmony instance
-            Harmony harmony = new(Constants.Guid);
-            harmony.PatchAll(typeof(Plugin).Assembly);
-
-            // Add some patches manually since they're under the internal and private keywords
-            Type rigCacheType = typeof(GorillaTagger).Assembly.GetType("VRRigCache");
-            harmony.Patch(AccessTools.Method(rigCacheType, "Start"), prefix: new HarmonyMethod(typeof(RigPatches), nameof(RigPatches.Prepare)));
-            harmony.Patch(AccessTools.Method(rigCacheType, "AddRigToGorillaParent"), postfix: new HarmonyMethod(typeof(RigPatches), nameof(RigPatches.AddPatch)));
-            harmony.Patch(AccessTools.Method(rigCacheType, "RemoveRigFromGorillaParent"), postfix: new HarmonyMethod(typeof(RigPatches), nameof(RigPatches.RemovePatch)));
+            GorillaTagger.OnPlayerSpawned(() => new GameObject("ShirtConstructor").AddComponent<ShirtConstructor>().ConfigFile = Config);
         }
     }
 }

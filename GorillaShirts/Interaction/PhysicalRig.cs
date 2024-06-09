@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace GorillaShirts.Interaction
 {
-    public class RigInstance : MonoBehaviour
+    public class PhysicalRig : MonoBehaviour
     {
         public static Dictionary<VRRig, Rig> RefDict = new();
 
@@ -76,7 +76,7 @@ namespace GorillaShirts.Interaction
 
         public void OnShirtWorn()
         {
-            SetInvisiblityState(Rig.ActiveShirt.Invisibility);
+            SetInvisiblityState(Rig.CurrentShirt.Invisibility);
         }
 
         public void OnShirtRemoved()
@@ -90,7 +90,6 @@ namespace GorillaShirts.Interaction
             Face ??= Rig.Head.Find("gorillaface").GetComponent<Renderer>();
             Chest ??= Rig.Body.Find("gorillachest").GetComponent<Renderer>();
 
-            // Yep relying on all of them is the path I'm choosing to go down
             if (Skin == null || Face == null || Chest == null) return;
             Skin.forceRenderingOff = isActivated;
             Face.forceRenderingOff = isActivated;

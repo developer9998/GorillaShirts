@@ -7,24 +7,23 @@ namespace GorillaShirts.Patches
     [HarmonyPatch]
     public class ZonePatches
     {
-        public static event Action<GTZone> OnMapUpdate;
-        private static GTZone Active = GTZone.forest;
+        public static event Action<GTZone[]> OnMapUpdate;
+        private static GTZone[] Active = [GTZone.forest];
 
-
-        [HarmonyPatch(typeof(ZoneManagement), "SetActiveZone"), HarmonyPostfix]
-        public static void SetZonePatch(GTZone zone)
+        [HarmonyPatch(typeof(ZoneManagement), "SetActiveZones"), HarmonyPostfix]
+        public static void SetZonePatch(GTZone[] zones)
         {
-            if (zone != Active)
+            if (zones != Active)
             {
-                Active = zone;
-                OnMapUpdate?.Invoke(zone);
+                Active = zones;
+                OnMapUpdate?.Invoke(zones);
             }
         }
 
         [HarmonyPatch(typeof(GorillaSetZoneTrigger), "OnBoxTriggered"), HarmonyPostfix]
         public static void RegionTriggerPatch(GorillaSetZoneTrigger __instance)
         {
-            GTZone zone = ((GTZone[])AccessTools.Field(__instance.GetType(), "zones").GetValue(__instance)).First();
+            GTZone[] zone = (GTZone[])AccessTools.Field(__instance.GetType(), "zones").GetValue(__instance);
             if (zone != Active)
             {
                 Active = zone;

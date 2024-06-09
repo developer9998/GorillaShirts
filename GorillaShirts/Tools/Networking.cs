@@ -7,11 +7,10 @@ using Photon.Pun;
 using Photon.Realtime;
 using System.Collections.Generic;
 using UnityEngine;
-using Zenject;
 
 namespace GorillaShirts.Tools
 {
-    public class Networking : MonoBehaviourPunCallbacks, IInitializable
+    public class Networking : MonoBehaviourPunCallbacks
     {
         public Hashtable CustomProperties;
 
@@ -22,19 +21,19 @@ namespace GorillaShirts.Tools
         private Dictionary<string, Shirt> Cache_ShirtInfo;
         private readonly Dictionary<VRRig, Rig> Cache_RigInfo = new();
 
-        public void Initialize()
+        public void Start()
         {
             InstancedEvents = new Events();
 
             Events.RigAdded += delegate (NetPlayer player, VRRig vrRig)
             {
-                if (player.IsLocal || vrRig.gameObject.GetComponent<RigInstance>() != null) return;
+                if (player.IsLocal || vrRig.gameObject.GetComponent<PhysicalRig>() != null) return;
                 CreateRigInstance(vrRig.gameObject, player);
             };
 
             Events.RigRemoved += delegate (NetPlayer player, VRRig vrRig)
             {
-                if (player.IsLocal || !vrRig.TryGetComponent(out RigInstance rigInstance)) return;
+                if (player.IsLocal || !vrRig.TryGetComponent(out PhysicalRig rigInstance)) return;
                 rigInstance.Rig.Remove();
                 rigInstance.Rig.SetTagOffset(0);
                 rigInstance.OnShirtRemoved();
@@ -60,11 +59,11 @@ namespace GorillaShirts.Tools
             }
         }
 
-        private RigInstance CreateRigInstance(GameObject gameObject, NetPlayer player)
+        private PhysicalRig CreateRigInstance(GameObject gameObject, NetPlayer player)
         {
-            if (gameObject.TryGetComponent(out RigInstance instanceCandidate)) return instanceCandidate;
+            if (gameObject.TryGetComponent(out PhysicalRig instanceCandidate)) return instanceCandidate;
 
-            RigInstance rigInstance = gameObject.AddComponent<RigInstance>();
+            PhysicalRig rigInstance = gameObject.AddComponent<PhysicalRig>();
             if (player is PunNetPlayer pnp)
             {
                 rigInstance.Player = pnp.playerRef;
@@ -115,7 +114,7 @@ namespace GorillaShirts.Tools
                         Logging.Info("Reflection was utilized when finding VRRig for player " + targetPlayer.ToString());
                     }
 
-                    RigInstance rigInstance = targetRig.gameObject.GetComponent<RigInstance>() ?? CreateRigInstance(targetRig.gameObject, netPlayer);
+                    PhysicalRig rigInstance = targetRig.gameObject.GetComponent<PhysicalRig>() ?? CreateRigInstance(targetRig.gameObject, netPlayer);
 
                     CheckPlayerProps(changedProps.ContainsKey(Constants.ShirtKey) ? changedProps : targetPlayer.CustomProperties, targetRig, rigInstance);
                 }
@@ -126,7 +125,7 @@ namespace GorillaShirts.Tools
             }
         }
 
-        public void CheckPlayerProps(Hashtable changedProps, VRRig currentRig, RigInstance rigInstance)
+        public void CheckPlayerProps(Hashtable changedProps, VRRig currentRig, PhysicalRig rigInstance)
         {
             if (changedProps.TryGetValue(Constants.ShirtKey, out object shirtKey) && shirtKey is string shirtName)
             {
@@ -134,7 +133,7 @@ namespace GorillaShirts.Tools
 
                 if (Cache_ShirtInfo.TryGetValue(shirtName, out Shirt myShirt))
                 {
-                    bool uniqueShirt = rigInstance.Rig.ActiveShirt != myShirt;
+                    bool uniqueShirt = rigInstance.Rig.CurrentShirt != myShirt;
                     rigInstance.Rig.Wear(myShirt);
 
                     if (uniqueShirt)
@@ -145,15 +144,15 @@ namespace GorillaShirts.Tools
                 }
                 else
                 {
-                    if (shirtName != "None" && !string.IsNullOrEmpty(shirtName) && rigInstance.Rig.ActiveShirt != null)
+                    if (shirtName != "None" && !string.IsNullOrEmpty(shirtName) && rigInstance.Rig.CurrentShirt != null)
                     {
                         InstancedEvents.TriggerPlayShirtAudio(currentRig, 6, 0.6f);
                     }
 
-                    if (rigInstance.Rig.ActiveShirt != myShirt)
+                    if (rigInstance.Rig.CurrentShirt != myShirt)
                     {
                         InstancedEvents.TriggerPlayShirtAudio(currentRig, 1, 0.5f);
-                        if (rigInstance.Rig.ActiveShirt != null && rigInstance.Rig.ActiveShirt.Remove) InstancedEvents.TriggerPlayCustomAudio(currentRig, rigInstance.Rig.ActiveShirt.Remove, 0.5f);
+                        if (rigInstance.Rig.CurrentShirt != null && rigInstance.Rig.CurrentShirt.Remove) InstancedEvents.TriggerPlayCustomAudio(currentRig, rigInstance.Rig.CurrentShirt.Remove, 0.5f);
                     }
 
                     rigInstance.Rig.Remove();
@@ -163,7 +162,7 @@ namespace GorillaShirts.Tools
 
             if (changedProps.TryGetValue(Constants.TagKey, out object tagKey) && tagKey is int tagOffset)
             {
-                rigInstance.Rig.SetTagOffset(rigInstance.Rig.ActiveShirt == null ? 0 : tagOffset);
+                rigInstance.Rig.SetTagOffset(rigInstance.Rig.CurrentShirt == null ? 0 : tagOffset);
             }
         }
     }

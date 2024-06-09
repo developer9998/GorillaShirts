@@ -16,28 +16,28 @@ namespace GorillaShirts.Models
         public SkinnedMeshRenderer RigSkin;
         public Text Nametag;
 
-        public Shirt ActiveShirt;
+        public Shirt CurrentShirt;
         public Dictionary<Shirt, List<GameObject>> CachedObjects = new();
 
         public bool Toggle = true;
 
         public void Wear(Shirt myShirt, out Shirt preShirt, out Shirt postShirt)
         {
-            preShirt = ActiveShirt;
+            preShirt = CurrentShirt;
             Wear(myShirt);
-            postShirt = ActiveShirt;
+            postShirt = CurrentShirt;
         }
 
         public void Wear(Shirt myShirt)
         {
-            if (ActiveShirt == myShirt && Toggle)
+            if (CurrentShirt == myShirt && Toggle)
             {
                 Remove();
                 return;
             }
 
-            if (ActiveShirt != myShirt && !Cooldown) Remove();
-            ActiveShirt = myShirt;
+            if (CurrentShirt != myShirt && !Cooldown) Remove();
+            CurrentShirt = myShirt;
 
             if (CachedObjects.ContainsKey(myShirt))
             {
@@ -81,13 +81,13 @@ namespace GorillaShirts.Models
 
         public void Remove()
         {
-            if (ActiveShirt != null && CachedObjects.ContainsKey(ActiveShirt))
+            if (CurrentShirt != null && CachedObjects.ContainsKey(CurrentShirt))
             {
-                var setObjects = CachedObjects[ActiveShirt];
+                var setObjects = CachedObjects[CurrentShirt];
                 setObjects.ForEach(a => a.SetActive(false));
                 OnShirtRemoved?.Invoke();
             }
-            ActiveShirt = null;
+            CurrentShirt = null;
         }
 
         public void SetTagOffset(int offset) => Nametag.transform.localPosition = Nametag.transform.localPosition.WithZ((float)-offset * 5);
