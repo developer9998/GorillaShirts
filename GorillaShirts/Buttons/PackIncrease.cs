@@ -3,8 +3,6 @@ using GorillaShirts.Interaction;
 using GorillaShirts.Interfaces;
 using GorillaShirts.Models;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace GorillaShirts.Buttons
 {

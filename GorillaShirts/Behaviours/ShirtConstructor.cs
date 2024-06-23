@@ -23,7 +23,6 @@ using System.Reflection;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
-using static BoingKit.BoingBones;
 using Button = GorillaShirts.Interaction.Button;
 
 namespace GorillaShirts.Behaviours
@@ -81,8 +80,6 @@ namespace GorillaShirts.Behaviours
 
         private Installation _shirtInstaller;
 
-        private Events _events;
-
         private List<AudioClip> _audios = [];
 
         public Shirt SelectedShirt => SelectedPack.PackagedShirts[SelectedPack.CurrentItem];
@@ -99,8 +96,6 @@ namespace GorillaShirts.Behaviours
             _shirtInstaller = new Installation();
             Config = new Configuration(ConfigFile);
 
-            _events = new Events();
-
             // Creates the shirt stands used for interaction with the mod
             #region Stand Initialization
 
@@ -114,7 +109,7 @@ namespace GorillaShirts.Behaviours
 
             ZonePatches.OnMapUpdate += delegate (GTZone[] zones)
             {
-                foreach(GTZone testZone in zones)
+                foreach (GTZone testZone in zones)
                 {
                     IStandLocation testLocation = _standLocations.FirstOrDefault(zone => zone.Zone == testZone);
                     if (testLocation != null)
@@ -323,16 +318,16 @@ namespace GorillaShirts.Behaviours
                 await _assetLoader.LoadAsset<AudioClip>("PackClose"),
             ];
 
-            Events.PlayShirtAudio += delegate (VRRig p_Rig, int p_AudioIndex, float p_Volume)
+            Events.PlayShirtAudio += delegate (VRRig targetRig, int index, float volume)
             {
-                if (p_Rig == null || p_AudioIndex > _audios.Count - 1) return;
-                p_Rig.tagSound.PlayOneShot(_audios[p_AudioIndex], p_Volume);
+                if (targetRig == null || index > _audios.Count - 1) return;
+                targetRig.tagSound.PlayOneShot(_audios[index], volume);
             };
 
-            Events.PlayCustomAudio += delegate (VRRig p_Rig, AudioClip p_Clip, float p_Volume)
+            Events.PlayCustomAudio += delegate (VRRig targetRig, AudioClip clip, float volume)
             {
-                if (!p_Rig || !p_Clip) return;
-                p_Rig.tagSound.PlayOneShot(p_Clip, p_Volume);
+                if (!targetRig || !clip) return;
+                targetRig.tagSound.PlayOneShot(clip, volume);
             };
 
             Player.Instance.materialData.Add(new Player.MaterialData()
@@ -350,7 +345,8 @@ namespace GorillaShirts.Behaviours
             foreach (var pluginInfo in Chainloader.PluginInfos.Values)
             {
                 Assembly pluginAssembly = pluginInfo.Instance.GetType().Assembly;
-                if (pluginInfo.Metadata.GUID == "com.nachoengine.playermodel" || pluginAssembly.GetTypes().Select(type => type.Name).Contains("WristMenu") || pluginAssembly.GetTypes().Select(type => type.Name).Contains("Cosmetx"))
+                var pluginTypes = pluginAssembly.GetTypes();
+                if (pluginInfo.Metadata.GUID == "com.nachoengine.playermodel" || pluginTypes.Any(type => type.Name.Contains("WristMenu") || type.Name.Contains("MenuPatch") || type.Name.Contains("Cosmetx")))
                 {
                     shirtStand.transform.Find("UI").GetComponent<Animator>().Play("IncompFrame");
                     return;
@@ -435,16 +431,15 @@ namespace GorillaShirts.Behaviours
                     if (postShirt.SectorList.Any(a => a.Type == SectorType.Head)) ShirtUtils.RemoveItem(CosmeticsController.CosmeticCategory.Hat, CosmeticsController.CosmeticSlots.Hat);
                 }
 
-                // Audio
                 if (postShirt != null)
                 {
-                    if (postShirt.Wear) _events.TriggerPlayCustomAudio(LocalRig.GetComponent<VRRig>(), postShirt.Wear, 0.3f);
-                    else _events.TriggerPlayShirtAudio(LocalRig.GetComponent<VRRig>(), 0, 0.4f);
+                    if (postShirt.Wear) Events.PlayCustomAudio?.Invoke(LocalRig.GetComponent<VRRig>(), postShirt.Wear, 0.3f);
+                    else Events.PlayShirtAudio?.Invoke(LocalRig.GetComponent<VRRig>(), 0, 0.4f);
                 }
                 else if (preShirt != null)
                 {
-                    if (preShirt.Remove) _events.TriggerPlayCustomAudio(LocalRig.GetComponent<VRRig>(), preShirt.Remove, 0.3f);
-                    else _events.TriggerPlayShirtAudio(LocalRig.GetComponent<VRRig>(), 1, 0.4f);
+                    if (preShirt.Remove) Events.PlayCustomAudio?.Invoke(LocalRig.GetComponent<VRRig>(), preShirt.Remove, 0.3f);
+                    else Events.PlayShirtAudio?.Invoke(LocalRig.GetComponent<VRRig>(), 1, 0.4f);
                 }
 
                 // Networking

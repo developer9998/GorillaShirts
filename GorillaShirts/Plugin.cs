@@ -18,7 +18,6 @@ namespace GorillaShirts
             _harmony = Harmony.CreateAndPatchAll(typeof(Plugin).Assembly, Constants.Guid);
             _vrRigCacheType = typeof(GorillaTagger).Assembly.GetType("VRRigCache");
 
-            _harmony.Patch(AccessTools.Method(_vrRigCacheType, "Start"), prefix: new HarmonyMethod(typeof(RigPatches), nameof(RigPatches.Prepare)));
             _harmony.Patch(AccessTools.Method(_vrRigCacheType, "AddRigToGorillaParent"), postfix: new HarmonyMethod(typeof(RigPatches), nameof(RigPatches.AddPatch)));
             _harmony.Patch(AccessTools.Method(_vrRigCacheType, "RemoveRigFromGorillaParent"), postfix: new HarmonyMethod(typeof(RigPatches), nameof(RigPatches.RemovePatch)));
 

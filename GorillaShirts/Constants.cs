@@ -41,7 +41,7 @@
         /// <summary>
         /// The minimum amount of milliseconds used to check if a player has any GorillaShirts related data
         /// </summary>
-        public const int NetworkOffset = 500;
+        public const int NetworkOffset = 300;
 
         /// <summary>
         /// The custom property key used for the shirt a player is wearing

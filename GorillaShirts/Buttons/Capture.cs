@@ -2,8 +2,6 @@
 using GorillaShirts.Interfaces;
 using GorillaShirts.Models;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 
 namespace GorillaShirts.Buttons

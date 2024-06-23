@@ -70,7 +70,7 @@ namespace GorillaShirts.Interaction
             {
                 await Task.Delay(PhotonNetwork.NetworkingClient != null ? Mathf.Max(PhotonNetwork.GetPing(), Constants.NetworkOffset) : Constants.NetworkOffset);
 
-                Events.TriggerCustomPropUpdate(Player, Player.CustomProperties);
+                Events.CustomPropUpdate?.Invoke(Player, Player.CustomProperties);
             }
         }
 
