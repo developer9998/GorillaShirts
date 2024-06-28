@@ -407,6 +407,21 @@ namespace GorillaShirts.Behaviours
                 UITextParent.gameObject.SetActive(true);
                 shirtStand.transform.Find("UI").GetComponent<Animator>().Play("FadeInFrame");
             }
+
+            try
+            {
+                if (PhotonNetwork.InRoom)
+                {
+                    foreach(var player in PhotonNetwork.PlayerListOthers)
+                    {
+                        Events.CustomPropUpdate?.Invoke(player, player.CustomProperties);
+                    }
+                }
+            }
+            catch
+            {
+
+            }
         }
 
         public void PlaySound(ShirtAudio audio, float volume = 1f)
