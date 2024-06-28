@@ -385,7 +385,11 @@ namespace GorillaShirts.Behaviours
             WardrobePatches.CosmeticUpdated += delegate (CosmeticsController.CosmeticCategory category)
             {
                 bool condition = LocalRig.Rig.CurrentShirt != null && Config.RemoveBaseItem.Value && (LocalRig.Rig.CurrentShirt.SectorList.Any(a => a.Type == SectorType.Head) && category == CosmeticsController.CosmeticCategory.Hat || category == CosmeticsController.CosmeticCategory.Badge);
-                if (condition) SetShirt(LocalRig.Rig.CurrentShirt);
+                if (condition)
+                {
+                    SetShirt(LocalRig.Rig.CurrentShirt);
+                    Stand.Display.SetEquipped(Stand.Rig.CurrentShirt, LocalRig.Rig.CurrentShirt);
+                }
             };
 
             #endregion

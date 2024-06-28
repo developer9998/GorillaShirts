@@ -17,7 +17,7 @@
         /// <summary>
         /// The version of the mod utilizing semantic versioning (major.minor.patch)
         /// </summary>
-        public const string Version = "1.1.1";
+        public const string Version = "1.1.2";
 
         // Assets
 
@@ -36,7 +36,7 @@
         /// <summary>
         /// The duration of how often the player's custom properties should be set (in seconds)
         /// </summary>
-        public const float NetworkCooldown = 1.25f;
+        public const float NetworkCooldown = 0.7f;
 
         /// <summary>
         /// The minimum amount of milliseconds used to check if a player has any GorillaShirts related data
