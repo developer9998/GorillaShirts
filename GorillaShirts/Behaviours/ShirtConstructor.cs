@@ -70,7 +70,8 @@ namespace GorillaShirts.Behaviours
             typeof(Basement),
             typeof(Beach),
             typeof(Tutorial),
-            // typeof(Rotating)
+            typeof(Rotating),
+            typeof(Metropolis)
         }.FromTypeCollection<IStandLocation>();
 
         public int SelectedPackIndex;

@@ -6,6 +6,6 @@ namespace GorillaShirts.Locations
     internal class Forest : IStandLocation
     {
         public GTZone Zone => GTZone.forest;
-        public Tuple<UnityEngine.Vector3, UnityEngine.Vector3> Location => Tuple.Create<UnityEngine.Vector3, UnityEngine.Vector3>(new(-67.6651f, 12.07f, -80.438f), new(0f, 171.1801f, 0f));
+        public Tuple<UnityEngine.Vector3, UnityEngine.Vector3> Location => Tuple.Create<UnityEngine.Vector3, UnityEngine.Vector3>(new(-63.023f, 12.6191f, -81.7832f), new(0f, 221.5849f, 0f));
     }
 }
