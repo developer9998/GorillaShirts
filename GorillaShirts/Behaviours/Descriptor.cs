@@ -4,7 +4,7 @@ using UnityEngine;
 namespace GorillaShirts.Behaviours
 {
     [AddComponentMenu("GorillaShirts/ShirtDescriptor")]
-    public class ShirtDescriptor : MonoBehaviour
+    public class Descriptor : MonoBehaviour
     {
         // Pack
         public string Pack;

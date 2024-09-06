@@ -27,7 +27,7 @@ using Button = GorillaShirts.Interaction.Button;
 
 namespace GorillaShirts.Behaviours
 {
-    public class ShirtConstructor : MonoBehaviourPunCallbacks
+    public class Main : MonoBehaviourPunCallbacks
     {
         private bool _initalized;
 
@@ -71,7 +71,8 @@ namespace GorillaShirts.Behaviours
             typeof(Beach),
             typeof(Tutorial),
             typeof(Rotating),
-            typeof(Metropolis)
+            typeof(Metropolis),
+            typeof(Arcade)
         }.FromTypeCollection<IStandLocation>();
 
         public int SelectedPackIndex;
@@ -110,20 +111,22 @@ namespace GorillaShirts.Behaviours
 
             ZonePatches.OnMapUpdate += delegate (GTZone[] zones)
             {
-                foreach (GTZone testZone in zones)
+                foreach (GTZone currentZone in zones)
                 {
-                    IStandLocation testLocation = _standLocations.FirstOrDefault(zone => zone.Zone == testZone);
-                    if (testLocation != null)
+                    IStandLocation currentLocation = _standLocations.FirstOrDefault(zone => zone.IsInZone(currentZone));
+                    if (currentLocation != null)
                     {
                         try
                         {
-                            Tuple<Vector3, Vector3> locationData = testLocation.Location;
+                            Tuple<Vector3, Vector3> locationData = currentLocation.Location;
                             shirtStand.transform.position = locationData.Item1;
                             shirtStand.transform.rotation = Quaternion.Euler(locationData.Item2);
+                            shirtStand.SetActive(true);
                         }
                         catch
                         {
-                            // TODO: log error
+                            Logging.Error($"No stand location exists for zones {string.Join(", ", zones)}, hiding shirt stand");
+                            shirtStand.SetActive(false);
                         }
                         break;
                     }
@@ -267,18 +270,6 @@ namespace GorillaShirts.Behaviours
                     if (!_audios.Any()) return;
 
                     GorillaTagger.Instance.offlineVRRig.PlayHandTapLocal(Player.Instance.materialData.Count - 1, component.isLeftHand, 0.028f);
-
-                    /* 
-                    if (PhotonNetwork.InRoom && GorillaTagger.Instance.myVRRig != null)
-                    {
-                        GorillaTagger.Instance.myVRRig.RPC("PlayHandTap", (RpcTarget)1, new object[3]
-                        {
-                            Player.Instance.materialData.Count - 1,
-                            component.isLeftHand,
-                            0.1f
-                        });
-                    }
-                    */
 
                     if (!ConstructedPacks.Any()) return;
                     _standButtons.Find(button => button.Type == UIButton.Type)?.Function?.Invoke(this);

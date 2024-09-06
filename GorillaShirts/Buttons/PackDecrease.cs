@@ -9,7 +9,7 @@ namespace GorillaShirts.Buttons
     internal class PackDecrease : IStandButton
     {
         public Interaction.ButtonType Type => Interaction.ButtonType.PackDecrease;
-        public Action<ShirtConstructor> Function => (ShirtConstructor constructor) =>
+        public Action<Main> Function => (Main constructor) =>
         {
             constructor.SelectedPackIndex = constructor.SelectedPackIndex == 0 ? constructor.ConstructedPacks.Count - 1 : constructor.SelectedPackIndex - 1;
 

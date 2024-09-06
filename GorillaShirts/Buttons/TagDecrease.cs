@@ -10,7 +10,7 @@ namespace GorillaShirts.Buttons
     internal class TagDecrease : IStandButton
     {
         public Interaction.ButtonType Type => Interaction.ButtonType.TagDecrease;
-        public Action<ShirtConstructor> Function => (ShirtConstructor constructor) =>
+        public Action<Main> Function => (Main constructor) =>
         {
             Configuration config = constructor.Config;
             PhysicalRig localRig = constructor.LocalRig;

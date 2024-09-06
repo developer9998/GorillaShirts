@@ -9,7 +9,7 @@ namespace GorillaShirts.Buttons
     internal class PackIncrease : IStandButton
     {
         public Interaction.ButtonType Type => Interaction.ButtonType.PackIncrease;
-        public Action<ShirtConstructor> Function => (ShirtConstructor constructor) =>
+        public Action<Main> Function => (Main constructor) =>
         {
             constructor.SelectedPackIndex = (constructor.SelectedPackIndex + 1) % constructor.ConstructedPacks.Count;
 

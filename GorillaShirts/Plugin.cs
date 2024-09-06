@@ -10,10 +10,10 @@ namespace GorillaShirts
     [BepInPlugin(Constants.Guid, Constants.Name, Constants.Version)]
     public class Plugin : BaseUnityPlugin
     {
-        private readonly Harmony _harmony;
-        private readonly Type _vrRigCacheType;
+        private Harmony _harmony;
+        private Type _vrRigCacheType;
 
-        public Plugin()
+        public void Awake()
         {
             _harmony = Harmony.CreateAndPatchAll(typeof(Plugin).Assembly, Constants.Guid);
             _vrRigCacheType = typeof(GorillaTagger).Assembly.GetType("VRRigCache");
@@ -21,7 +21,7 @@ namespace GorillaShirts
             _harmony.Patch(AccessTools.Method(_vrRigCacheType, "AddRigToGorillaParent"), postfix: new HarmonyMethod(typeof(RigPatches), nameof(RigPatches.AddPatch)));
             _harmony.Patch(AccessTools.Method(_vrRigCacheType, "RemoveRigFromGorillaParent"), postfix: new HarmonyMethod(typeof(RigPatches), nameof(RigPatches.RemovePatch)));
 
-            GorillaTagger.OnPlayerSpawned(() => new GameObject("ShirtConstructor").AddComponent<ShirtConstructor>().ConfigFile = Config);
+            GorillaTagger.OnPlayerSpawned(() => new GameObject(typeof(Main).FullName).AddComponent<Main>().ConfigFile = Config);
         }
     }
 }

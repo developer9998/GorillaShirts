@@ -5,7 +5,7 @@ namespace GorillaShirts.Interfaces
 {
     public interface IStandLocation
     {
-        public GTZone Zone { get; }
+        public bool IsInZone(GTZone zone);
         public Tuple<Vector3, Vector3> Location { get; }
     }
 }

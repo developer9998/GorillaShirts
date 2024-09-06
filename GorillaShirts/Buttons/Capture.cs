@@ -9,7 +9,7 @@ namespace GorillaShirts.Buttons
     internal class Capture : IStandButton
     {
         public Interaction.ButtonType Type => Interaction.ButtonType.Capture;
-        public Action<ShirtConstructor> Function => (ShirtConstructor constructor) =>
+        public Action<Main> Function => (Main constructor) =>
         {
             Camera camera = constructor.Camera;
 

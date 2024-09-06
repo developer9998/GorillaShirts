@@ -7,6 +7,6 @@ namespace GorillaShirts.Interfaces
     public interface IStandButton
     {
         public ButtonType Type { get; }
-        public Action<ShirtConstructor> Function { get; }
+        public Action<Main> Function { get; }
     }
 }
