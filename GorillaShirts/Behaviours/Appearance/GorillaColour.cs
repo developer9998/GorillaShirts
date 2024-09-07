@@ -21,7 +21,7 @@ namespace GorillaShirts.Behaviours.Visuals
             if (Ref_VisualParent.Rig == null) return;
 
             Ref_Rig ??= Ref_VisualParent.Rig.RigParent.GetComponent<VRRig>();
-            TargetColour = Ref_Rig != null ? Ref_Rig.materialsToChangeTo[0].color == Color.white ? Ref_Rig.materialsToChangeTo[0].color : Ref_Rig.materialsToChangeTo[Ref_Rig.setMatIndex].color : Ref_VisualParent.Rig.RigSkin.material.color;
+            TargetColour = Ref_Rig != null ? Ref_Rig.myDefaultSkinMaterialInstance.color : Ref_VisualParent.Rig.RigSkin.material.color;
 
             if (!IsInit)
             {
