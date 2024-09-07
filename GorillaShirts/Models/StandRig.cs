@@ -6,7 +6,7 @@ namespace GorillaShirts.Models
 {
     public class StandRig : Rig
     {
-        public event Action<Configuration.PreviewTypes> OnAppearanceChange;
+        public event Action<Configuration.PreviewGorilla> OnAppearanceChange;
 
         public Color
             SteadyColour = new(0.8f, 0.2f, 0.2f),
@@ -22,7 +22,7 @@ namespace GorillaShirts.Models
             RigSkin.material.color = isSilly ? SillyColour : SteadyColour;
             Nametag.text = isSilly ? "SILLY" : "STEADY";
 
-            OnAppearanceChange?.Invoke(isSilly ? Configuration.PreviewTypes.Silly : Configuration.PreviewTypes.Steady);
+            OnAppearanceChange?.Invoke(isSilly ? Configuration.PreviewGorilla.Silly : Configuration.PreviewGorilla.Steady);
         }
     }
 }

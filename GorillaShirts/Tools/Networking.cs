@@ -1,10 +1,12 @@
 ﻿using ExitGames.Client.Photon;
 using GorillaNetworking;
+using GorillaShirts.Behaviours;
 using GorillaShirts.Interaction;
 using GorillaShirts.Models;
 using GorillaShirts.Utilities;
 using Photon.Pun;
 using Photon.Realtime;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,35 +14,26 @@ namespace GorillaShirts.Tools
 {
     public class Networking : MonoBehaviourPunCallbacks
     {
+        public static Networking Instance;
+
         public Hashtable CustomProperties;
 
         private bool IsUpdatingProperties;
         private float PropertyUpdateTime;
 
-        private Dictionary<string, Shirt> Cache_ShirtInfo;
         private readonly Dictionary<VRRig, Rig> Cache_RigInfo = [];
 
-        public void Start()
+        public void Awake()
         {
-            Events.RigEnabled += (Player player, VRRig vrRig) =>
+            if (Instance == null)
             {
-                if (player.IsLocal || vrRig.gameObject.GetComponent<PhysicalRig>() != null) return;
-                CreateRigInstance(vrRig, player);
-            };
-
-            Events.RigDisabled += (Player player, VRRig vrRig) =>
+                Instance = this;
+            }
+            else if (Instance != this)
             {
-                if (player.IsLocal || !vrRig.TryGetComponent(out PhysicalRig rigInstance)) return;
-
-                rigInstance.Rig.Remove();
-                rigInstance.Rig.SetTagOffset(0);
-                rigInstance.OnShirtRemoved();
-
-                Cache_RigInfo.AddOrUpdate(vrRig, rigInstance.Rig);
-                Destroy(rigInstance);
-            };
-
-            Events.CustomPropUpdate += OnPlayerPropertiesUpdate;
+                Destroy(gameObject);
+            }
+            Logging.Info("Networking Awake");
         }
 
         public void Update()
@@ -52,19 +45,6 @@ namespace GorillaShirts.Tools
                 IsUpdatingProperties = false;
                 PropertyUpdateTime = Time.unscaledTime + Constants.NetworkCooldown;
             }
-        }
-
-        private PhysicalRig CreateRigInstance(VRRig targetRig, Player targetPlayer)
-        {
-            if (targetRig.TryGetComponent(out PhysicalRig instanceCandidate)) return instanceCandidate;
-
-            PhysicalRig rigInstance = targetRig.AddComponent<PhysicalRig>();
-            rigInstance.Player = targetPlayer;
-
-            rigInstance.IsNetwork = true;
-            rigInstance.Rig = Cache_RigInfo.TryGetValue(rigInstance.GetComponent<VRRig>(), out Rig rig) ? rig : null;
-
-            return rigInstance;
         }
 
         public void UpdateProperties(Hashtable customProperties)
@@ -79,60 +59,126 @@ namespace GorillaShirts.Tools
             { Constants.TagKey, tagOffset }
         };
 
+        public void AddShirtRig(VRRig playerRig)
+        {
+            Player player = PhotonNetwork.CurrentRoom.GetPlayer(playerRig.Creator.ActorNumber);
+            Logging.Info($"Adding ShirtRig to player {player.NickName}");
+            GetShirtRig(player, playerRig);
+            Logging.Info("Added");
+        }
+
+        public void RemoveShirtRig(VRRig playerRig)
+        {
+            ShirtRig shirtRig = GetShirtRig(null, playerRig); // player argument is only needed for creating the shirtrig
+            Player player = shirtRig.Player;
+
+            Logging.Info($"Removing ShirtRig from player {player.NickName}");
+
+            if (player.IsLocal)
+            {
+                Logging.Warning("Local player");
+                return;
+            }
+
+            shirtRig.Rig.Remove();
+            shirtRig.Rig.SetTagOffset(0);
+            shirtRig.OnShirtRemoved();
+
+            Cache_RigInfo.AddOrUpdate(playerRig, shirtRig.Rig);
+            Destroy(shirtRig);
+
+            Logging.Info("Removed");
+        }
+
+        public ShirtRig GetShirtRig(Player player, VRRig playerRig = null)
+        {
+            if (!playerRig)
+            {
+                playerRig = RigUtils.GetPlayerRig(player);
+            }
+
+            if (!playerRig.TryGetComponent(out ShirtRig shirtRig))
+            {
+                shirtRig = playerRig.AddComponent<ShirtRig>();
+                shirtRig.Player = player;
+                shirtRig.Rig = Cache_RigInfo.TryGetValue(shirtRig.GetComponent<VRRig>(), out Rig rig) ? rig : null;
+            }
+
+            return shirtRig;
+        }
+
         public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
         {
             base.OnPlayerPropertiesUpdate(targetPlayer, changedProps);
 
             if (targetPlayer.IsLocal) return;
 
-            VRRig targetRig = GorillaGameManager.StaticFindRigForPlayer(targetPlayer);
+            VRRig targetRig = RigUtils.GetVRRig(targetPlayer);
 
-            targetRig.TryGetComponent(out PhysicalRig physicalRig);
-            physicalRig ??= CreateRigInstance(targetRig, targetPlayer);
+            ShirtRig shirtRig = GetShirtRig(targetPlayer);
 
             try
             {
-                if (changedProps.TryGetValue(Constants.ShirtKey, out object shirtKey) && shirtKey is string shirtName)
+                // nametag
+                if (changedProps.TryGetValue(Constants.TagKey, out object tagKey) && tagKey is int tagOffset)
                 {
-                    Cache_ShirtInfo ??= ShirtUtils.ShirtDict;
+                    shirtRig.Rig.SetTagOffset(shirtRig.Rig.CurrentShirt == null ? 0 : tagOffset);
+                    Logging.Info($"Offsetting shirt tag {tagOffset} for player {targetPlayer.NickName}");
+                }
 
-                    if (Cache_ShirtInfo.TryGetValue(shirtName, out Shirt myShirt))
+                // shirt
+                if (changedProps.TryGetValue(Constants.ShirtKey, out object shirtKey) && shirtKey is string wornGorillaShirt)
+                {
+                    if (Main.TotalInitializedShirts.TryGetValue(wornGorillaShirt, out Shirt shirt))
                     {
-                        bool uniqueShirt = physicalRig.Rig.CurrentShirt != myShirt;
-                        physicalRig.Rig.Wear(myShirt);
+                        Logging.Info($"Wearing shirt {shirt.DisplayName} for player {targetPlayer.NickName}");
 
-                        if (uniqueShirt)
+                        shirtRig.Rig.Wear(shirt, out Shirt oldShirt, out Shirt currentShirt);
+
+                        if (oldShirt == currentShirt) return; // check for if a sound should be made
+
+                        if (shirt.Wear)
                         {
-                            Events.PlayShirtAudio?.Invoke(targetRig, 0, 0.5f);
-                            if (myShirt.Wear) Events.PlayCustomAudio?.Invoke(targetRig, myShirt.Wear, 0.5f);
+                            // play a custom shirt wearing audio
+                            Main.Instance.PlayCustomAudio(targetRig, shirt.Wear, 0.5f);
                         }
+                        else
+                        {
+                            // play the default shirt wearing audio
+                            Main.Instance.PlayShirtAudio(targetRig, 0, 0.5f);
+                        }
+
+                        return;
+                    }
+
+                    Logging.Info($"Removing shirt {shirt.DisplayName} for player {targetPlayer.NickName}");
+
+                    if (wornGorillaShirt != "None" && !string.IsNullOrEmpty(wornGorillaShirt))
+                    {
+                        // play the shirt missing audio
+                        Main.Instance.PlayShirtAudio(targetRig, 6, 1f);
+                    }
+
+                    shirtRig.Rig.Remove();
+                    shirtRig.Rig.SetTagOffset(0);
+
+                    if (shirtRig.Rig.CurrentShirt == shirt) return; // check for if a sound should be made
+
+                    if (shirtRig.Rig.CurrentShirt != null && shirt.Remove)
+                    {
+                        // play a custom shirt removal audio
+                        Main.Instance.PlayCustomAudio(targetRig, shirt.Remove, 0.5f);
                     }
                     else
                     {
-                        if (shirtName != "None" && !string.IsNullOrEmpty(shirtName) && physicalRig.Rig.CurrentShirt != null)
-                        {
-                            Events.PlayShirtAudio?.Invoke(targetRig, 6, 0.8f);
-                        }
-
-                        if (physicalRig.Rig.CurrentShirt != myShirt)
-                        {
-                            Events.PlayShirtAudio?.Invoke(targetRig, 1, 0.5f);
-                            if (physicalRig.Rig.CurrentShirt != null && physicalRig.Rig.CurrentShirt.Remove) Events.PlayCustomAudio?.Invoke(targetRig, physicalRig.Rig.CurrentShirt.Remove, 0.5f);
-                        }
-
-                        physicalRig.Rig.Remove();
-                        physicalRig.Rig.SetTagOffset(0);
+                        // play the default shirt removal audio
+                        Main.Instance.PlayShirtAudio(targetRig, 1, 0.5f);
                     }
                 }
-
-                if (changedProps.TryGetValue(Constants.TagKey, out object tagKey) && tagKey is int tagOffset)
-                {
-                    physicalRig.Rig.SetTagOffset(physicalRig.Rig.CurrentShirt == null ? 0 : tagOffset);
-                }
             }
-            catch
+            catch(Exception ex)
             {
-
+                Logging.Error($"Failed to handle custom props from player {targetPlayer.NickName}: {ex}");
             }
         }
     }

@@ -18,7 +18,7 @@ namespace GorillaShirts.Buttons
             constructor.SetPackInfo(selectedPack, selectedPack.PackagedShirts[selectedPack.CurrentItem]);
 
             Shirt selectedShirt = constructor.SelectedShirt;
-            PhysicalRig localRig = constructor.LocalRig;
+            ShirtRig localRig = constructor.LocalRig;
             Stand shirtStand = constructor.Stand;
 
             shirtStand.Rig.Wear(selectedShirt);

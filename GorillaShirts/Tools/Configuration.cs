@@ -1,25 +1,23 @@
 ﻿using BepInEx.Configuration;
+using System;
+using System.Security.Cryptography;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace GorillaShirts.Tools
 {
-    public class Configuration
+    public static class Configuration
     {
-        private ConfigFile File;
+        private static ConfigFile File;
 
-        public ConfigEntry<string> CurrentShirt;
-        public ConfigEntry<int> CurrentTagOffset;
+        public static ConfigEntry<string> CurrentShirt;
+        public static ConfigEntry<int> CurrentTagOffset;
 
-        public ConfigEntry<PreviewTypes> CurrentPreview;
-        public enum PreviewTypes
-        {
-            Silly,
-            Steady
-        }
+        public static ConfigEntry<PreviewGorilla> PreviewGorillaEntry;
 
-        public ConfigEntry<bool> RemoveBaseItem;
+        private static int PreviewGorillaLength => Enum.GetNames(typeof(PreviewGorilla)).Length;
 
-        public Configuration(ConfigFile file)
+        public static void Initialize(ConfigFile file)
         {
             File = file;
 
@@ -27,22 +25,28 @@ namespace GorillaShirts.Tools
             CurrentTagOffset = File.Bind("Prior Data", "Current Tag Offset", 1, "The used offset on nametags.");
             CurrentTagOffset.Value = Mathf.Clamp(CurrentTagOffset.Value, 0, Constants.TagOffsetLimit);
 
-            PreviewTypes defaultPreview = (PreviewTypes)Random.Range(0, 2);
-            CurrentPreview = File.Bind("Prior Data", "Current Preview Character", defaultPreview, "The currently used preview character.");
-
-            RemoveBaseItem = File.Bind("General Data", "Remove Game Item", true, "If enabled, the player cannot have a badge item and shirt on at the same time");
+            PreviewGorilla defaultPreview = (PreviewGorilla)Random.Range(0, PreviewGorillaLength);
+            PreviewGorillaEntry = File.Bind("Appearence", "Preview Gorilla", defaultPreview, "The gorilla character that is shown when previewing a shirt.");
         }
 
-        public void SetCurrentShirt(string shirtName)
+        public static void UpdateGorillaShirt(string shirtName)
         {
             CurrentShirt.Value = shirtName;
             File.Save();
         }
 
-        public void SetCurrentPreview(bool isSilly, bool opposite)
+        public static void UpdatePreviewGorilla(int value, int offset)
         {
-            CurrentPreview.Value = isSilly ? opposite ? PreviewTypes.Steady : PreviewTypes.Silly : opposite ? PreviewTypes.Silly : PreviewTypes.Steady;
+            value += offset;
+            int number = value % PreviewGorillaLength;
+            PreviewGorillaEntry.Value = (PreviewGorilla)number;
             File.Save();
+        }
+
+        public enum PreviewGorilla
+        {
+            Silly,
+            Steady
         }
     }
 }

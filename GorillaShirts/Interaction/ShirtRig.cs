@@ -8,37 +8,36 @@ using UnityEngine;
 
 namespace GorillaShirts.Interaction
 {
-    public class PhysicalRig : MonoBehaviour
+    public class ShirtRig : MonoBehaviour
     {
-        public static Dictionary<VRRig, Rig> RefDict = new();
+        public static Dictionary<VRRig, Rig> RigCache = [];
+
+        public bool Local => Player.IsLocal;
 
         public Rig Rig;
         public Player Player;
-        public bool IsNetwork, IsInit;
-
-        private Events Events;
 
         private SkinnedMeshRenderer Skin;
         private Renderer Face, Chest;
 
-        public async void Start()
-        {
-            if (IsInit) return;
-            IsInit = true;
+        private bool initialized;
 
-            Events = new Events();
+        public void Start()
+        {
+            if (initialized) return;
+            initialized = true;
 
             VRRig vrRig = GetComponent<VRRig>();
-            if (Rig == null && RefDict.ContainsKey(vrRig))
+            if (Rig == null && RigCache.ContainsKey(vrRig))
             {
-                Rig = RefDict.TryGetValue(vrRig, out Rig instance) ? instance : null;
+                Rig = RigCache.TryGetValue(vrRig, out Rig instance) ? instance : null;
             }
-            else if (Rig == null && !RefDict.ContainsKey(vrRig))
+            else if (Rig == null && !RigCache.ContainsKey(vrRig))
             {
                 Rig = new Rig
                 {
                     Head = vrRig.headMesh.transform,
-                    Toggle = !IsNetwork
+                    Toggle = Player.IsLocal
                 };
 
                 Rig.Body = Rig.Head.parent;
@@ -53,24 +52,22 @@ namespace GorillaShirts.Interaction
                 Rig.LeftUpper = Rig.LeftLower.parent;
                 Rig.RightUpper = Rig.RightLower.parent;
 
-                RefDict.Add(vrRig, Rig);
+                RigCache.Add(vrRig, Rig);
             }
 
-            try
-            {
-                Rig.OnShirtWorn += OnShirtWorn;
-                Rig.OnShirtRemoved += OnShirtRemoved;
-            }
-            catch
-            {
+            Rig.OnShirtWorn += OnShirtWorn;
+            Rig.OnShirtRemoved += OnShirtRemoved;
 
-            }
+            ForceUpdateProperties();
+        }
 
+        public async void ForceUpdateProperties()
+        {
             if (Player != null && !Player.IsLocal)
             {
                 await Task.Delay(PhotonNetwork.NetworkingClient != null ? Mathf.Max(PhotonNetwork.GetPing(), Constants.NetworkOffset) : Constants.NetworkOffset);
 
-                Events.CustomPropUpdate?.Invoke(Player, Player.CustomProperties);
+                Networking.Instance.OnPlayerPropertiesUpdate(Player, Player.CustomProperties);
             }
         }
 
@@ -91,6 +88,7 @@ namespace GorillaShirts.Interaction
             Chest ??= Rig.Body.Find("gorillachest").GetComponent<Renderer>();
 
             if (Skin == null || Face == null || Chest == null) return;
+
             Skin.forceRenderingOff = isActivated;
             Face.forceRenderingOff = isActivated;
             Chest.forceRenderingOff = isActivated;

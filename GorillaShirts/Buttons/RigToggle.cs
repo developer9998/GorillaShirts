@@ -11,11 +11,10 @@ namespace GorillaShirts.Buttons
         public Interaction.ButtonType Type => Interaction.ButtonType.RigToggle;
         public Action<Main> Function => (Main constructor) =>
         {
-            Configuration config = constructor.Config;
             Stand shirtStand = constructor.Stand;
 
-            config.SetCurrentPreview(config.CurrentPreview.Value == Configuration.PreviewTypes.Silly, true);
-            shirtStand.Rig.SetAppearance(config.CurrentPreview.Value == Configuration.PreviewTypes.Silly);
+            Configuration.UpdatePreviewGorilla((int)Configuration.PreviewGorillaEntry.Value, 1);
+            shirtStand.Rig.SetAppearance(Configuration.PreviewGorillaEntry.Value == Configuration.PreviewGorilla.Silly);
         };
     }
 }

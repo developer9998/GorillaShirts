@@ -12,23 +12,22 @@ namespace GorillaShirts.Buttons
         public Interaction.ButtonType Type => Interaction.ButtonType.TagDecrease;
         public Action<Main> Function => (Main constructor) =>
         {
-            Configuration config = constructor.Config;
-            PhysicalRig localRig = constructor.LocalRig;
+            ShirtRig localRig = constructor.LocalRig;
 
-            if (config.CurrentTagOffset.Value > 0)
+            if (Configuration.CurrentTagOffset.Value > 0)
             {
                 Networking networking = constructor.Networking;
 
-                config.CurrentTagOffset.Value--;
-                networking.UpdateProperties(networking.GenerateHashtable(localRig.Rig.CurrentShirt, config.CurrentTagOffset.Value));
+                Configuration.CurrentTagOffset.Value--;
+                networking.UpdateProperties(networking.GenerateHashtable(localRig.Rig.CurrentShirt, Configuration.CurrentTagOffset.Value));
             }
 
             Stand shirtStand = constructor.Stand;
 
-            shirtStand.Rig.SetTagOffset(config.CurrentTagOffset.Value);
-            shirtStand.Display.SetTag(config.CurrentTagOffset.Value);
+            shirtStand.Rig.SetTagOffset(Configuration.CurrentTagOffset.Value);
+            shirtStand.Display.SetTag(Configuration.CurrentTagOffset.Value);
 
-            if (localRig.Rig.CurrentShirt != null) localRig.Rig.SetTagOffset(config.CurrentTagOffset.Value);
+            if (localRig.Rig.CurrentShirt != null) localRig.Rig.SetTagOffset(Configuration.CurrentTagOffset.Value);
         };
     }
 }

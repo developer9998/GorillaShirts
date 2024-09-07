@@ -16,7 +16,7 @@ namespace GorillaShirts.Buttons
             selectedPack.Randomize();
 
             Stand shirtStand = constructor.Stand;
-            PhysicalRig localRig = constructor.LocalRig;
+            ShirtRig localRig = constructor.LocalRig;
             Shirt selectedShirt = constructor.SelectedShirt;
 
             shirtStand.Rig.Wear(selectedShirt);

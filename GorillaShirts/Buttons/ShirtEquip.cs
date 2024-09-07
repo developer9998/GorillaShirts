@@ -12,7 +12,7 @@ namespace GorillaShirts.Buttons
         public Action<Main> Function => (Main constructor) =>
         {
             Shirt selectedShirt = constructor.SelectedShirt;
-            PhysicalRig localRig = constructor.LocalRig;
+            ShirtRig localRig = constructor.LocalRig;
 
             constructor.SetShirt(selectedShirt);
             constructor.Stand.Display.SetEquipped(selectedShirt, localRig.Rig.CurrentShirt);

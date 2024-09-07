@@ -1,12 +1,16 @@
-﻿using BepInEx.Logging;
+﻿using BepInEx.Configuration;
+using BepInEx.Logging;
 
 namespace GorillaShirts.Tools
 {
-    public class Logging
+    public static class Logging
     {
-        private static ManualLogSource Log;
+        private static ManualLogSource Logger;
 
-        public static void Initalize(string Name) => Log = Logger.CreateLogSource(Name);
+        public static void Initialize(ManualLogSource logger)
+        {
+            Logger = logger;
+        }
 
         public static void Info(object data) => SendLog(LogLevel.Info, data);
 
@@ -17,7 +21,7 @@ namespace GorillaShirts.Tools
         private static void SendLog(LogLevel logLevel, object data)
         {
 #if DEBUG
-            Log?.Log(logLevel, data);
+            Logger?.Log(logLevel, data);
 #endif
         }
     }
