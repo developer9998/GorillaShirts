@@ -98,7 +98,7 @@ namespace GorillaShirts.Models
 
         public void MoveNameTag()
         {
-            int offset = Shirt != null ? NameTagOffset : 0;
+            int offset = Shirt != null || GetType() == typeof(StandRig) ? NameTagOffset : 0;
 
             Vector3 offsetVector = Nametag.transform.localPosition;
             offsetVector.z = (float)-offset * 5;
