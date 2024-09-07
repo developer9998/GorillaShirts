@@ -109,7 +109,7 @@ namespace GorillaShirts.Behaviours
             {
                 Stand.Display.UpdateDisplay(SelectedShirt, LocalRig.Rig.Shirt, SelectedPack);
                 Stand.Display.SetTag(Configuration.CurrentTagOffset.Value);
-                Stand.Rig.SetTagOffset(Configuration.CurrentTagOffset.Value);
+                Stand.Rig.OffsetNameTag(Configuration.CurrentTagOffset.Value);
                 Stand.Rig.WearShirt(SelectedShirt);
 
                 Stand.Object.transform.Find("UI/PrimaryDisplay/Buttons").gameObject.SetActive(true);
@@ -429,7 +429,7 @@ namespace GorillaShirts.Behaviours
             if (newShirt != null)
             {
                 LocalRig.Rig.WearShirt(newShirt, out Shirt oldShirt);
-                LocalRig.Rig.SetTagOffset(Configuration.CurrentTagOffset.Value);
+                LocalRig.Rig.OffsetNameTag(Configuration.CurrentTagOffset.Value);
 
                 if (newShirt != null)
                 {

@@ -1,5 +1,4 @@
-﻿using GorillaExtensions;
-using GorillaShirts.Behaviours.Visuals;
+﻿using GorillaShirts.Behaviours.Visuals;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -91,7 +90,7 @@ namespace GorillaShirts.Models
             Shirt = null;
         }
 
-        public void SetTagOffset(int offset)
+        public void OffsetNameTag(int offset)
         {
             NameTagOffset = offset;
             MoveNameTag();
@@ -100,7 +99,11 @@ namespace GorillaShirts.Models
         public void MoveNameTag()
         {
             int offset = Shirt != null ? NameTagOffset : 0;
-            Nametag.transform.localPosition = Nametag.transform.localPosition.WithZ((float)-offset * 5);
+
+            Vector3 offsetVector = Nametag.transform.localPosition;
+            offsetVector.z = (float)-offset * 5;
+
+            Nametag.transform.localPosition = offsetVector;
         }
     }
 }

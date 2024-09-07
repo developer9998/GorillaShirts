@@ -156,29 +156,40 @@ namespace GorillaShirts.Tools
 
                     Shirt currentShirt = shirtRig.Rig.Shirt;
 
-                    Logging.Info($"{targetPlayer.NickName} is removing shirt {currentShirt.DisplayName}");
+                    if (currentShirt != null)
+                    {
+                        Logging.Info($"{targetPlayer.NickName} is removing shirt {currentShirt.DisplayName}");
+
+                        shirtRig.Rig.RemoveShirt();
+                        shirtRig.Rig.MoveNameTag();
+
+                        if (shirtRig.Rig.Shirt == currentShirt) return; // check for if a sound should be made
+
+                        if (shirtRig.Rig.Shirt != null && currentShirt.Remove)
+                        {
+                            // play a custom shirt removal audio
+                            Main.Instance.PlayCustomAudio(targetRig, currentShirt.Remove, 0.5f);
+                        }
+                        else
+                        {
+                            // play the default shirt removal audio
+                            Main.Instance.PlayShirtAudio(targetRig, 1, 0.5f);
+                        }
+
+                        return;
+                    }
 
                     if (wornGorillaShirt != "None" && !string.IsNullOrEmpty(wornGorillaShirt))
                     {
+                        Logging.Info($"{targetPlayer.NickName} is wearing shirt {wornGorillaShirt} (missing)");
+
                         // play the shirt missing audio
                         Main.Instance.PlayShirtAudio(targetRig, 6, 1f);
+
+                        return;
                     }
 
-                    shirtRig.Rig.RemoveShirt();
-                    shirtRig.Rig.MoveNameTag();
-
-                    if (shirtRig.Rig.Shirt == currentShirt) return; // check for if a sound should be made
-
-                    if (shirtRig.Rig.Shirt != null && currentShirt.Remove)
-                    {
-                        // play a custom shirt removal audio
-                        Main.Instance.PlayCustomAudio(targetRig, currentShirt.Remove, 0.5f);
-                    }
-                    else
-                    {
-                        // play the default shirt removal audio
-                        Main.Instance.PlayShirtAudio(targetRig, 1, 0.5f);
-                    }
+                    Logging.Warning($"This should not happen ({targetPlayer.NickName}, {wornGorillaShirt}");
                 }
             }
             catch(Exception ex)

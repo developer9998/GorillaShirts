@@ -24,10 +24,10 @@ namespace GorillaShirts.Buttons
 
             Stand shirtStand = constructor.Stand;
 
-            shirtStand.Rig.SetTagOffset(Configuration.CurrentTagOffset.Value);
+            shirtStand.Rig.OffsetNameTag(Configuration.CurrentTagOffset.Value);
             shirtStand.Display.SetTag(Configuration.CurrentTagOffset.Value);
 
-            if (localRig.Rig.Shirt != null) localRig.Rig.SetTagOffset(Configuration.CurrentTagOffset.Value);
+            if (localRig.Rig.Shirt != null) localRig.Rig.OffsetNameTag(Configuration.CurrentTagOffset.Value);
         };
     }
 }
