@@ -15,7 +15,7 @@ namespace GorillaShirts.Buttons
             ShirtRig localRig = constructor.LocalRig;
 
             constructor.SetShirt(selectedShirt);
-            constructor.Stand.Display.SetEquipped(selectedShirt, localRig.Rig.CurrentShirt);
+            constructor.Stand.Display.SetEquipped(selectedShirt, localRig.Rig.Shirt);
         };
     }
 }

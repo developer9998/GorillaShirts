@@ -80,8 +80,8 @@ namespace GorillaShirts.Tools
                 return;
             }
 
-            shirtRig.Rig.Remove();
-            shirtRig.Rig.SetTagOffset(0);
+            shirtRig.Rig.RemoveShirt();
+            shirtRig.Rig.MoveNameTag();
             shirtRig.OnShirtRemoved();
 
             Cache_RigInfo.AddOrUpdate(playerRig, shirtRig.Rig);
@@ -122,25 +122,28 @@ namespace GorillaShirts.Tools
                 // nametag
                 if (changedProps.TryGetValue(Constants.TagKey, out object tagKey) && tagKey is int tagOffset)
                 {
-                    shirtRig.Rig.SetTagOffset(shirtRig.Rig.CurrentShirt == null ? 0 : tagOffset);
-                    Logging.Info($"Offsetting shirt tag {tagOffset} for player {targetPlayer.NickName}");
+                    Logging.Info($"{targetPlayer.NickName} has a name tag offset of {tagOffset}");
+                    shirtRig.Rig.NameTagOffset = tagOffset;
                 }
 
                 // shirt
                 if (changedProps.TryGetValue(Constants.ShirtKey, out object shirtKey) && shirtKey is string wornGorillaShirt)
                 {
-                    if (Main.TotalInitializedShirts.TryGetValue(wornGorillaShirt, out Shirt shirt))
+                    if (Main.TotalInitializedShirts.ContainsKey(wornGorillaShirt))
                     {
-                        Logging.Info($"Wearing shirt {shirt.DisplayName} for player {targetPlayer.NickName}");
+                        Shirt newShirt = Main.TotalInitializedShirts[wornGorillaShirt];
 
-                        shirtRig.Rig.Wear(shirt, out Shirt oldShirt, out Shirt currentShirt);
+                        Logging.Info($"{targetPlayer.NickName} is wearing shirt {newShirt.DisplayName}");
 
-                        if (oldShirt == currentShirt) return; // check for if a sound should be made
+                        shirtRig.Rig.WearShirt(newShirt, out Shirt oldShirt);
+                        shirtRig.Rig.MoveNameTag();
 
-                        if (shirt.Wear)
+                        if (oldShirt == newShirt) return; // check for if a sound should be made
+
+                        if (newShirt.Wear)
                         {
                             // play a custom shirt wearing audio
-                            Main.Instance.PlayCustomAudio(targetRig, shirt.Wear, 0.5f);
+                            Main.Instance.PlayCustomAudio(targetRig, newShirt.Wear, 0.5f);
                         }
                         else
                         {
@@ -151,7 +154,9 @@ namespace GorillaShirts.Tools
                         return;
                     }
 
-                    Logging.Info($"Removing shirt {shirt.DisplayName} for player {targetPlayer.NickName}");
+                    Shirt currentShirt = shirtRig.Rig.Shirt;
+
+                    Logging.Info($"{targetPlayer.NickName} is removing shirt {currentShirt.DisplayName}");
 
                     if (wornGorillaShirt != "None" && !string.IsNullOrEmpty(wornGorillaShirt))
                     {
@@ -159,15 +164,15 @@ namespace GorillaShirts.Tools
                         Main.Instance.PlayShirtAudio(targetRig, 6, 1f);
                     }
 
-                    shirtRig.Rig.Remove();
-                    shirtRig.Rig.SetTagOffset(0);
+                    shirtRig.Rig.RemoveShirt();
+                    shirtRig.Rig.MoveNameTag();
 
-                    if (shirtRig.Rig.CurrentShirt == shirt) return; // check for if a sound should be made
+                    if (shirtRig.Rig.Shirt == currentShirt) return; // check for if a sound should be made
 
-                    if (shirtRig.Rig.CurrentShirt != null && shirt.Remove)
+                    if (shirtRig.Rig.Shirt != null && currentShirt.Remove)
                     {
                         // play a custom shirt removal audio
-                        Main.Instance.PlayCustomAudio(targetRig, shirt.Remove, 0.5f);
+                        Main.Instance.PlayCustomAudio(targetRig, currentShirt.Remove, 0.5f);
                     }
                     else
                     {
@@ -180,6 +185,16 @@ namespace GorillaShirts.Tools
             {
                 Logging.Error($"Failed to handle custom props from player {targetPlayer.NickName}: {ex}");
             }
+        }
+
+        public void SetShirt()
+        {
+
+        }
+
+        public void SetTagOffset()
+        {
+
         }
     }
 }

@@ -15,29 +15,30 @@ namespace GorillaShirts.Models
         public Transform RigParent, Body, Head, LeftUpper, RightUpper, LeftLower, RightLower, LeftHand, RightHand;
         public SkinnedMeshRenderer RigSkin;
         public Text Nametag;
-
-        public Shirt CurrentShirt;
         public Dictionary<Shirt, List<GameObject>> CachedObjects = new();
 
         public bool Toggle = true;
 
-        public void Wear(Shirt myShirt, out Shirt preShirt, out Shirt postShirt)
+        public Shirt Shirt;
+
+        public int NameTagOffset;
+
+        public void WearShirt(Shirt myShirt, out Shirt oldShirt)
         {
-            preShirt = CurrentShirt;
-            Wear(myShirt);
-            postShirt = CurrentShirt;
+            oldShirt = Shirt;
+            WearShirt(myShirt);
         }
 
-        public void Wear(Shirt myShirt)
+        public void WearShirt(Shirt myShirt)
         {
-            if (CurrentShirt == myShirt && Toggle)
+            if (Shirt == myShirt && Toggle)
             {
-                Remove();
+                RemoveShirt();
                 return;
             }
 
-            if (CurrentShirt != myShirt && !Cooldown) Remove();
-            CurrentShirt = myShirt;
+            if (Shirt != myShirt && !Cooldown) RemoveShirt();
+            Shirt = myShirt;
 
             if (CachedObjects.ContainsKey(myShirt))
             {
@@ -79,17 +80,27 @@ namespace GorillaShirts.Models
             OnShirtWorn?.Invoke();
         }
 
-        public void Remove()
+        public void RemoveShirt()
         {
-            if (CurrentShirt != null && CachedObjects.ContainsKey(CurrentShirt))
+            if (Shirt != null && CachedObjects.ContainsKey(Shirt))
             {
-                var setObjects = CachedObjects[CurrentShirt];
+                var setObjects = CachedObjects[Shirt];
                 setObjects.ForEach(a => a.SetActive(false));
                 OnShirtRemoved?.Invoke();
             }
-            CurrentShirt = null;
+            Shirt = null;
         }
 
-        public void SetTagOffset(int offset) => Nametag.transform.localPosition = Nametag.transform.localPosition.WithZ((float)-offset * 5);
+        public void SetTagOffset(int offset)
+        {
+            NameTagOffset = offset;
+            MoveNameTag();
+        }
+
+        public void MoveNameTag()
+        {
+            int offset = Shirt != null ? NameTagOffset : 0;
+            Nametag.transform.localPosition = Nametag.transform.localPosition.WithZ((float)-offset * 5);
+        }
     }
 }

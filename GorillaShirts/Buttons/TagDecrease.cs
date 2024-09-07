@@ -19,7 +19,7 @@ namespace GorillaShirts.Buttons
                 Networking networking = constructor.Networking;
 
                 Configuration.CurrentTagOffset.Value--;
-                networking.UpdateProperties(networking.GenerateHashtable(localRig.Rig.CurrentShirt, Configuration.CurrentTagOffset.Value));
+                networking.UpdateProperties(networking.GenerateHashtable(localRig.Rig.Shirt, Configuration.CurrentTagOffset.Value));
             }
 
             Stand shirtStand = constructor.Stand;
@@ -27,7 +27,7 @@ namespace GorillaShirts.Buttons
             shirtStand.Rig.SetTagOffset(Configuration.CurrentTagOffset.Value);
             shirtStand.Display.SetTag(Configuration.CurrentTagOffset.Value);
 
-            if (localRig.Rig.CurrentShirt != null) localRig.Rig.SetTagOffset(Configuration.CurrentTagOffset.Value);
+            if (localRig.Rig.Shirt != null) localRig.Rig.SetTagOffset(Configuration.CurrentTagOffset.Value);
         };
     }
 }

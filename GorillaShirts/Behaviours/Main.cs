@@ -107,10 +107,10 @@ namespace GorillaShirts.Behaviours
 
             if (ConstructedPacks != null && ConstructedPacks.Count > 0)
             {
-                Stand.Display.UpdateDisplay(SelectedShirt, LocalRig.Rig.CurrentShirt, SelectedPack);
+                Stand.Display.UpdateDisplay(SelectedShirt, LocalRig.Rig.Shirt, SelectedPack);
                 Stand.Display.SetTag(Configuration.CurrentTagOffset.Value);
                 Stand.Rig.SetTagOffset(Configuration.CurrentTagOffset.Value);
-                Stand.Rig.Wear(SelectedShirt);
+                Stand.Rig.WearShirt(SelectedShirt);
 
                 Stand.Object.transform.Find("UI/PrimaryDisplay/Buttons").gameObject.SetActive(true);
                 Stand.Object.transform.Find("UI/PrimaryDisplay/Text").gameObject.SetActive(true);
@@ -121,6 +121,7 @@ namespace GorillaShirts.Behaviours
             {
                 foreach (var player in PhotonNetwork.PlayerListOthers)
                 {
+                    Networking.Instance.OnPlayerPropertiesUpdate(player, player.CustomProperties);
                     //Events.CustomPropUpdate?.Invoke(player, player.CustomProperties);
                 }
             }
@@ -236,16 +237,16 @@ namespace GorillaShirts.Behaviours
 
             standRig.OnShirtWorn += delegate
             {
-                bool invisibility = standRig.CurrentShirt.Invisibility;
+                bool invisibility = standRig.Shirt.Invisibility;
 
                 standRig.RigSkin.forceRenderingOff = invisibility;
                 standRig.Head.Find("Face").gameObject.SetActive(!invisibility);
                 standRig.Body.Find("Chest").gameObject.SetActive(!invisibility);
 
-                standRig.SillyHat.forceRenderingOff = invisibility || standRig.CurrentShirt.SectorList.Any((a) => a.Type == SectorType.Head);
-                standRig.SteadyHat.forceRenderingOff = invisibility || standRig.CurrentShirt.SectorList.Any((a) => a.Type == SectorType.Head);
+                standRig.SillyHat.forceRenderingOff = invisibility || standRig.Shirt.SectorList.Any((a) => a.Type == SectorType.Head);
+                standRig.SteadyHat.forceRenderingOff = invisibility || standRig.Shirt.SectorList.Any((a) => a.Type == SectorType.Head);
 
-                standRig.CachedObjects[standRig.CurrentShirt].DoIf(a => a.GetComponentInChildren<AudioSource>(), a =>
+                standRig.CachedObjects[standRig.Shirt].DoIf(a => a.GetComponentInChildren<AudioSource>(), a =>
                 {
                     a.GetComponentsInChildren<AudioSource>().Do(src =>
                     {
@@ -400,7 +401,7 @@ namespace GorillaShirts.Behaviours
                 foreach (var myShirt in myPack.PackagedShirts)
                 {
                     TotalInitializedShirts.TryAdd(myShirt.Name, myShirt);
-                    if (myShirt.Name == Configuration.CurrentShirt.Value && LocalRig.Rig.CurrentShirt != myShirt)
+                    if (myShirt.Name == Configuration.CurrentShirt.Value && LocalRig.Rig.Shirt != myShirt)
                     {
                         Logging.Info("Using shirt from previous session '" + myShirt.DisplayName + "' in pack '" + myPack.DisplayName + "'");
                         SetPackInfo(myPack, myShirt);
@@ -423,29 +424,29 @@ namespace GorillaShirts.Behaviours
             myPack.CurrentItem = myPack.PackagedShirts.IndexOf(myShirt);
         }
 
-        public void SetShirt(Shirt myShirt)
+        public void SetShirt(Shirt newShirt)
         {
-            if (myShirt != null)
+            if (newShirt != null)
             {
-                LocalRig.Rig.Wear(myShirt, out Shirt preShirt, out Shirt postShirt);
-                LocalRig.Rig.SetTagOffset(postShirt != null ? Configuration.CurrentTagOffset.Value : 0);
+                LocalRig.Rig.WearShirt(newShirt, out Shirt oldShirt);
+                LocalRig.Rig.SetTagOffset(Configuration.CurrentTagOffset.Value);
 
-                if (postShirt != null)
+                if (newShirt != null)
                 {
-                    if (postShirt.Wear) PlayCustomAudio(LocalRig.GetComponent<VRRig>(), postShirt.Wear, 0.3f);
+                    if (newShirt.Wear) PlayCustomAudio(LocalRig.GetComponent<VRRig>(), newShirt.Wear, 0.3f);
                     else PlayShirtAudio(LocalRig.GetComponent<VRRig>(), 0, 0.4f);
                 }
-                else if (preShirt != null)
+                else if (oldShirt != null)
                 {
-                    if (preShirt.Remove) PlayCustomAudio(LocalRig.GetComponent<VRRig>(), preShirt.Remove, 0.3f);
+                    if (oldShirt.Remove) PlayCustomAudio(LocalRig.GetComponent<VRRig>(), oldShirt.Remove, 0.3f);
                     else PlayShirtAudio(LocalRig.GetComponent<VRRig>(), 1, 0.4f);
                 }
 
                 // Networking
-                Networking.UpdateProperties(Networking.GenerateHashtable(LocalRig.Rig.CurrentShirt, Configuration.CurrentTagOffset.Value));
+                Networking.UpdateProperties(Networking.GenerateHashtable(LocalRig.Rig.Shirt, Configuration.CurrentTagOffset.Value));
 
                 // Configuration
-                Configuration.UpdateGorillaShirt(postShirt != null ? myShirt.Name : "None");
+                Configuration.UpdateGorillaShirt(newShirt != null ? newShirt.Name : "None");
             }
         }
 

@@ -20,8 +20,8 @@ namespace GorillaShirts.Buttons
             ShirtRig localRig = constructor.LocalRig;
             Stand shirtStand = constructor.Stand;
 
-            shirtStand.Rig.Wear(selectedShirt);
-            shirtStand.Display.UpdateDisplay(selectedShirt, localRig.Rig.CurrentShirt, selectedPack);
+            shirtStand.Rig.WearShirt(selectedShirt);
+            shirtStand.Display.UpdateDisplay(selectedShirt, localRig.Rig.Shirt, selectedPack);
         };
     }
 }

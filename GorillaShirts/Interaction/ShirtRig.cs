@@ -73,7 +73,7 @@ namespace GorillaShirts.Interaction
 
         public void OnShirtWorn()
         {
-            SetInvisiblityState(Rig.CurrentShirt.Invisibility);
+            SetInvisiblityState(Rig.Shirt.Invisibility);
         }
 
         public void OnShirtRemoved()
