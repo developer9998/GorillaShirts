@@ -24,6 +24,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 using Button = GorillaShirts.Interaction.Button;
+using System.Net;
+using System.Net.Http;
 
 namespace GorillaShirts.Behaviours
 {
@@ -124,6 +126,15 @@ namespace GorillaShirts.Behaviours
 
         public async void Start()
         {
+            HttpClient client = new();
+            string result = await client.GetStringAsync(@"https://raw.githubusercontent.com/developer9998/GorillaShirts/main/Version.txt");
+            if (result != Constants.Version)
+            {
+                Logging.Error($"GorillaShirts is outdated! Current {Constants.Version} expecting {result}");
+                return;
+            }
+            client.Dispose();
+
             _assetLoader = new AssetLoader();
             _shirtInstaller = new Installation();
 
