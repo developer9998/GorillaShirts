@@ -438,7 +438,7 @@ namespace GorillaShirts.Behaviours
                     {
                         Logging.Info("Using shirt from previous session '" + myShirt.DisplayName + "' in pack '" + myPack.DisplayName + "'");
                         SelectedShirt = myShirt;
-                        UpdatePlayerHash();
+                        UpdatePlayerHash(true);
                     }
                 }
             }
@@ -508,7 +508,7 @@ namespace GorillaShirts.Behaviours
 
         public void UpdatePlayerHash(bool shouldToggleShirt = false)
         {
-            Shirt currentShirt = SelectedShirt;
+            Shirt currentShirt = shouldToggleShirt ? SelectedShirt : LocalRig.Rig.Shirt;
 
             if (currentShirt != null && currentShirt == LocalRig.Rig.Shirt && shouldToggleShirt)
             {
@@ -647,11 +647,12 @@ namespace GorillaShirts.Behaviours
                     {
                         CustomProperties = changedProps;
                         LocalRig.Rig.NameTagOffset = Configuration.CurrentTagOffset.Value;
+                        Stand.Display.SetTag(Configuration.CurrentTagOffset.Value);
                     }
-                    else if (shirtRig.Rig.NameTagOffset != tagOffset)
+                    else
                     {
                         Logging.Info($"{targetPlayer.NickName} has a name tag offset of {tagOffset}");
-                        shirtRig.Rig.NameTagOffset = tagOffset;
+                        shirtRig.Rig.OffsetNameTag(tagOffset);
                     }
 
                     string wornGorillaShirt = (string)gsHash[0];
