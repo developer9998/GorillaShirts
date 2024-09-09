@@ -182,31 +182,7 @@ namespace GorillaShirts.Behaviours
             shirtStand.transform.rotation = Quaternion.Euler(_standLocations.First().Location.Item2);
             AudioSource standAudio = shirtStand.transform.Find("MainSource").GetComponent<AudioSource>();
 
-            ZoneManagement.OnZoneChange += (ZoneData[] zones) =>
-            {
-                IEnumerable<GTZone> changedZones = zones.Select(zone => zone.zone);
-
-                foreach (GTZone currentZone in changedZones)
-                {
-                    IStandLocation currentLocation = _standLocations.FirstOrDefault(zone => zone.IsInZone(currentZone));
-                    if (currentLocation != null)
-                    {
-                        try
-                        {
-                            Tuple<Vector3, Vector3> locationData = currentLocation.Location;
-                            shirtStand.transform.position = locationData.Item1;
-                            shirtStand.transform.rotation = Quaternion.Euler(locationData.Item2);
-                            shirtStand.SetActive(true);
-                        }
-                        catch
-                        {
-                            Logging.Error($"No stand location exists for zones {string.Join(", ", changedZones)}, hiding shirt stand");
-                            shirtStand.SetActive(false);
-                        }
-                        break;
-                    }
-                }
-            };
+            ZoneManagement.OnZoneChange += OnZoneChange;
 
             StandRig standRig = new()
             {
@@ -364,6 +340,32 @@ namespace GorillaShirts.Behaviours
                 Rig = standRig,
                 Object = shirtStand
             };
+        }
+
+        private void OnZoneChange(ZoneData[] zones)
+        {
+            IEnumerable<GTZone> activeZones = zones.Where(zone => zone.active).Select(zone => zone.zone);
+
+            Logging.Info($"Zone changed: {string.Join(", ", activeZones)}");
+
+            foreach (GTZone currentZone in activeZones)
+            {
+                IStandLocation currentLocation = _standLocations.FirstOrDefault(zone => zone.IsInZone(currentZone));
+
+                if (currentLocation != null)
+                {
+                    Logging.Info($"We are in {currentLocation.GetType().Name} ({currentZone} is active)");
+
+                    Tuple<Vector3, Vector3> locationData = currentLocation.Location;
+                    Stand.Object.transform.position = locationData.Item1;
+                    Stand.Object.transform.rotation = Quaternion.Euler(locationData.Item2);
+                    Stand.Object.SetActive(true);
+                    return;
+                }
+            }
+
+            Logging.Error($"No stand location exists for zones {string.Join(", ", activeZones)}, hiding shirt stand");
+            Stand.Object.SetActive(false);
         }
 
         public async Task InitAudio()
