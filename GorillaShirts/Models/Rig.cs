@@ -1,6 +1,7 @@
 ﻿using GorillaShirts.Behaviours.Visuals;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,9 +15,8 @@ namespace GorillaShirts.Models
         public Transform RigParent, Body, Head, LeftUpper, RightUpper, LeftLower, RightLower, LeftHand, RightHand;
         public SkinnedMeshRenderer RigSkin;
         public Text Nametag;
-        public Dictionary<Shirt, List<GameObject>> CachedObjects = new();
 
-        public bool Toggle = true;
+        public Dictionary<Shirt, List<GameObject>> Objects = [];
 
         public Shirt Shirt;
 
@@ -30,22 +30,22 @@ namespace GorillaShirts.Models
 
         public void WearShirt(Shirt myShirt)
         {
-            if (Shirt == myShirt && Toggle)
+            if (Shirt == myShirt) return;
+
+            if (Shirt != myShirt && !Cooldown)
             {
                 RemoveShirt();
-                return;
             }
 
-            if (Shirt != myShirt && !Cooldown) RemoveShirt();
             Shirt = myShirt;
 
-            if (CachedObjects.ContainsKey(myShirt))
+            if (Objects.ContainsKey(myShirt))
             {
-                var setObjects = CachedObjects[myShirt];
+                var setObjects = Objects[myShirt];
                 setObjects.ForEach(a =>
                 {
                     a.SetActive(true);
-                    a.GetComponent<VisualParent>().Rig = this;
+                    a.GetComponent<ShirtVisual>().Rig = this;
                 });
                 OnShirtWorn?.Invoke();
                 return;
@@ -71,19 +71,21 @@ namespace GorillaShirts.Models
                 newSectorObject.transform.localPosition = sector.Position;
                 newSectorObject.transform.localEulerAngles = sector.Euler;
                 newSectorObject.transform.localScale = sector.Scale;
-                newSectorObject.GetComponent<VisualParent>().Rig = this;
+                newSectorObject.GetComponent<ShirtVisual>().Rig = this;
                 newObjects.Add(newSectorObject);
             }
             Cooldown = false;
-            CachedObjects.Add(myShirt, newObjects);
+            Objects.Add(myShirt, newObjects);
             OnShirtWorn?.Invoke();
         }
 
         public void RemoveShirt()
         {
-            if (Shirt != null && CachedObjects.ContainsKey(Shirt))
+            if (Shirt == null) return;
+
+            if (Shirt != null && Objects.ContainsKey(Shirt))
             {
-                var setObjects = CachedObjects[Shirt];
+                var setObjects = Objects[Shirt];
                 setObjects.ForEach(a => a.SetActive(false));
                 OnShirtRemoved?.Invoke();
             }
@@ -104,6 +106,18 @@ namespace GorillaShirts.Models
             offsetVector.z = (float)-offset * 5;
 
             Nametag.transform.localPosition = offsetVector;
+        }
+
+        public void ClearObjects()
+        {
+            if (Objects == null || Objects.Count == 0) return;
+
+            var objectsToDestroy = Objects.SelectMany(selector => selector.Value);
+            for(int i = 0; i < objectsToDestroy.Count(); i++)
+            {
+                UnityEngine.Object.Destroy(objectsToDestroy.ElementAt(i));
+            }
+            Objects.Clear();
         }
     }
 }

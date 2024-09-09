@@ -4,7 +4,7 @@ namespace GorillaShirts.Behaviours.Visuals
 {
     public class GorillaColour : MonoBehaviour
     {
-        public VisualParent Ref_VisualParent;
+        public ShirtVisual Ref_VisualParent;
         private VRRig Ref_Rig;
 
         private Material Ref_Material;

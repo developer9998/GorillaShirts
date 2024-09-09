@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace GorillaShirts.Behaviours.Visuals
 {
-    public class VisualParent : MonoBehaviour
+    public class ShirtVisual : MonoBehaviour
     {
         public Rig Rig;
     }

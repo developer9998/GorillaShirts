@@ -1,8 +1,8 @@
-﻿using GorillaShirts.Models;
+﻿using GorillaShirts.Behaviours;
+using GorillaShirts.Models;
 using GorillaShirts.Tools;
 using Photon.Pun;
 using Photon.Realtime;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -10,50 +10,54 @@ namespace GorillaShirts.Interaction
 {
     public class ShirtRig : MonoBehaviour
     {
-        public static Dictionary<VRRig, Rig> RigCache = [];
+        public VRRig PlayerRig => GetComponent<VRRig>();
 
-        public bool Local => Player.IsLocal;
+        public SkinnedMeshRenderer Skin => PlayerRig.mainSkin;
+
+        public MeshRenderer Face => PlayerRig.faceSkin;
 
         public Rig Rig;
         public Player Player;
 
-        private SkinnedMeshRenderer Skin;
-        private Renderer Face, Chest;
-
-        private bool initialized;
-
         public void Start()
         {
-            if (initialized) return;
-            initialized = true;
-
-            VRRig vrRig = GetComponent<VRRig>();
-            if (Rig == null && RigCache.ContainsKey(vrRig))
+            if (Player == null && PlayerRig.isOfflineVRRig)
             {
-                Rig = RigCache.TryGetValue(vrRig, out Rig instance) ? instance : null;
+                Player = PhotonNetwork.LocalPlayer;
             }
-            else if (Rig == null && !RigCache.ContainsKey(vrRig))
+            else if (Player == null && !PlayerRig.isOfflineVRRig && PlayerRig.Creator != null)
             {
-                Rig = new Rig
+                Player player = PhotonNetwork.CurrentRoom.GetPlayer(PlayerRig.Creator.ActorNumber);
+                if (player == null)
                 {
-                    Head = vrRig.headMesh.transform,
-                    Toggle = Player.IsLocal
-                };
-
-                Rig.Body = Rig.Head.parent;
-                Rig.RigParent = vrRig.transform;
-                Rig.RigSkin = vrRig.mainSkin;
-                Rig.Nametag = vrRig.playerText;
-
-                Rig.LeftHand = vrRig.leftHandTransform.parent;
-                Rig.RightHand = vrRig.rightHandTransform.parent;
-                Rig.LeftLower = Rig.LeftHand.parent;
-                Rig.RightLower = Rig.RightHand.parent;
-                Rig.LeftUpper = Rig.LeftLower.parent;
-                Rig.RightUpper = Rig.RightLower.parent;
-
-                RigCache.Add(vrRig, Rig);
+                    Logging.Error("ShirtRig has no player");
+                    Destroy(this);
+                    return;
+                }
+                Player = player;
+                Logging.Warning($"ShirtRig has assigned NetPlayer {player.NickName} in place of null player");
             }
+
+            if (!Player.IsLocal && !PhotonNetwork.InRoom)
+            {
+                Logging.Error($"ShirtRig of player {Player.NickName} is to not be used when not in a room");
+                Destroy(this);
+                return;
+            }
+
+            Rig = new();
+            Rig.Head = PlayerRig.headMesh.transform;
+            Rig.Body = Rig.Head.parent;
+            Rig.RigParent = PlayerRig.transform;
+            Rig.RigSkin = PlayerRig.mainSkin;
+            Rig.Nametag = PlayerRig.playerText;
+
+            Rig.LeftHand = PlayerRig.leftHandTransform.parent;
+            Rig.RightHand = PlayerRig.rightHandTransform.parent;
+            Rig.LeftLower = Rig.LeftHand.parent;
+            Rig.RightLower = Rig.RightHand.parent;
+            Rig.LeftUpper = Rig.LeftLower.parent;
+            Rig.RightUpper = Rig.RightLower.parent;
 
             Rig.OnShirtWorn += OnShirtWorn;
             Rig.OnShirtRemoved += OnShirtRemoved;
@@ -67,31 +71,33 @@ namespace GorillaShirts.Interaction
             {
                 await Task.Delay(PhotonNetwork.NetworkingClient != null ? Mathf.Max(PhotonNetwork.GetPing(), Constants.NetworkOffset) : Constants.NetworkOffset);
 
-                Networking.Instance.OnPlayerPropertiesUpdate(Player, Player.CustomProperties);
+                Main.Instance.OnPlayerPropertiesUpdate(Player, Player.CustomProperties);
             }
         }
 
         public void OnShirtWorn()
         {
             SetInvisiblityState(Rig.Shirt.Invisibility);
+            Rig.MoveNameTag();
         }
 
         public void OnShirtRemoved()
         {
             SetInvisiblityState(false);
+            Rig.MoveNameTag();
         }
 
-        private void SetInvisiblityState(bool isActivated)
+        private void SetInvisiblityState(bool invisible)
         {
-            Skin ??= Rig.RigSkin;
-            Face ??= Rig.Head.Find("gorillaface").GetComponent<Renderer>();
-            Chest ??= Rig.Body.Find("gorillachest").GetComponent<Renderer>();
+            Skin.forceRenderingOff = invisible;
+            Face.forceRenderingOff = invisible;
+        }
 
-            if (Skin == null || Face == null || Chest == null) return;
-
-            Skin.forceRenderingOff = isActivated;
-            Face.forceRenderingOff = isActivated;
-            Chest.forceRenderingOff = isActivated;
+        public void OnDestroy()
+        {
+            Rig.RemoveShirt();
+            Rig.OffsetNameTag(0);
+            Rig.ClearObjects();
         }
     }
 }

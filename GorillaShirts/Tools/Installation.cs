@@ -153,7 +153,7 @@ namespace GorillaShirts.Tools
                             };
                             newShirt.SectorList.Add(newSector);
 
-                            VisualParent visualParent = newSector.Object.AddComponent<VisualParent>();
+                            ShirtVisual visualParent = newSector.Object.AddComponent<ShirtVisual>();
                             List<Transform> bones = new(), ignoreBones = new();
                             foreach (var itemObject in newSector.Object.GetComponentsInChildren<Transform>(true))
                             {

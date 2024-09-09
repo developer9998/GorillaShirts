@@ -14,7 +14,7 @@ namespace GorillaShirts.Behaviours.Visuals
         }
         private VRRig _rig;
 
-        public VisualParent Fur_VisualParent;
+        public ShirtVisual Fur_VisualParent;
         private string _furMode = "0";
 
         public Material BaseFurMaterial;

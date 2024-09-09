@@ -1,4 +1,4 @@
-﻿using GorillaShirts.Tools;
+﻿using GorillaShirts.Behaviours;
 using HarmonyLib;
 
 namespace GorillaShirts.Patches
@@ -10,7 +10,7 @@ namespace GorillaShirts.Patches
         public static void Postfix(RigContainer __instance)
         {
             VRRig playerRig = __instance.Rig;
-            Networking.Instance.RemoveShirtRig(playerRig);
+            Main.Instance.RemoveShirtRig(playerRig);
         }
     }
 }

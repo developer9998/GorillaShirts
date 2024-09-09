@@ -9,17 +9,16 @@ namespace GorillaShirts.Buttons
 {
     internal class TagDecrease : IStandButton
     {
-        public Interaction.ButtonType Type => Interaction.ButtonType.TagDecrease;
+        public ButtonType Type => ButtonType.TagDecrease;
+
         public Action<Main> Function => (Main constructor) =>
         {
             ShirtRig localRig = constructor.LocalRig;
 
             if (Configuration.CurrentTagOffset.Value > 0)
             {
-                Networking networking = constructor.Networking;
-
                 Configuration.CurrentTagOffset.Value--;
-                networking.UpdateProperties(networking.GenerateHashtable(localRig.Rig.Shirt, Configuration.CurrentTagOffset.Value));
+                Main.Instance.UpdatePlayerHash();
             }
 
             Stand shirtStand = constructor.Stand;

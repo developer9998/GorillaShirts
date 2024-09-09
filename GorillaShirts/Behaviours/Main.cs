@@ -1,6 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Bootstrap;
-using GorillaLocomotion;
+using GorillaNetworking;
 using GorillaShirts.Buttons;
 using GorillaShirts.Extensions;
 using GorillaShirts.Interaction;
@@ -8,8 +8,10 @@ using GorillaShirts.Interfaces;
 using GorillaShirts.Locations;
 using GorillaShirts.Models;
 using GorillaShirts.Tools;
+using GorillaShirts.Utilities;
 using HarmonyLib;
 using Photon.Pun;
+using Photon.Realtime;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -20,6 +22,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 using Button = GorillaShirts.Interaction.Button;
 
 namespace GorillaShirts.Behaviours
@@ -29,8 +32,6 @@ namespace GorillaShirts.Behaviours
         public static Main Instance;
 
         public static Dictionary<string, Shirt> TotalInitializedShirts = [];    
-
-        public Networking Networking;
 
         public ShirtRig LocalRig;
 
@@ -80,8 +81,33 @@ namespace GorillaShirts.Behaviours
 
         private List<AudioClip> _audios = [];
 
-        public Shirt SelectedShirt => SelectedPack.PackagedShirts[SelectedPack.CurrentItem];
-        public Pack SelectedPack => ConstructedPacks[SelectedPackIndex];
+        public Shirt SelectedShirt
+        {
+            get => SelectedPack.PackagedShirts[SelectedPack.CurrentItem];
+            set
+            {
+                foreach(var pack in ConstructedPacks)
+                {
+                    if (pack.PackagedShirts.Contains(value))
+                    {
+                        pack.CurrentItem = pack.PackagedShirts.IndexOf(value);
+                        SelectedPack = pack;
+                        break;
+                    }
+                }
+            }
+        }
+
+        public Pack SelectedPack
+        {
+            get => ConstructedPacks[SelectedPackIndex];
+            set => SelectedPackIndex = ConstructedPacks.IndexOf(value);
+        }
+
+        public Hashtable CustomProperties;
+
+        private bool IsUpdatingProperties;
+        private float PropertyUpdateTime;
 
         public void Awake()
         {
@@ -98,8 +124,6 @@ namespace GorillaShirts.Behaviours
 
         public async void Start()
         {
-            Networking = gameObject.AddComponent<Networking>();
-
             _assetLoader = new AssetLoader();
             _shirtInstaller = new Installation();
 
@@ -121,8 +145,7 @@ namespace GorillaShirts.Behaviours
             {
                 foreach (var player in PhotonNetwork.PlayerListOthers)
                 {
-                    Networking.Instance.OnPlayerPropertiesUpdate(player, player.CustomProperties);
-                    //Events.CustomPropUpdate?.Invoke(player, player.CustomProperties);
+                    OnPlayerPropertiesUpdate(player, player.CustomProperties);
                 }
             }
         }
@@ -178,7 +201,6 @@ namespace GorillaShirts.Behaviours
 
             StandRig standRig = new()
             {
-                Toggle = false,
                 RigParent = shirtStand.transform.Find("Preview Gorilla")
             };
             standRig.RigParent.Find("Rig").gameObject.AddComponent<Punch>();
@@ -246,7 +268,7 @@ namespace GorillaShirts.Behaviours
                 standRig.SillyHat.forceRenderingOff = invisibility || standRig.Shirt.SectorList.Any((a) => a.Type == SectorType.Head);
                 standRig.SteadyHat.forceRenderingOff = invisibility || standRig.Shirt.SectorList.Any((a) => a.Type == SectorType.Head);
 
-                standRig.CachedObjects[standRig.Shirt].DoIf(a => a.GetComponentInChildren<AudioSource>(), a =>
+                standRig.Objects[standRig.Shirt].DoIf(a => a.GetComponentInChildren<AudioSource>(), a =>
                 {
                     a.GetComponentsInChildren<AudioSource>().Do(src =>
                     {
@@ -312,7 +334,7 @@ namespace GorillaShirts.Behaviours
                 {
                     if (!_audios.Any()) return;
 
-                    GorillaTagger.Instance.offlineVRRig.PlayHandTapLocal(Player.Instance.materialData.Count - 1, component.isLeftHand, 0.028f);
+                    GorillaTagger.Instance.offlineVRRig.PlayHandTapLocal(GorillaLocomotion.Player.Instance.materialData.Count - 1, component.isLeftHand, 0.028f);
 
                     if (!ConstructedPacks.Any()) return;
                     _standButtons.Find(button => button.Type == UIButton.Type)?.Function?.Invoke(this);
@@ -351,7 +373,7 @@ namespace GorillaShirts.Behaviours
                 await _assetLoader.LoadAsset<AudioClip>("PackClose"),
             ];
 
-            Player.Instance.materialData.Add(new Player.MaterialData()
+            GorillaLocomotion.Player.Instance.materialData.Add(new GorillaLocomotion.Player.MaterialData()
             {
                 overrideAudio = true,
                 audio = _audios[2],
@@ -404,8 +426,8 @@ namespace GorillaShirts.Behaviours
                     if (myShirt.Name == Configuration.CurrentShirt.Value && LocalRig.Rig.Shirt != myShirt)
                     {
                         Logging.Info("Using shirt from previous session '" + myShirt.DisplayName + "' in pack '" + myPack.DisplayName + "'");
-                        SetPackInfo(myPack, myShirt);
-                        SetShirt(myShirt);
+                        SelectedShirt = myShirt;
+                        UpdatePlayerHash();
                     }
                 }
             }
@@ -422,32 +444,6 @@ namespace GorillaShirts.Behaviours
         {
             SelectedPackIndex = ConstructedPacks.IndexOf(myPack);
             myPack.CurrentItem = myPack.PackagedShirts.IndexOf(myShirt);
-        }
-
-        public void SetShirt(Shirt newShirt)
-        {
-            if (newShirt != null)
-            {
-                LocalRig.Rig.WearShirt(newShirt, out Shirt oldShirt);
-                LocalRig.Rig.OffsetNameTag(Configuration.CurrentTagOffset.Value);
-
-                if (newShirt != null)
-                {
-                    if (newShirt.Wear) PlayCustomAudio(LocalRig.GetComponent<VRRig>(), newShirt.Wear, 0.3f);
-                    else PlayShirtAudio(LocalRig.GetComponent<VRRig>(), 0, 0.4f);
-                }
-                else if (oldShirt != null)
-                {
-                    if (oldShirt.Remove) PlayCustomAudio(LocalRig.GetComponent<VRRig>(), oldShirt.Remove, 0.3f);
-                    else PlayShirtAudio(LocalRig.GetComponent<VRRig>(), 1, 0.4f);
-                }
-
-                // Networking
-                Networking.UpdateProperties(Networking.GenerateHashtable(LocalRig.Rig.Shirt, Configuration.CurrentTagOffset.Value));
-
-                // Configuration
-                Configuration.UpdateGorillaShirt(newShirt != null ? newShirt.Name : "None");
-            }
         }
 
         public IEnumerator Capture(Camera camera)
@@ -486,6 +482,247 @@ namespace GorillaShirts.Behaviours
             File.WriteAllBytes(file, tex.EncodeToPNG());
 
             yield break;
+        }
+
+        public void Update()
+        {
+            if (IsUpdatingProperties && Time.unscaledTime > PropertyUpdateTime)
+            {
+                PhotonNetwork.LocalPlayer.SetCustomProperties(CustomProperties);
+
+                IsUpdatingProperties = false;
+                PropertyUpdateTime = Time.unscaledTime + Constants.NetworkCooldown;
+            }
+        }
+
+        public void UpdatePlayerHash(bool shouldToggleShirt = false)
+        {
+            Shirt currentShirt = SelectedShirt;
+
+            if (currentShirt != null && currentShirt == LocalRig.Rig.Shirt && shouldToggleShirt)
+            {
+                currentShirt = null;
+            }
+
+            string shirtName = currentShirt?.Name;
+
+            CustomProperties = new()
+            {
+                {
+                    Constants.HashKey,
+                    new object[] { shirtName, Configuration.CurrentTagOffset.Value }
+                }
+            };
+
+            IsUpdatingProperties = true;
+
+            CheckHash(PhotonNetwork.LocalPlayer, CustomProperties);
+        }
+
+        public void AddShirtRig(VRRig playerRig)
+        {
+            if (playerRig == null)
+            {
+                Logging.Error("Attempted to add a ShirtRig to a null VRRig");
+                return;
+            }
+
+            Player player;
+
+            if (playerRig.isOfflineVRRig)
+            {
+                player = PhotonNetwork.LocalPlayer;
+            }
+            else
+            {
+                player = PhotonNetwork.CurrentRoom.GetPlayer(playerRig.Creator.ActorNumber);
+            }
+
+            if (player == null)
+            {
+                Logging.Error("Attempted to add a ShirtRig to a VRRig with a null player");
+                return;
+            }
+
+            Logging.Info($"Adding ShirtRig to player {player.NickName}");
+            GetShirtRig(player, playerRig);
+            Logging.Info("Added");
+        }
+
+        public void RemoveShirtRig(VRRig playerRig)
+        {
+            ShirtRig shirtRig = playerRig.GetComponent<ShirtRig>();
+
+            if (shirtRig == null)
+            {
+                Logging.Error("Attempted to remove a null ShirtRig");
+                return;
+            }
+
+            Player player = shirtRig.Player;
+
+            if (player == null)
+            {
+                Logging.Error("Attempted to remove a ShirtRig with a null player");
+                return;
+            }
+
+            if (player.IsLocal)
+            {
+                Logging.Error("Attempted to remove a ShirtRig for the local player");
+                return;
+            }
+
+            Logging.Info($"Removing ShirtRig from player {player.NickName}");
+
+            Destroy(shirtRig);
+
+            Logging.Info("Removed");
+        }
+
+        public ShirtRig GetShirtRig(Player player, VRRig playerRig = null)
+        {
+            if (!playerRig)
+            {
+                playerRig = RigUtils.GetPlayerRig(player);
+            }
+
+            if (!playerRig.TryGetComponent(out ShirtRig shirtRig))
+            {
+                shirtRig = playerRig.AddComponent<ShirtRig>();
+                shirtRig.Player = player;
+            }
+
+            return shirtRig;
+        }
+
+        public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
+        {
+            base.OnPlayerPropertiesUpdate(targetPlayer, changedProps);
+
+            CheckHash(targetPlayer, changedProps);
+        }
+
+        public void CheckHash(Player targetPlayer, Hashtable changedProps)
+        {
+            VRRig playerRig;
+
+            if (targetPlayer.IsLocal)
+            {
+                playerRig = GorillaTagger.Instance.offlineVRRig;
+            }
+            else
+            {
+                playerRig = RigUtils.GetVRRig(targetPlayer);
+            }
+
+            if (playerRig == null)
+            {
+                Logging.Error($"{targetPlayer.NickName} has a null VRRig");
+                return;
+            }
+
+            ShirtRig shirtRig = GetShirtRig(targetPlayer);
+
+            try
+            {
+                if (changedProps.TryGetValue(Constants.HashKey, out object value) && value is object[] gsHash)
+                {
+                    Logging.Info($"{targetPlayer.NickName} has updated hash to {string.Join(", ", gsHash)}");
+
+                    int tagOffset = (int)gsHash[1];
+
+                    if (targetPlayer.IsLocal)
+                    {
+                        CustomProperties = changedProps;
+                        LocalRig.Rig.NameTagOffset = Configuration.CurrentTagOffset.Value;
+                    }
+                    else if (shirtRig.Rig.NameTagOffset != tagOffset)
+                    {
+                        Logging.Info($"{targetPlayer.NickName} has a name tag offset of {tagOffset}");
+                        shirtRig.Rig.NameTagOffset = tagOffset;
+                    }
+
+                    string wornGorillaShirt = (string)gsHash[0];
+
+                    if (wornGorillaShirt != null && TotalInitializedShirts.ContainsKey(wornGorillaShirt))
+                    {
+                        Shirt newShirt = TotalInitializedShirts[wornGorillaShirt];
+
+                        Logging.Info($"{targetPlayer.NickName} is wearing shirt {newShirt.DisplayName}");
+
+                        if (targetPlayer.IsLocal)
+                        {
+                            Stand.Display.SetEquipped(newShirt, LocalRig.Rig.Shirt);
+                            Configuration.UpdateGorillaShirt(wornGorillaShirt);
+                        }
+
+                        shirtRig.Rig.WearShirt(newShirt, out Shirt oldShirt);
+
+                        if (oldShirt == newShirt) return; // check for if a sound should be made
+
+                        if (newShirt.Wear)
+                        {
+                            // play a custom shirt wearing audio
+                            PlayCustomAudio(playerRig, newShirt.Wear, 0.5f);
+                        }
+                        else
+                        {
+                            // play the default shirt wearing audio
+                            PlayShirtAudio(playerRig, 0, 0.5f);
+                        }
+
+                        return;
+                    }
+
+                    Shirt currentShirt = shirtRig.Rig.Shirt;
+
+                    if (currentShirt != null)
+                    {
+                        Logging.Info($"{targetPlayer.NickName} is removing shirt {currentShirt.DisplayName}");
+
+                        shirtRig.Rig.RemoveShirt();
+                        shirtRig.Rig.MoveNameTag();
+
+                        if (targetPlayer.IsLocal)
+                        {
+                            Stand.Display.SetEquipped(null, LocalRig.Rig.Shirt);
+                            Configuration.UpdateGorillaShirt(null);
+                        }
+
+                        if (shirtRig.Rig.Shirt == currentShirt) return; // check for if a sound should be made
+
+                        if (shirtRig.Rig.Shirt != null && currentShirt.Remove)
+                        {
+                            // play a custom shirt removal audio
+                            PlayCustomAudio(playerRig, currentShirt.Remove, 0.5f);
+                        }
+                        else
+                        {
+                            // play the default shirt removal audio
+                            PlayShirtAudio(playerRig, 1, 0.5f);
+                        }
+
+                        return;
+                    }
+
+                    if (wornGorillaShirt != null && !string.IsNullOrEmpty(wornGorillaShirt))
+                    {
+                        Logging.Info($"{targetPlayer.NickName} is wearing shirt {wornGorillaShirt} (missing)");
+
+                        // play the shirt missing audio
+                        PlayShirtAudio(playerRig, 6, 1f);
+
+                        return;
+                    }
+
+                    Logging.Warning($"This should not happen ({targetPlayer.NickName}, {wornGorillaShirt})");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.Error($"Failed to handle custom props from player {targetPlayer.NickName}: {ex}");
+            }
         }
     }
 }
