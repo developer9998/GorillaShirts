@@ -1,6 +1,5 @@
 ﻿using BepInEx;
 using BepInEx.Bootstrap;
-using GorillaNetworking;
 using GorillaShirts.Buttons;
 using GorillaShirts.Extensions;
 using GorillaShirts.Interaction;
@@ -17,15 +16,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
-using Hashtable = ExitGames.Client.Photon.Hashtable;
 using Button = GorillaShirts.Interaction.Button;
-using System.Net;
-using System.Net.Http;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 namespace GorillaShirts.Behaviours
 {
@@ -33,7 +31,7 @@ namespace GorillaShirts.Behaviours
     {
         public static Main Instance;
 
-        public static Dictionary<string, Shirt> TotalInitializedShirts = [];    
+        public static Dictionary<string, Shirt> TotalInitializedShirts = [];
 
         public ShirtRig LocalRig;
 
@@ -88,7 +86,7 @@ namespace GorillaShirts.Behaviours
             get => SelectedPack.PackagedShirts[SelectedPack.CurrentItem];
             set
             {
-                foreach(var pack in ConstructedPacks)
+                foreach (var pack in ConstructedPacks)
                 {
                     if (pack.PackagedShirts.Contains(value))
                     {

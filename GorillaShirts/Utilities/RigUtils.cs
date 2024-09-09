@@ -1,6 +1,4 @@
-﻿using ExitGames.Client.Photon;
-using HarmonyLib;
-using Photon.Pun;
+﻿using HarmonyLib;
 using Photon.Realtime;
 using System;
 using System.Reflection;

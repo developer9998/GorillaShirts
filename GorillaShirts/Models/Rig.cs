@@ -113,7 +113,7 @@ namespace GorillaShirts.Models
             if (Objects == null || Objects.Count == 0) return;
 
             var objectsToDestroy = Objects.SelectMany(selector => selector.Value);
-            for(int i = 0; i < objectsToDestroy.Count(); i++)
+            for (int i = 0; i < objectsToDestroy.Count(); i++)
             {
                 UnityEngine.Object.Destroy(objectsToDestroy.ElementAt(i));
             }
