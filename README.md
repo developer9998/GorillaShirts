@@ -1,4 +1,7 @@
-# GorillaShirts
+<div style="float: left;">
+  <h1>GorillaShirts <a href="https://ko-fi.com/P5P3IPYHB"><img src="https://ko-fi.com/img/githubbutton_sm.svg" width=80%; height=auto;</img></a></h1>
+</div>
+
 **GorillaShirts** is a mod for Gorilla Tag. The mod is able to import community-made shirts into the game, which then can be worn and seen by others with the mod. You can create your own shirts using the [GorillaShirtsUnityProject](https://github.com/developer9998/GorillaShirtsUnityProject).
 
 ## Features
