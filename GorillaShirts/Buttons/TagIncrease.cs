@@ -1,5 +1,4 @@
 ﻿using GorillaShirts.Behaviours;
-using GorillaShirts.Interaction;
 using GorillaShirts.Interfaces;
 using GorillaShirts.Models;
 using GorillaShirts.Tools;
@@ -13,20 +12,11 @@ namespace GorillaShirts.Buttons
 
         public Action<Main> Function => (Main constructor) =>
         {
-            ShirtRig localRig = constructor.LocalRig;
-
             if (Configuration.CurrentTagOffset.Value < Constants.TagOffsetLimit)
             {
                 Configuration.CurrentTagOffset.Value++;
                 Main.Instance.UpdatePlayerHash();
             }
-
-            Stand shirtStand = constructor.Stand;
-
-            shirtStand.Rig.OffsetNameTag(Configuration.CurrentTagOffset.Value);
-            shirtStand.Display.SetTag(Configuration.CurrentTagOffset.Value);
-
-            if (localRig.Rig.Shirt != null) localRig.Rig.OffsetNameTag(Configuration.CurrentTagOffset.Value);
         };
     }
 }

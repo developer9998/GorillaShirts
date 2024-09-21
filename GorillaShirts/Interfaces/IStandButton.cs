@@ -1,5 +1,5 @@
 ﻿using GorillaShirts.Behaviours;
-using GorillaShirts.Interaction;
+using GorillaShirts.Models;
 using System;
 
 namespace GorillaShirts.Interfaces

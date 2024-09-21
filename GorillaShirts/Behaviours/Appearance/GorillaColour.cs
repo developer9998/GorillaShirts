@@ -1,37 +1,33 @@
 ﻿using UnityEngine;
 
-namespace GorillaShirts.Behaviours.Visuals
+namespace GorillaShirts.Behaviours.Appearance
 {
     public class GorillaColour : MonoBehaviour
     {
-        public ShirtVisual Ref_VisualParent;
-        private VRRig Ref_Rig;
+        public ShirtVisual ShirtVisual;
 
-        private Material Ref_Material;
+        private Material material;
 
-        private bool IsInit;
-        private Color TargetColour = Color.clear, ActiveColour = Color.clear;
-
-        public void Start() => Ref_Material = GetComponent<Renderer>().material;
-
-        public void OnDisable() => IsInit = false;
-
-        public void Update()
+        public void Start()
         {
-            if (Ref_VisualParent.Rig == null) return;
+            material = GetComponent<Renderer>().material;
+            ApplyColour();
+        }
 
-            Ref_Rig ??= Ref_VisualParent.Rig.RigParent.GetComponent<VRRig>();
-            TargetColour = Ref_Rig != null ? Ref_Rig.myDefaultSkinMaterialInstance.color : Ref_VisualParent.Rig.RigSkin.material.color;
+        public void OnEnable()
+        {
+            ShirtVisual.OnColourApplied += ApplyColour;
+        }
 
-            if (!IsInit)
-            {
-                IsInit = true;
-                ActiveColour = TargetColour;
-            }
+        public void OnDisable()
+        {
+            ShirtVisual.OnColourApplied -= ApplyColour;
+        }
 
-            float deltaTime = 15f * Time.deltaTime;
-            ActiveColour = new(Mathf.Lerp(ActiveColour.r, TargetColour.r, deltaTime), Mathf.Lerp(ActiveColour.g, TargetColour.g, deltaTime), Mathf.Lerp(ActiveColour.b, TargetColour.b, deltaTime));
-            Ref_Material.SetColor("_BaseColor", LightenColour(ActiveColour));
+        public void ApplyColour()
+        {
+            Color colour = ShirtVisual.PlayerRig ? ShirtVisual.PlayerColor : ShirtVisual.SkinColor;
+            material.SetColor("_BaseColor", LightenColour(colour));
         }
 
         private Color LightenColour(Color original, float amount = 0.8f)

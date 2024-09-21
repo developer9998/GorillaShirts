@@ -1,6 +1,7 @@
 ﻿using GorillaShirts.Tools;
 using System;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace GorillaShirts.Models
 {
@@ -15,14 +16,22 @@ namespace GorillaShirts.Models
         public MeshRenderer
             SteadyHat, SillyHat;
 
+        public Text StandNameTag;
+
         public void SetAppearance(bool isSilly)
         {
             SteadyHat.enabled = !isSilly;
             SillyHat.enabled = isSilly;
             RigSkin.material.color = isSilly ? SillyColour : SteadyColour;
-            Nametag.text = isSilly ? "SILLY" : "STEADY";
+            StandNameTag.text = isSilly ? "SILLY" : "STEADY";
 
             OnAppearanceChange?.Invoke(isSilly ? Configuration.PreviewGorilla.Silly : Configuration.PreviewGorilla.Steady);
+        }
+
+        public override void MoveNameTag()
+        {
+            int offset = NameTagOffset;
+            MoveNameTagTransform(StandNameTag.transform, offset);
         }
     }
 }

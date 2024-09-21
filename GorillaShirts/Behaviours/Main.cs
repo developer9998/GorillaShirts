@@ -69,7 +69,8 @@ namespace GorillaShirts.Behaviours
             typeof(Tutorial),
             typeof(Rotating),
             typeof(Metropolis),
-            typeof(Arcade)
+            typeof(Arcade),
+            typeof(Bayou)
         }.FromTypeCollection<IStandLocation>();
 
         public int SelectedPackIndex;
@@ -194,7 +195,7 @@ namespace GorillaShirts.Behaviours
             Camera.gameObject.SetActive(false);
 
             standRig.RigSkin = standRig.RigParent.GetComponentInChildren<SkinnedMeshRenderer>();
-            standRig.Nametag = standRig.RigParent.GetComponentInChildren<Text>();
+            standRig.StandNameTag = standRig.RigParent.GetComponentInChildren<Text>();
             standRig.Head = standRig.RigParent.Find("Rig/body/head");
             standRig.Body = standRig.RigParent.Find("Rig/body");
             standRig.LeftHand = standRig.RigParent.Find("Rig/body/shoulder.L/upper_arm.L/forearm.L/hand.L");
@@ -506,11 +507,11 @@ namespace GorillaShirts.Behaviours
             }
         }
 
-        public void UpdatePlayerHash(bool shouldToggleShirt = false)
+        public void UpdatePlayerHash(bool useShirtSelection = false)
         {
-            Shirt currentShirt = shouldToggleShirt ? SelectedShirt : LocalRig.Rig.Shirt;
+            Shirt currentShirt = useShirtSelection ? SelectedShirt : LocalRig.Rig.Shirt;
 
-            if (currentShirt != null && currentShirt == LocalRig.Rig.Shirt && shouldToggleShirt)
+            if (useShirtSelection && currentShirt != null && currentShirt == LocalRig.Rig.Shirt)
             {
                 currentShirt = null;
             }
@@ -671,7 +672,11 @@ namespace GorillaShirts.Behaviours
 
                         shirtRig.Rig.WearShirt(newShirt, out Shirt oldShirt);
 
-                        if (oldShirt == newShirt) return; // check for if a sound should be made
+                        if (oldShirt == newShirt)
+                        {
+                            LocalRig.Rig.MoveNameTag();
+                            return; // check for if a sound should be made
+                        }
 
                         if (newShirt.Wear)
                         {

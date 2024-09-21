@@ -1,54 +1,63 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
-namespace GorillaShirts.Behaviours.Visuals
+namespace GorillaShirts.Behaviours.Appearance
 {
+    public enum FurMode
+    {
+        Default, Coloured, Match
+    }
+
     public class GorillaFur : MonoBehaviour
     {
-        public VRRig Rig
-        {
-            get
-            {
-                _rig ??= Fur_VisualParent.Rig.RigParent.GetComponent<VRRig>();
-                return _rig;
-            }
-        }
-        private VRRig _rig;
+        public bool IsThisWorkingImReallyNotSureAsToWhyItWouldnt => material != null;
 
-        public ShirtVisual Fur_VisualParent;
-        private string _furMode = "0";
+        public ShirtVisual ShirtVisual;
 
         public Material BaseFurMaterial;
-        private Material _localMaterial;
 
-        private Renderer _renderer;
+        private FurMode furMode;
+
+        private Material material;
+
+        private Renderer renderer;
 
         public void Start()
         {
-            if (Fur_VisualParent.Rig == null) return;
-
-            _localMaterial = new Material(BaseFurMaterial);
-
-            _renderer = GetComponent<Renderer>();
-            _furMode = transform.GetChild(transform.childCount - 1).name[^1].ToString();
-            switch (_furMode)
+            furMode = (FurMode)Convert.ToInt32(transform.GetChild(transform.childCount - 1).name[^1]);
+            if (BaseFurMaterial)
             {
-                case "0":
-                    _renderer.material = Rig != null ? _localMaterial : Fur_VisualParent.Rig.RigSkin.material;
-                    _localMaterial.color = Rig != null ? Rig.playerColor : Color.white;
-                    break;
-                case "1":
-                    _renderer.material = Rig != null ? _localMaterial : Fur_VisualParent.Rig.RigSkin.material;
-                    _renderer.material.color = Color.white;
-                    break;
+                material = new Material(BaseFurMaterial);
             }
+            renderer = GetComponent<Renderer>();
+            ApplyColour();
         }
 
-
-        public void Update()
+        public void OnEnable()
         {
-            if (_furMode != "2") return;
+            ShirtVisual.OnColourApplied += ApplyColour;
+        }
 
-            _renderer.material = Rig != null ? Rig.mainSkin.material : Fur_VisualParent.Rig.RigSkin.material;
+        public void OnDisable()
+        {
+            ShirtVisual.OnColourApplied -= ApplyColour;
+        }
+
+        public void ApplyColour()
+        {
+            if (material == null) return;
+
+            renderer.material = ShirtVisual.PlayerRig ? (furMode == FurMode.Match ? ShirtVisual.PlayerRig.mainSkin.material : material) : ShirtVisual.Rig.RigSkin.material;
+
+            switch (furMode)
+            {
+                case FurMode.Default:
+                    material.color = ShirtVisual.PlayerRig ? ShirtVisual.PlayerColor : Color.white;
+                    break;
+                case FurMode.Coloured:
+                    renderer.material.color = Color.white;
+                    break;
+            }
         }
     }
 }

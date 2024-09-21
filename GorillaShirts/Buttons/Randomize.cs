@@ -8,7 +8,7 @@ namespace GorillaShirts.Buttons
 {
     internal class Randomize : IStandButton
     {
-        public Interaction.ButtonType Type => Interaction.ButtonType.Randomize;
+        public ButtonType Type => ButtonType.Randomize;
         public Action<Main> Function => (Main constructor) =>
         {
             Pack selectedPack = constructor.SelectedPack;

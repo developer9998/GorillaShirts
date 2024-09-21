@@ -1,7 +1,7 @@
 ﻿using GorillaExtensions;
 using UnityEngine;
 
-namespace GorillaShirts.Behaviours.Visuals
+namespace GorillaShirts.Behaviours.Appearance
 {
     public class Billboard : MonoBehaviour
     {

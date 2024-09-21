@@ -8,7 +8,7 @@ namespace GorillaShirts.Buttons
 {
     internal class ShirtDecrease : IStandButton
     {
-        public Interaction.ButtonType Type => Interaction.ButtonType.ShirtIncrease;
+        public ButtonType Type => ButtonType.ShirtIncrease;
         public Action<Main> Function => (Main constructor) =>
         {
             Pack selectedPack = constructor.SelectedPack;

@@ -8,7 +8,7 @@ namespace GorillaShirts.Buttons
 {
     internal class RigToggle : IStandButton
     {
-        public Interaction.ButtonType Type => Interaction.ButtonType.RigToggle;
+        public ButtonType Type => ButtonType.RigToggle;
         public Action<Main> Function => (Main constructor) =>
         {
             Stand shirtStand = constructor.Stand;

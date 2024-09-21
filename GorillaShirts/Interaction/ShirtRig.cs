@@ -50,7 +50,7 @@ namespace GorillaShirts.Interaction
             Rig.Body = Rig.Head.parent;
             Rig.RigParent = PlayerRig.transform;
             Rig.RigSkin = PlayerRig.mainSkin;
-            Rig.Nametag = PlayerRig.playerText;
+            Rig.PlayerNameTags = [PlayerRig.playerText1, PlayerRig.playerText2];
 
             Rig.LeftHand = PlayerRig.leftHandTransform.parent;
             Rig.RightHand = PlayerRig.rightHandTransform.parent;

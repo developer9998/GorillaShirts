@@ -1,7 +1,7 @@
 ﻿using BoingKit;
 using GorillaExtensions;
 using GorillaNetworking;
-using GorillaShirts.Behaviours.Visuals;
+using GorillaShirts.Behaviours.Appearance;
 using GorillaShirts.Extensions;
 using GorillaShirts.Models;
 using HarmonyLib;
@@ -143,6 +143,7 @@ namespace GorillaShirts.Tools
                         Transform tempSector = newShirt.RawAsset.transform.Find(sectorName);
                         if (tempSector != null)
                         {
+                            tempSector.gameObject.SetActive(false);
                             Sector newSector = new()
                             {
                                 Object = tempSector.gameObject,
@@ -176,7 +177,7 @@ namespace GorillaShirts.Tools
                                         {
                                             GorillaFur gorillaFur = itemObject.gameObject.GetOrAddComponent<GorillaFur>();
                                             gorillaFur.BaseFurMaterial = _furMaterial;
-                                            gorillaFur.Fur_VisualParent = visualParent;
+                                            gorillaFur.ShirtVisual = visualParent;
                                         }
                                         if (child.name.StartsWith("G_BB"))
                                         {
@@ -188,7 +189,7 @@ namespace GorillaShirts.Tools
                                 bool isFur = itemObject.GetComponent<GorillaFur>();
                                 if (colourSupport && customColour && !isFur && itemObject.GetComponent<Renderer>().material.HasProperty("_BaseColor"))
                                 {
-                                    itemObject.gameObject.AddComponent<GorillaColour>().Ref_VisualParent = visualParent;
+                                    itemObject.gameObject.AddComponent<GorillaColour>().ShirtVisual = visualParent;
                                 }
                             }
 

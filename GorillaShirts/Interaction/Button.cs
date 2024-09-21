@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GorillaShirts.Models;
+using System;
 using UnityEngine;
 
 namespace GorillaShirts.Interaction
