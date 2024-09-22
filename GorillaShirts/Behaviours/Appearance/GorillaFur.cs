@@ -35,12 +35,12 @@ namespace GorillaShirts.Behaviours.Appearance
 
         public void OnEnable()
         {
-            ShirtVisual.OnColourApplied += ApplyColour;
+            ShirtVisual.OnColourChanged += ApplyColour;
         }
 
         public void OnDisable()
         {
-            ShirtVisual.OnColourApplied -= ApplyColour;
+            ShirtVisual.OnColourChanged -= ApplyColour;
         }
 
         public void ApplyColour()
@@ -52,7 +52,7 @@ namespace GorillaShirts.Behaviours.Appearance
             switch (furMode)
             {
                 case FurMode.Default:
-                    material.color = ShirtVisual.PlayerRig ? ShirtVisual.PlayerColor : Color.white;
+                    material.color = ShirtVisual.PlayerRig ? ShirtVisual.Colour : Color.white;
                     break;
                 case FurMode.Coloured:
                     renderer.material.color = Color.white;

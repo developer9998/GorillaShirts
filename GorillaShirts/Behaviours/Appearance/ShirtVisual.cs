@@ -8,29 +8,54 @@ namespace GorillaShirts.Behaviours.Appearance
     {
         public Rig Rig;
 
-        public VRRig PlayerRig => Rig.RigParent?.GetComponent<VRRig>();
+        public VRRig PlayerRig => playerRig;
 
-        public Color PlayerColor;
+        private VRRig playerRig;
 
-        public Color SkinColor;
+        public Color Colour => playerColour;
 
-        public Action OnColourApplied;
+        private Color playerColour;
+
+        public Action OnColourChanged;
 
         public void Awake()
         {
-            SkinColor = Rig.RigSkin.material.color;
-            if (PlayerRig)
+            playerRig = Rig.RigParent?.GetComponent<VRRig>();
+        }
+
+        public void OnEnable()
+        {
+            if (playerRig)
             {
-                PlayerColor = PlayerRig.myDefaultSkinMaterialInstance.color;
-                PlayerRig.OnColorChanged += OnColorChanged;
+                UpdateColour(playerRig.playerColor);
+                playerRig.OnColorChanged += TriggerColourChanged;
+            }
+            else
+            {
+                UpdateColour(Rig.RigSkin.material.color);
             }
         }
 
-        public void OnColorChanged(Color colour)
+        public void OnDisable()
         {
-            PlayerColor = colour;
-            SkinColor = Rig.RigSkin.material.color;
-            OnColourApplied?.Invoke();
+            playerColour = Color.white;
+
+            if (playerRig)
+            {
+                playerRig.OnColorChanged -= TriggerColourChanged;
+            }
+        }
+
+        private void UpdateColour(Color colour)
+        {
+            playerColour = colour;
+        }
+
+        public void TriggerColourChanged(Color colour)
+        {
+            UpdateColour(colour);
+
+            OnColourChanged?.Invoke();
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using GorillaShirts.Tools;
+﻿using GorillaShirts.Behaviours.Appearance;
+using GorillaShirts.Tools;
 using System;
 using UnityEngine;
 using UnityEngine.UI;
@@ -26,6 +27,15 @@ namespace GorillaShirts.Models
             StandNameTag.text = isSilly ? "SILLY" : "STEADY";
 
             OnAppearanceChange?.Invoke(isSilly ? Configuration.PreviewGorilla.Silly : Configuration.PreviewGorilla.Steady);
+
+            var shirtGameObjectArrayILoveYouSoMuchKaylieColonThree = ShirtGameObjectArray;
+            for (int i = 0; i < shirtGameObjectArrayILoveYouSoMuchKaylieColonThree.Length; i++)
+            {
+                if (shirtGameObjectArrayILoveYouSoMuchKaylieColonThree[i].TryGetComponent(out ShirtVisual component))
+                {
+                    component.TriggerColourChanged(RigSkin.material.color);
+                }
+            }
         }
 
         public override void MoveNameTag()

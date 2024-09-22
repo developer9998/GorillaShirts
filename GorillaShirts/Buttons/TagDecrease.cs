@@ -17,6 +17,7 @@ namespace GorillaShirts.Buttons
                 Configuration.CurrentTagOffset.Value--;
                 Main.Instance.UpdatePlayerHash();
             }
+            Main.Instance.Stand.Rig.OffsetNameTag(Configuration.CurrentTagOffset.Value);
         };
     }
 }

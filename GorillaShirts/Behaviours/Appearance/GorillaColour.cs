@@ -16,17 +16,17 @@ namespace GorillaShirts.Behaviours.Appearance
 
         public void OnEnable()
         {
-            ShirtVisual.OnColourApplied += ApplyColour;
+            ShirtVisual.OnColourChanged += ApplyColour;
         }
 
         public void OnDisable()
         {
-            ShirtVisual.OnColourApplied -= ApplyColour;
+            ShirtVisual.OnColourChanged -= ApplyColour;
         }
 
         public void ApplyColour()
         {
-            Color colour = ShirtVisual.PlayerRig ? ShirtVisual.PlayerColor : ShirtVisual.SkinColor;
+            Color colour = ShirtVisual.Colour;
             material.SetColor("_BaseColor", LightenColour(colour));
         }
 

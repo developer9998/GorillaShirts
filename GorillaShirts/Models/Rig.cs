@@ -22,6 +22,8 @@ namespace GorillaShirts.Models
 
         public int NameTagOffset;
 
+        internal GameObject[] ShirtGameObjectArray => Objects?.SelectMany(selector => selector.Value).ToArray();
+
         public void WearShirt(Shirt myShirt, out Shirt oldShirt)
         {
             oldShirt = Shirt;
@@ -122,11 +124,12 @@ namespace GorillaShirts.Models
         {
             if (Objects == null || Objects.Count == 0) return;
 
-            var objectsToDestroy = Objects.SelectMany(selector => selector.Value);
-            for (int i = 0; i < objectsToDestroy.Count(); i++)
+            var shirtGameObjectArrayCosYouHaveToCacheThatFr = ShirtGameObjectArray;
+            for (int i = 0; i < shirtGameObjectArrayCosYouHaveToCacheThatFr.Length; i++)
             {
-                UnityEngine.Object.Destroy(objectsToDestroy.ElementAt(i));
+                UnityEngine.Object.Destroy(shirtGameObjectArrayCosYouHaveToCacheThatFr[i]);
             }
+
             Objects.Clear();
         }
     }
