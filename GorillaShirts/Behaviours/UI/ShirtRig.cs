@@ -1,12 +1,11 @@
-﻿using GorillaShirts.Behaviours;
-using GorillaShirts.Models;
+﻿using GorillaShirts.Models;
 using GorillaShirts.Tools;
 using Photon.Pun;
 using Photon.Realtime;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace GorillaShirts.Interaction
+namespace GorillaShirts.Behaviours.UI
 {
     public class ShirtRig : MonoBehaviour
     {

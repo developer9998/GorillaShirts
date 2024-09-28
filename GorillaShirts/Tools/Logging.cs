@@ -4,7 +4,9 @@ namespace GorillaShirts.Tools
 {
     public static class Logging
     {
+#pragma warning disable IDE0052 // Remove unread private members
         private static ManualLogSource Logger;
+#pragma warning restore IDE0052 // Remove unread private members
 
         public static void Initialize(ManualLogSource logger)
         {

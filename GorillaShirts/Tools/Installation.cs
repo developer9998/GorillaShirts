@@ -95,166 +95,181 @@ namespace GorillaShirts.Tools
                         var packageEntry = archive.Entries.FirstOrDefault(i => i.Name == "ShirtData.json");
                         if (packageEntry == null) continue;
 
-                        Logging.Info(" > Reading entry");
                         using var stream = new StreamReader(packageEntry.Open(), Encoding.UTF8);
 
                         string packageReadContents = await stream.ReadToEndAsync();
                         shirtDataJSON = Newtonsoft.Json.JsonConvert.DeserializeObject<ShirtJSON>(packageReadContents);
 
-                        Logging.Info(" > Deserializing contents");
                         var shirtResourceEntry = archive.Entries.FirstOrDefault(i => i.Name == shirtDataJSON.assetName);
                         if (shirtResourceEntry == null) continue;
 
                         using var SeekableStream = new MemoryStream();
                         await shirtResourceEntry.Open().CopyToAsync(SeekableStream);
 
-                        Logging.Info(" > Loading resource bundle");
                         shirtResourceBundle = await LoadFromStream(SeekableStream);
                     }
                     catch (Exception ex)
                     {
                         Logging.Warning($"Failed to parse file '{Path.GetFileName(filePath)}' as a shirt for the mod: {ex}");
+                        File.Move(filePath, Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath) + ".broken"));
                         continue;
                     }
 
-                    Shirt newShirt = new(string.Concat(shirtDataJSON.packName, "/", shirtDataJSON.infoDescriptor.shirtName), shirtDataJSON.infoDescriptor.shirtName, fileDirectory);
-                    ShirtPair newPair = new(newShirt, shirtDataJSON);
-
-                    newShirt.Pair = newPair;
-                    newShirt.Author = shirtDataJSON.infoDescriptor.shirtAuthor;
-                    newShirt.Description = shirtDataJSON.infoDescriptor.shirtDescription;
-
-                    Logging.Info(" > Loading shirt asset");
-                    newShirt.RawAsset = await LoadAsset<GameObject>(shirtResourceBundle, "ExportShirt");
-                    shirtResourceBundle.Unload(false);
-
-                    newShirt.CustomColor = shirtDataJSON.infoConfig.customColors;
-                    newShirt.HasAudio = newShirt.RawAsset.GetComponentInChildren<AudioSource>() != null;
-                    newShirt.HasLight = newShirt.RawAsset.GetComponentInChildren<Light>() != null;
-                    newShirt.HasParticles = newShirt.RawAsset.GetComponentInChildren<ParticleSystem>() != null;
-                    newShirt.Invisibility = shirtDataJSON.infoConfig.invisibility;
-
-                    Transform WearOverride = newShirt.RawAsset.transform.Find("OverrideWearClip"), RemoveOverride = newShirt.RawAsset.transform.Find("OverrideRemoveClip");
-                    if (WearOverride) newShirt.Wear = WearOverride.GetComponent<AudioSource>().clip;
-                    if (RemoveOverride) newShirt.Remove = RemoveOverride.GetComponent<AudioSource>().clip;
-
-                    void PrepareSector(string sectorName, SectorType sectorType)
+                    try
                     {
-                        Transform tempSector = newShirt.RawAsset.transform.Find(sectorName);
-                        if (tempSector != null)
-                        {
-                            tempSector.gameObject.SetActive(false);
-                            Sector newSector = new()
-                            {
-                                Object = tempSector.gameObject,
-                                Type = sectorType,
-                                Position = tempSector.localPosition,
-                                Euler = tempSector.localEulerAngles,
-                                Scale = tempSector.localScale
-                            };
-                            newShirt.SectorList.Add(newSector);
+                        Shirt newShirt = new(string.Concat(shirtDataJSON.packName, "/", shirtDataJSON.infoDescriptor.shirtName), shirtDataJSON.infoDescriptor.shirtName, fileDirectory);
+                        ShirtPair newPair = new(newShirt, shirtDataJSON);
 
-                            ShirtVisual visualParent = newSector.Object.AddComponent<ShirtVisual>();
-                            List<Transform> bones = new(), ignoreBones = new();
-                            foreach (var itemObject in newSector.Object.GetComponentsInChildren<Transform>(true))
+                        newShirt.Pair = newPair;
+                        newShirt.Author = shirtDataJSON.infoDescriptor.shirtAuthor;
+                        newShirt.Description = shirtDataJSON.infoDescriptor.shirtDescription;
+
+                        newShirt.RawAsset = await LoadAsset<GameObject>(shirtResourceBundle, "ExportShirt");
+                        shirtResourceBundle.Unload(false);
+
+                        newShirt.CustomColor = shirtDataJSON.infoConfig.customColors;
+                        newShirt.HasAudio = newShirt.RawAsset.GetComponentInChildren<AudioSource>() != null;
+                        newShirt.HasLight = newShirt.RawAsset.GetComponentInChildren<Light>() != null;
+                        newShirt.HasParticles = newShirt.RawAsset.GetComponentInChildren<ParticleSystem>() != null;
+                        newShirt.Invisibility = shirtDataJSON.infoConfig.invisibility;
+
+                        Transform WearOverride = newShirt.RawAsset.transform.Find("OverrideWearClip"), RemoveOverride = newShirt.RawAsset.transform.Find("OverrideRemoveClip");
+                        if (WearOverride) newShirt.Wear = WearOverride.GetComponent<AudioSource>().clip;
+                        if (RemoveOverride) newShirt.Remove = RemoveOverride.GetComponent<AudioSource>().clip;
+
+                        void PrepareSector(string sectorName, SectorType sectorType)
+                        {
+                            Transform tempSector = newShirt.RawAsset.transform.Find(sectorName);
+                            if (tempSector != null)
                             {
-                                bool colourSupport = itemObject.GetComponent<Renderer>();
-                                bool customColour = shirtDataJSON.infoConfig.customColors;
-                                if (itemObject.childCount > 0)
+                                tempSector.gameObject.SetActive(false);
+                                Sector newSector = new()
                                 {
-                                    for (int i = 0; i < itemObject.childCount; i++)
+                                    Object = tempSector.gameObject,
+                                    Type = sectorType,
+                                    Position = tempSector.localPosition,
+                                    Euler = tempSector.localEulerAngles,
+                                    Scale = tempSector.localScale
+                                };
+                                newShirt.SectorList.Add(newSector);
+
+                                ShirtVisual visualParent = newSector.Object.AddComponent<ShirtVisual>();
+                                List<Transform> bones = new(), ignoreBones = new();
+                                foreach (var itemObject in newSector.Object.GetComponentsInChildren<Transform>(true))
+                                {
+                                    bool colourSupport = itemObject.GetComponent<Renderer>();
+                                    bool customColour = shirtDataJSON.infoConfig.customColors;
+                                    if (itemObject.childCount > 0)
                                     {
-                                        Transform child = itemObject.GetChild(i);
-                                        if (child.name == "Wobble0")
+                                        for (int i = 0; i < itemObject.childCount; i++)
                                         {
-                                            bones.Add(itemObject);
-                                        }
-                                        else if (child.name == "Wobble1")
-                                        {
-                                            ignoreBones.Add(itemObject);
-                                        }
-                                        if (child.name.StartsWith("G_Fur") && colourSupport)
-                                        {
-                                            GorillaFur gorillaFur = itemObject.gameObject.GetOrAddComponent<GorillaFur>();
-                                            gorillaFur.BaseFurMaterial = _furMaterial;
-                                            gorillaFur.ShirtVisual = visualParent;
-                                        }
-                                        if (child.name.StartsWith("G_BB"))
-                                        {
-                                            newShirt.Billboard = true;
-                                            itemObject.gameObject.GetOrAddComponent<Billboard>();
+                                            Transform child = itemObject.GetChild(i);
+                                            if (child.name == "Wobble0")
+                                            {
+                                                bones.Add(itemObject);
+                                            }
+                                            else if (child.name == "Wobble1")
+                                            {
+                                                ignoreBones.Add(itemObject);
+                                            }
+                                            if (child.name.StartsWith("G_Fur") && colourSupport)
+                                            {
+                                                GorillaFur gorillaFur = itemObject.gameObject.GetOrAddComponent<GorillaFur>();
+                                                gorillaFur.BaseFurMaterial = _furMaterial;
+                                                gorillaFur.ShirtVisual = visualParent;
+                                            }
+                                            if (child.name.StartsWith("G_BB"))
+                                            {
+                                                newShirt.Billboard = true;
+                                                itemObject.gameObject.GetOrAddComponent<Billboard>();
+                                            }
                                         }
                                     }
-                                }
-                                bool isFur = itemObject.GetComponent<GorillaFur>();
-                                if (colourSupport && customColour && !isFur && itemObject.GetComponent<Renderer>().material.HasProperty("_BaseColor"))
-                                {
-                                    itemObject.gameObject.AddComponent<GorillaColour>().ShirtVisual = visualParent;
-                                }
-                            }
-
-                            if (bones.Count > 0)
-                            {
-                                BoingBones boneComponent = newSector.Object.AddComponent<BoingBones>();
-                                boneComponent.LockTranslationX = shirtDataJSON.infoConfig.wobbleLockHorizontal;
-                                boneComponent.LockTranslationY = shirtDataJSON.infoConfig.wobbleLockVertical;
-                                boneComponent.LockTranslationZ = shirtDataJSON.infoConfig.wobbleLockHorizontal;
-
-                                List<Chain> boneChainList = new();
-                                foreach (var bone in bones)
-                                {
-                                    Chain chain = !shirtDataJSON.infoConfig.wobbleLoose ? new()
+                                    bool isFur = itemObject.GetComponent<GorillaFur>();
+                                    if (colourSupport && customColour && !isFur && itemObject.GetComponent<Renderer>().material.HasProperty("_BaseColor"))
                                     {
-                                        Root = bone,
-                                        Exclusion = ignoreBones.ToArray(),
-                                        PoseStiffnessCurveType = Chain.CurveType.Custom,
-                                        PoseStiffnessCustomCurve = AnimationCurve.Linear(0f, 0.9f, 1f, 0.7f),
-                                        BendAngleCapCurveType = Chain.CurveType.Custom,
-                                        BendAngleCapCustomCurve = AnimationCurve.Linear(0f, 0.1f, 1f, 0.06f),
-                                        SquashAndStretchCurveType = Chain.CurveType.ConstantZero,
-                                        LengthStiffnessCurveType = Chain.CurveType.ConstantOne,
-                                        ParamsOverride = new()
-                                        {
-                                            Params = boneComponent.Params
-                                        },
-                                        LooseRoot = !shirtDataJSON.infoConfig.wobbleLockRoot
-                                    } : new()
-                                    {
-                                        Root = bone,
-                                        Exclusion = ignoreBones.ToArray(),
-                                        SquashAndStretchCurveType = Chain.CurveType.ConstantZero,
-                                        LengthStiffnessCurveType = Chain.CurveType.ConstantOne,
-                                        ParamsOverride = new()
-                                        {
-                                            Params = boneComponent.Params
-                                        },
-                                        LooseRoot = !shirtDataJSON.infoConfig.wobbleLockRoot
-                                    };
-                                    boneChainList.Add(chain);
+                                        itemObject.gameObject.AddComponent<GorillaColour>().ShirtVisual = visualParent;
+                                    }
                                 }
 
-                                newShirt.Wobble = true;
-                                boneComponent.BoneChains = boneChainList.ToArray();
+                                if (bones.Count > 0)
+                                {
+                                    BoingBones boneComponent = newSector.Object.AddComponent<BoingBones>();
+                                    boneComponent.LockTranslationX = shirtDataJSON.infoConfig.wobbleLockHorizontal;
+                                    boneComponent.LockTranslationY = shirtDataJSON.infoConfig.wobbleLockVertical;
+                                    boneComponent.LockTranslationZ = shirtDataJSON.infoConfig.wobbleLockHorizontal;
+
+                                    List<Chain> boneChainList = new();
+                                    foreach (var bone in bones)
+                                    {
+                                        Chain chain = !shirtDataJSON.infoConfig.wobbleLoose ? new()
+                                        {
+                                            Root = bone,
+                                            Exclusion = ignoreBones.ToArray(),
+                                            PoseStiffnessCurveType = Chain.CurveType.Custom,
+                                            PoseStiffnessCustomCurve = AnimationCurve.Linear(0f, 0.9f, 1f, 0.7f),
+                                            BendAngleCapCurveType = Chain.CurveType.Custom,
+                                            BendAngleCapCustomCurve = AnimationCurve.Linear(0f, 0.1f, 1f, 0.06f),
+                                            SquashAndStretchCurveType = Chain.CurveType.ConstantZero,
+                                            LengthStiffnessCurveType = Chain.CurveType.ConstantOne,
+                                            ParamsOverride = new()
+                                            {
+                                                Params = boneComponent.Params
+                                            },
+                                            LooseRoot = !shirtDataJSON.infoConfig.wobbleLockRoot
+                                        } : new()
+                                        {
+                                            Root = bone,
+                                            Exclusion = ignoreBones.ToArray(),
+                                            SquashAndStretchCurveType = Chain.CurveType.ConstantZero,
+                                            LengthStiffnessCurveType = Chain.CurveType.ConstantOne,
+                                            ParamsOverride = new()
+                                            {
+                                                Params = boneComponent.Params
+                                            },
+                                            LooseRoot = !shirtDataJSON.infoConfig.wobbleLockRoot
+                                        };
+                                        boneChainList.Add(chain);
+                                    }
+
+                                    newShirt.Wobble = true;
+                                    boneComponent.BoneChains = boneChainList.ToArray();
+                                }
                             }
                         }
+                        Ref_SectorDict.Do(pair => PrepareSector(pair.Key, pair.Value));
+
+                        if (Ref_CreatedPacks.TryGetValue(shirtDataJSON.packName, out Pack pack))
+                        {
+                            currentPack = pack;
+                        }
+                        else
+                        {
+                            currentPack = new()
+                            {
+                                Name = shirtDataJSON.packName,
+                                DisplayName = shirtDataJSON.packName.NicknameFormat()
+                            };
+                        }
+
+                        if (!Ref_CreatedPacks.ContainsKey(shirtDataJSON.packName)) Ref_CreatedPacks.Add(shirtDataJSON.packName, currentPack);
+
+                        currentPack.PackagedShirts.Add(newShirt);
+                        currentPack.ShirtNameDictionary.AddOrUpdate(newShirt.Name, newShirt);
                     }
-                    Ref_SectorDict.Do(pair => PrepareSector(pair.Key, pair.Value));
-
-                    currentPack = Ref_CreatedPacks.ContainsKey(shirtDataJSON.packName) ? Ref_CreatedPacks[shirtDataJSON.packName] : new()
+                    catch (Exception ex)
                     {
-                        Name = shirtDataJSON.packName,
-                        DisplayName = shirtDataJSON.packName.NicknameFormat()
-                    };
-
-                    if (!Ref_CreatedPacks.ContainsKey(shirtDataJSON.packName)) Ref_CreatedPacks.Add(shirtDataJSON.packName, currentPack);
-
-                    currentPack.PackagedShirts.Add(newShirt);
-                    currentPack.ShirtNameDictionary.AddOrUpdate(newShirt.Name, newShirt);
-                    Logging.Info($" > Completed, '{newShirt.DisplayName}' is included in pack '{shirtDataJSON.packName}'");
+                        Logging.Warning($"Exception thrown when loading shirt {Path.GetFileName(filePath)}: {ex}");
+                        File.Move(filePath, Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath) + ".broken"));
+                        continue;
+                    }
                 }
 
-                var random = new System.Random();
-                currentPack.PackagedShirts = currentPack.Name == "Default" ? currentPack.PackagedShirts.OrderBy(a => random.Next()).ToList() : currentPack.PackagedShirts;
+                if (currentPack.Name == "Default")
+                {
+                    var random = new System.Random();
+                    currentPack.PackagedShirts = [.. currentPack.PackagedShirts.OrderBy(a => random.Next())];
+                }
             }
         }
 

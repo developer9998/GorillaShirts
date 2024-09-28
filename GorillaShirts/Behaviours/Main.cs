@@ -423,6 +423,12 @@ namespace GorillaShirts.Behaviours
         {
             ConstructedPacks = await _shirtInstaller.FindShirtsFromDirectory(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
 
+            if (ConstructedPacks == null || ConstructedPacks.Count == 0)
+            {
+                Destroy(Stand.Object);
+                return;
+            }
+
             // Sort the packs based on their name, and prioritize the "Default" pack
             ConstructedPacks.Sort((x, y) => string.Compare(x.Name, y.Name));
             ConstructedPacks = [.. ConstructedPacks.OrderBy(a => a.Name == "Default" ? 0 : 1)];
@@ -612,7 +618,10 @@ namespace GorillaShirts.Behaviours
         {
             base.OnPlayerPropertiesUpdate(targetPlayer, changedProps);
 
-            CheckHash(targetPlayer, changedProps);
+            if (!targetPlayer.IsLocal)
+            {
+                CheckHash(targetPlayer, changedProps);
+            }
         }
 
         public void CheckHash(Player targetPlayer, Hashtable changedProps)
