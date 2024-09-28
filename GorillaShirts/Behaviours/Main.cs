@@ -127,9 +127,10 @@ namespace GorillaShirts.Behaviours
         {
             HttpClient client = new();
             string result = await client.GetStringAsync(@"https://raw.githubusercontent.com/developer9998/GorillaShirts/main/Version.txt");
+            result = result.Replace(Environment.NewLine, "").Replace(" ", "");
             if (result != Constants.Version)
             {
-                Logging.Error($"GorillaShirts is outdated! Current {Constants.Version} expecting {result}");
+                Logging.Error($"GorillaShirts is outdated! Current '{Constants.Version}' expecting '{result}'");
                 return;
             }
             client.Dispose();
@@ -425,6 +426,7 @@ namespace GorillaShirts.Behaviours
 
             if (ConstructedPacks == null || ConstructedPacks.Count == 0)
             {
+                Logging.Warning("No packs found");
                 Destroy(Stand.Object);
                 return;
             }
