@@ -1,8 +1,8 @@
 ﻿using BepInEx;
 using BepInEx.Bootstrap;
+using GorillaShirts.Behaviours.UI;
 using GorillaShirts.Buttons;
 using GorillaShirts.Extensions;
-using GorillaShirts.Interaction;
 using GorillaShirts.Interfaces;
 using GorillaShirts.Locations;
 using GorillaShirts.Models;
@@ -22,7 +22,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
-using Button = GorillaShirts.Interaction.Button;
+using Button = GorillaShirts.Behaviours.UI.Button;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 namespace GorillaShirts.Behaviours

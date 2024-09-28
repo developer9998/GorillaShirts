@@ -23,17 +23,14 @@ namespace GorillaShirts.Behaviours.Appearance
             playerRig = Rig.RigParent?.GetComponent<VRRig>();
         }
 
+        public void Start()
+        {
+            UpdateColour();
+        }
+
         public void OnEnable()
         {
-            if (playerRig)
-            {
-                UpdateColour(playerRig.playerColor);
-                playerRig.OnColorChanged += TriggerColourChanged;
-            }
-            else
-            {
-                UpdateColour(Rig.RigSkin.material.color);
-            }
+            UpdateColour();
         }
 
         public void OnDisable()
@@ -43,6 +40,19 @@ namespace GorillaShirts.Behaviours.Appearance
             if (playerRig)
             {
                 playerRig.OnColorChanged -= TriggerColourChanged;
+            }
+        }
+
+        private void UpdateColour()
+        {
+            if (playerRig)
+            {
+                UpdateColour(playerRig.playerColor);
+                playerRig.OnColorChanged += TriggerColourChanged;
+            }
+            else
+            {
+                UpdateColour(Rig.RigSkin.material.color);
             }
         }
 
