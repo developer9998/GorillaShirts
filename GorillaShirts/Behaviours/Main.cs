@@ -70,7 +70,8 @@ namespace GorillaShirts.Behaviours
             typeof(Rotating),
             typeof(Metropolis),
             typeof(Arcade),
-            typeof(Bayou)
+            typeof(Bayou),
+            typeof(VirtualStump)
         }.FromTypeCollection<IStandLocation>();
 
         public int SelectedPackIndex;
@@ -164,10 +165,17 @@ namespace GorillaShirts.Behaviours
         public async Task InitAll()
         {
             await InitStand();
-            if (IsIncompatibile())
+            try
             {
-                Stand.Object.transform.Find("UI").GetComponent<Animator>().Play("IncompFrame");
-                return;
+                if (IsIncompatibile())
+                {
+                    Stand.Object.transform.Find("UI").GetComponent<Animator>().Play("IncompFrame");
+                    return;
+                }
+            }
+            catch(Exception ex)
+            {
+                Logging.Warning($"Imcomp threw an exception: {ex}\nproceeding per usual");
             }
             await InitAudio();
             await InitCatalog();
@@ -347,10 +355,14 @@ namespace GorillaShirts.Behaviours
         private void OnZoneChange(ZoneData[] zones)
         {
             IEnumerable<GTZone> activeZones = zones.Where(zone => zone.active).Select(zone => zone.zone);
+            OnZoneChange(activeZones.ToArray());
+        }
 
-            Logging.Info($"Zone changed: {string.Join(", ", activeZones)}");
+        public void OnZoneChange(GTZone[] zones)
+        {
+            Logging.Info($"Zone changed: {string.Join(", ", zones)}");
 
-            foreach (GTZone currentZone in activeZones)
+            foreach (GTZone currentZone in zones)
             {
                 IStandLocation currentLocation = _standLocations.FirstOrDefault(zone => zone.IsInZone(currentZone));
 
@@ -359,15 +371,22 @@ namespace GorillaShirts.Behaviours
                     Logging.Info($"We are in {currentLocation.GetType().Name} ({currentZone} is active)");
 
                     Tuple<Vector3, Vector3> locationData = currentLocation.Location;
-                    Stand.Object.transform.position = locationData.Item1;
-                    Stand.Object.transform.rotation = Quaternion.Euler(locationData.Item2);
-                    Stand.Object.SetActive(true);
+                    MoveStand(locationData.Item1, locationData.Item2);
                     return;
                 }
             }
 
-            Logging.Error($"No stand location exists for zones {string.Join(", ", activeZones)}, hiding shirt stand");
+            Logging.Error($"No stand location exists for zones {string.Join(", ", zones)}, hiding shirt stand");
             Stand.Object.SetActive(false);
+        }
+
+        public void MoveStand(Transform transform) => MoveStand(transform.position, transform.eulerAngles);
+
+        public void MoveStand(Vector3 position, Vector3 direction)
+        {
+            Stand.Object.transform.position = position;
+            Stand.Object.transform.eulerAngles = direction;
+            Stand.Object.SetActive(true);
         }
 
         public async Task InitAudio()
@@ -412,7 +431,7 @@ namespace GorillaShirts.Behaviours
             {
                 Assembly pluginAssembly = pluginInfo.Instance.GetType().Assembly;
                 var pluginTypes = pluginAssembly.GetTypes();
-                if (pluginInfo.Metadata.GUID == "com.nachoengine.playermodel" || pluginTypes.Any(type => type.Name.Contains("WristMenu") || type.Name.Contains("MenuPatch") || type.Name.Contains("Cosmetx")))
+                if (pluginInfo.Metadata.GUID == "com.nachoengine.playermodel" || pluginInfo.Metadata.GUID == "com.wryser.gorillatag.customcosmetics" || pluginTypes.Any(type => type.Name.Contains("WristMenu") || type.Name.Contains("MenuPatch") || type.Name.Contains("Cosmetx")))
                 {
                     return true;
                 }
