@@ -4,15 +4,18 @@ using GorillaNetworking;
 using GorillaShirts.Behaviours.Appearance;
 using GorillaShirts.Extensions;
 using GorillaShirts.Models;
+using GorillaShirts.Utilities;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Networking;
 using static BoingKit.BoingBones;
 using Object = UnityEngine.Object;
 
@@ -55,20 +58,54 @@ namespace GorillaShirts.Tools
             Directory.CreateDirectory(path);
         }
 
-        public async Task<List<Pack>> FindShirtsFromDirectory(string myDirectory)
+        public async Task<List<Pack>> FindShirtsFromDirectory(string directoryPath, bool packCountCheck = true)
         {
+            Logging.Info($"FindShirtsFromDirectory (directory name {Path.GetDirectoryName(directoryPath)} packCountCheck is {packCountCheck})");
+
             Ref_CreatedPacks.Clear();
 
-            await FindShirtsFromPackDirectory(myDirectory);
+            await FindShirtsFromPackDirectory(directoryPath);
 
-            var shirtPackDirectories = Directory.GetDirectories(myDirectory, "*", SearchOption.AllDirectories);
+            var shirtPackDirectories = Directory.GetDirectories(directoryPath, "*", SearchOption.AllDirectories);
             foreach (var directory in shirtPackDirectories)
             {
                 Logging.Info($"Locating shirt files from directory '{Path.GetFileName(directory)}'");
                 await FindShirtsFromPackDirectory(directory);
             }
 
-            return Ref_CreatedPacks.Values.ToList();
+            int packCount = Ref_CreatedPacks.Count;
+            if (packCountCheck && packCount == 0)
+            {
+                Logging.Warning($"no packs, downloading defaults now");
+                string zipPath = directoryPath + "/DefaultGorillaShirts.zip";
+
+                if (!File.Exists(zipPath))
+                {
+                    Logging.Warning("getting defaults zip");
+
+                    UnityWebRequest request = new("https://github.com/developer9998/GorillaShirts/raw/refs/heads/main/DefaultGorillaShirts.zip");
+                    request.downloadHandler = new DownloadHandlerFile(zipPath);
+
+                    UnityWebRequestAsyncOperation operation = request.SendWebRequest();
+                    await TaskYieldUtils.Yield(operation);
+
+                    if ((int)request.result > 1) // this includes only errors
+                    {
+                        Logging.Error($"error when downloading default shirts: {request.error}");
+                        return null;
+                    }
+
+                    Logging.Info("got defaults !!");
+                    request.Dispose();
+                }
+
+                Logging.Info("extracting zips");
+                ZipFile.ExtractToDirectory(zipPath, directoryPath);
+                File.Delete(zipPath);
+                return await FindShirtsFromDirectory(directoryPath, false);
+            }
+
+            return [.. Ref_CreatedPacks.Values];
         }
 
         private async Task FindShirtsFromPackDirectory(string path)

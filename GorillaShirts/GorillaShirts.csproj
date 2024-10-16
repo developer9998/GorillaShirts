@@ -68,5 +68,20 @@
 		<Reference Include="UnityEngine.UI">
 			<HintPath>$(GameAssemblyPath)\UnityEngine.UI.dll</HintPath>
 		</Reference>
+		<Reference Include="UnityEngine.UnityWebRequestAssetBundleModule">
+		  <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Gorilla Tag\Gorilla Tag_Data\Managed\UnityEngine.UnityWebRequestAssetBundleModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.UnityWebRequestAudioModule">
+		  <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Gorilla Tag\Gorilla Tag_Data\Managed\UnityEngine.UnityWebRequestAudioModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.UnityWebRequestModule">
+		  <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Gorilla Tag\Gorilla Tag_Data\Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.UnityWebRequestTextureModule">
+		  <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Gorilla Tag\Gorilla Tag_Data\Managed\UnityEngine.UnityWebRequestTextureModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.UnityWebRequestWWWModule">
+		  <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Gorilla Tag\Gorilla Tag_Data\Managed\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 </Project>
