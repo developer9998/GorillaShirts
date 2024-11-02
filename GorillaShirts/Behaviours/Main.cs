@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Bootstrap;
+using GorillaShirts.Behaviours.Appearance;
 using GorillaShirts.Behaviours.UI;
 using GorillaShirts.Buttons;
 using GorillaShirts.Extensions;
@@ -215,30 +216,15 @@ namespace GorillaShirts.Behaviours
             standRig.RightUpper = standRig.RightLower.parent;
 
             // Register the IK
-            GorillaIK gorillaIk = standRig.RigParent.gameObject.AddComponent<GorillaIK>();
-            gorillaIk.enabled = true;
+            GorillaIKNonManaged gorillaIk = standRig.RigParent.gameObject.AddComponent<GorillaIKNonManaged>();
             gorillaIk.targetLeft = shirtStand.transform.Find("Preview Gorilla/Rig/LeftTarget");
             gorillaIk.targetRight = shirtStand.transform.Find("Preview Gorilla/Rig/RightTarget");
-            gorillaIk.targetHead = standRig.Head;
-            gorillaIk.headBone = standRig.Head;
             gorillaIk.leftUpperArm = standRig.LeftUpper;
             gorillaIk.leftLowerArm = standRig.LeftLower;
             gorillaIk.leftHand = standRig.LeftHand;
             gorillaIk.rightUpperArm = standRig.RightUpper;
             gorillaIk.rightLowerArm = standRig.RightLower;
             gorillaIk.rightHand = standRig.RightHand;
-
-            gorillaIk.dU = (gorillaIk.leftUpperArm.position - gorillaIk.leftLowerArm.position).magnitude;
-            gorillaIk.dL = (gorillaIk.leftLowerArm.position - gorillaIk.leftHand.position).magnitude;
-            gorillaIk.dMax = gorillaIk.dU + gorillaIk.dL - gorillaIk.eps;
-            gorillaIk.initialUpperLeft = gorillaIk.leftUpperArm.localRotation;
-            gorillaIk.initialLowerLeft = gorillaIk.leftLowerArm.localRotation;
-            gorillaIk.initialUpperRight = gorillaIk.rightUpperArm.localRotation;
-            gorillaIk.initialLowerRight = gorillaIk.rightLowerArm.localRotation;
-
-            // De-register and Re-register the IK
-            gorillaIk.enabled = false;
-            gorillaIk.enabled = true;
 
             standRig.OnAppearanceChange += delegate (Configuration.PreviewGorilla previewType)
             {
