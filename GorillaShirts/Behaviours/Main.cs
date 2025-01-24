@@ -22,6 +22,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 using Button = GorillaShirts.Behaviours.UI.Button;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
@@ -127,15 +128,18 @@ namespace GorillaShirts.Behaviours
 
         public async void Start()
         {
-            HttpClient client = new();
-            string result = await client.GetStringAsync(@"https://raw.githubusercontent.com/developer9998/GorillaShirts/main/Version.txt");
-            result = result.Replace(Environment.NewLine, "").Replace(" ", "");
-            if (result != Constants.Version)
+            var requestVersion = UnityWebRequest.Get(@"https://raw.githubusercontent.com/developer9998/GorillaShirts/main/Version.txt");
+            await TaskYieldUtils.Yield(requestVersion);
+
+            if (requestVersion.result != UnityWebRequest.Result.Success)
             {
-                Logging.Error($"GorillaShirts is outdated! Current '{Constants.Version}' expecting '{result}'");
+                Logging.Warning($"GitHub version string resulted with {requestVersion.result}: {requestVersion.downloadHandler.error}");
+            }
+            else if (requestVersion.downloadHandler.text.Trim() != Constants.Version)
+            {
+                Logging.Warning($"GitHub version string mismatch, came back with {requestVersion.downloadHandler.text} expecting {Constants.Version}");
                 return;
             }
-            client.Dispose();
 
             _assetLoader = new AssetLoader();
             _shirtInstaller = new Installation();

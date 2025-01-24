@@ -3,6 +3,7 @@ using HarmonyLib;
 
 namespace GorillaShirts.Patches
 {
+    /*
     [HarmonyPatch(typeof(ModIOMapLoader), "FinalizeUnload"), HarmonyWrapSafe]
     internal class FinalizeUnloadPatch
     {
@@ -11,4 +12,5 @@ namespace GorillaShirts.Patches
             Main.Instance.OnZoneChange([ GTZone.customMaps ]);
         }
     }
+    */
 }

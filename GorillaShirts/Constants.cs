@@ -6,7 +6,7 @@
 
         public const string Name = "GorillaShirts";
 
-        public const string Version = "1.1.7";
+        public const string Version = "1.1.8";
 
 
         public const string BundlePath = "GorillaShirts.Resources.shirtbundle";
@@ -14,7 +14,7 @@
         public const string StandName = "ShirtStand";
 
 
-        public const float NetworkCooldown = 0.5f;
+        public const float NetworkCooldown = 0.26f;
 
         public const int NetworkOffset = 500;
 

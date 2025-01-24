@@ -11,6 +11,7 @@ namespace GorillaShirts
     {
         public void Awake()
         {
+
             Logging.Initialize(Logger);
             Configuration.Initialize(Config);
 

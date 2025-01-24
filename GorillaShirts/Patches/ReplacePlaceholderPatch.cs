@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace GorillaShirts.Patches
 {
+    /*
     [HarmonyPatch(typeof(ModIOMapLoader), "ReplacePlaceholders"), HarmonyWrapSafe]
     internal class ReplacePlaceholderPatch
     {
@@ -19,4 +20,5 @@ namespace GorillaShirts.Patches
             return true;
         }
     }
+    */
 }
