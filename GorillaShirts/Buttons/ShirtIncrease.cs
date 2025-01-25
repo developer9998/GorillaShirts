@@ -2,13 +2,14 @@
 using GorillaShirts.Behaviours.UI;
 using GorillaShirts.Interfaces;
 using GorillaShirts.Models;
+using GorillaShirts.Tools;
 using System;
 
 namespace GorillaShirts.Buttons
 {
     internal class ShirtIncrease : IStandButton
     {
-        public ButtonType Type => ButtonType.ShirtDecrease;
+        public ButtonType Type => ButtonType.ShirtIncrease;
         public Action<Main> Function => (Main constructor) =>
         {
             Pack selectedPack = constructor.SelectedPack;

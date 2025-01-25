@@ -17,7 +17,11 @@ namespace GorillaShirts.Buttons
                 Configuration.CurrentTagOffset.Value++;
                 Main.Instance.UpdatePlayerHash();
             }
-            Main.Instance.Stand.Rig.OffsetNameTag(Configuration.CurrentTagOffset.Value);
+
+            Stand shirtStand = constructor.Stand;
+            //shirtStand.Rig.WearShirt(constructor.SelectedShirt);
+            shirtStand.Rig.OffsetNameTag(Configuration.CurrentTagOffset.Value);
+            shirtStand.Display.UpdateDisplay(constructor.SelectedShirt, constructor.LocalRig.Rig.Shirt, constructor.SelectedPack);
         };
     }
 }

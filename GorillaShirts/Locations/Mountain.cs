@@ -6,6 +6,6 @@ namespace GorillaShirts.Locations
     internal class Mountain : IStandLocation
     {
         public bool IsInZone(GTZone zone) => zone == GTZone.mountain;
-        public Tuple<UnityEngine.Vector3, UnityEngine.Vector3> Location => Tuple.Create<UnityEngine.Vector3, UnityEngine.Vector3>(new(-17.8902f, 18.1936f, -106.4705f), new(0f, 264.8364f, 0f));
+        public Tuple<UnityEngine.Vector3, UnityEngine.Vector3> Location => Tuple.Create<UnityEngine.Vector3, UnityEngine.Vector3>(new(-19.6436f, 18.1985f, -108.6495f), new(0f, 5.7453f, 0f));
     }
 }

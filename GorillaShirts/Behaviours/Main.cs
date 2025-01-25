@@ -17,7 +17,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -73,7 +72,10 @@ namespace GorillaShirts.Behaviours
             typeof(Metropolis),
             typeof(Arcade),
             typeof(Bayou),
-            typeof(VirtualStump)
+            typeof(VirtualStump),
+            typeof(Mall),
+            typeof(MonkeBlocks),
+            typeof(Mines_OldCaveButWorse)
         }.FromTypeCollection<IStandLocation>();
 
         public int SelectedPackIndex;
@@ -350,7 +352,7 @@ namespace GorillaShirts.Behaviours
 
         public void OnZoneChange(GTZone[] zones)
         {
-            Logging.Info($"Zone changed: {string.Join(", ", zones)}");
+            //Logging.Info($"Zone changed: {string.Join(", ", zones)}");
 
             foreach (GTZone currentZone in zones)
             {
@@ -358,7 +360,7 @@ namespace GorillaShirts.Behaviours
 
                 if (currentLocation != null)
                 {
-                    Logging.Info($"We are in {currentLocation.GetType().Name} ({currentZone} is active)");
+                    //Logging.Info($"We are in {currentLocation.GetType().Name} ({currentZone} is active)");
 
                     Tuple<Vector3, Vector3> locationData = currentLocation.Location;
                     MoveStand(locationData.Item1, locationData.Item2);
@@ -366,10 +368,11 @@ namespace GorillaShirts.Behaviours
                 }
             }
 
-            Logging.Error($"No stand location exists for zones {string.Join(", ", zones)}, hiding shirt stand");
+            Logging.Warning($"No stand location exists for zones {string.Join(", ", zones)}, hiding shirt stand");
             Stand.Object.SetActive(false);
         }
 
+        [Obsolete]
         public void MoveStand(Transform transform) => MoveStand(transform.position, transform.eulerAngles);
 
         public void MoveStand(Vector3 position, Vector3 direction)
@@ -417,14 +420,22 @@ namespace GorillaShirts.Behaviours
 
         public bool IsIncompatibile()
         {
-            foreach (var pluginInfo in Chainloader.PluginInfos.Values)
+            try
             {
-                Assembly pluginAssembly = pluginInfo.Instance.GetType().Assembly;
-                var pluginTypes = pluginAssembly.GetTypes();
-                if (pluginInfo.Metadata.GUID == "com.nachoengine.playermodel" || pluginInfo.Metadata.GUID == "com.wryser.gorillatag.customcosmetics" || pluginTypes.Any(type => type.Name.Contains("WristMenu") || type.Name.Contains("MenuPatch") || type.Name.Contains("Cosmetx")))
+                foreach (var pluginInfo in Chainloader.PluginInfos.Values)
                 {
-                    return true;
+                    Assembly pluginAssembly = pluginInfo.Instance.GetType().Assembly;
+                    var pluginTypes = pluginAssembly.GetTypes();
+                    if (pluginInfo.Metadata.GUID == "com.nachoengine.playermodel" || pluginInfo.Metadata.GUID == "com.wryser.gorillatag.customcosmetics" || pluginInfo.Metadata.GUID == "com.goldentrophy.gorillatag.fortniteemotewheel" || pluginTypes.Any(type => type.Name.Contains("WristMenu") || type.Name.Contains("MenuPatch") || type.Name.Contains("Cosmetx") || type.Name.Contains("RigPatch2")))
+                    {
+                        return true;
+                    }
                 }
+            }
+            catch(Exception ex)
+            {
+                Logging.Error($"Incomp check threw exception: {ex}");
+                Logging.Warning("returning w true despite checks");
             }
             return false;
         }
@@ -573,9 +584,8 @@ namespace GorillaShirts.Behaviours
                 return;
             }
 
-            Logging.Info($"Adding ShirtRig to player {player.NickName}");
             GetShirtRig(player, playerRig);
-            Logging.Info("Added");
+            Logging.Info($"Added ShirtRig to player {player.NickName}");
         }
 
         public void RemoveShirtRig(VRRig playerRig)
@@ -602,11 +612,8 @@ namespace GorillaShirts.Behaviours
                 return;
             }
 
-            Logging.Info($"Removing ShirtRig from player {player.NickName}");
-
             Destroy(shirtRig);
-
-            Logging.Info("Removed");
+            Logging.Info($"Removed ShirtRig from player {player.NickName}");
         }
 
         public ShirtRig GetShirtRig(Player player, VRRig playerRig = null)
@@ -713,6 +720,7 @@ namespace GorillaShirts.Behaviours
                     }
 
                     Shirt currentShirt = shirtRig.Rig.Shirt;
+                    bool doMissingCheck = false;
 
                     if (currentShirt != null)
                     {
@@ -740,8 +748,10 @@ namespace GorillaShirts.Behaviours
                             PlayShirtAudio(playerRig, 1, 0.5f);
                         }
 
-                        return;
+                        doMissingCheck = true;
                     }
+
+                    if (!doMissingCheck) return;
 
                     if (wornGorillaShirt != null && !string.IsNullOrEmpty(wornGorillaShirt))
                     {
@@ -753,7 +763,7 @@ namespace GorillaShirts.Behaviours
                         return;
                     }
 
-                    Logging.Warning($"This should not happen ({targetPlayer.NickName}, {wornGorillaShirt})");
+                    //Logging.Warning($"This should not happen ({targetPlayer.NickName}, {wornGorillaShirt})");
                 }
             }
             catch (Exception ex)

@@ -1,0 +1,13 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using GorillaShirts.Interfaces;
+
+namespace GorillaShirts.Locations
+{
+    internal class Mall : IStandLocation
+    {
+        public bool IsInZone(GTZone zone) => zone == GTZone.mall;
+        public Tuple<UnityEngine.Vector3, UnityEngine.Vector3> Location => Tuple.Create<UnityEngine.Vector3, UnityEngine.Vector3>(new(-114.6934f, 16.9925f, -212.6736f), new(0f, 8.6951f, 0f));
+    }
+}
