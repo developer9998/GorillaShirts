@@ -41,13 +41,11 @@ namespace GorillaShirts.Behaviours.Appearance
 
         public float dMax;
 
-        public float eps;
-
         public void Start()
         {
             dU = (leftUpperArm.position - leftLowerArm.position).magnitude;
             dL = (leftLowerArm.position - leftHand.position).magnitude;
-            dMax = dU + dL - eps;
+            dMax = dU + dL;
             initialUpperLeft = leftUpperArm.localRotation;
             initialLowerLeft = leftLowerArm.localRotation;
             initialUpperRight = rightUpperArm.localRotation;
@@ -64,7 +62,7 @@ namespace GorillaShirts.Behaviours.Appearance
         {
             upperArm.localRotation = initRotUpper;
             lowerArm.localRotation = initRotLower;
-            float num = Mathf.Clamp((target.position - upperArm.position).magnitude, eps, dMax);
+            float num = Mathf.Clamp((target.position - upperArm.position).magnitude, 0, dMax);
             float num2 = Mathf.Acos(Mathf.Clamp(Vector3.Dot((hand.position - upperArm.position).normalized, (lowerArm.position - upperArm.position).normalized), -1f, 1f));
             float num3 = Mathf.Acos(Mathf.Clamp(Vector3.Dot((upperArm.position - lowerArm.position).normalized, (hand.position - lowerArm.position).normalized), -1f, 1f));
             float num4 = Mathf.Acos(Mathf.Clamp(Vector3.Dot((hand.position - upperArm.position).normalized, (target.position - upperArm.position).normalized), -1f, 1f));

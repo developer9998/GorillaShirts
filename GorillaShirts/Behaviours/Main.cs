@@ -137,7 +137,7 @@ namespace GorillaShirts.Behaviours
             {
                 Logging.Warning($"GitHub version string resulted with {requestVersion.result}: {requestVersion.downloadHandler.error}");
             }
-            else if (requestVersion.downloadHandler.text.Trim() != Constants.Version)
+            else if (requestVersion.downloadHandler.text.TrimEnd() != Constants.Version)
             {
                 Logging.Warning($"GitHub version string mismatch, came back with {requestVersion.downloadHandler.text} expecting {Constants.Version}");
                 return;
