@@ -140,7 +140,7 @@ namespace GorillaShirts.Behaviours
             else if (requestVersion.downloadHandler.text.Trim() != Constants.Version)
             {
                 Logging.Warning($"GitHub version string mismatch, came back with {requestVersion.downloadHandler.text} expecting {Constants.Version}");
-                //return;
+                return;
             }
 
             asset_loader = new AssetLoader();
