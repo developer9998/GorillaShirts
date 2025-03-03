@@ -21,7 +21,7 @@ using Object = UnityEngine.Object;
 
 namespace GorillaShirts.Tools
 {
-    public class Installation
+    public class ShirtReader
     {
         public AssetLoader AssetLoader;
         private Material _furMaterial;

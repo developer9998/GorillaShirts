@@ -11,7 +11,7 @@ namespace GorillaShirts.Buttons
         public ButtonType Type => ButtonType.PackIncrease;
         public Action<Main> Function => (Main constructor) =>
         {
-            constructor.SelectedPackIndex = (constructor.SelectedPackIndex + 1) % constructor.ConstructedPacks.Count;
+            constructor.SelectedPackIndex = (constructor.SelectedPackIndex + 1) % constructor.Packs.Count;
 
             Pack selectedPack = constructor.SelectedPack;
 

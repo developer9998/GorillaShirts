@@ -37,62 +37,58 @@ namespace GorillaShirts.Behaviours
         public ShirtRig LocalRig;
 
         public Action<bool> SetInfoVisibility;
+
         public bool UseInfoPanel;
 
         public Stand Stand;
         public Camera Camera;
 
-        public readonly List<IStandButton> _standButtons = new List<Type>()
-        {
-            typeof(ShirtEquip),
-            typeof(ShirtIncrease),
-            typeof(ShirtDecrease),
-            typeof(PackIncrease),
-            typeof(PackDecrease),
-            typeof(RigToggle),
-            typeof(Randomize),
-            typeof(TagIncrease),
-            typeof(TagDecrease),
-            typeof(Information),
-            typeof(Capture)
-        }.FromTypeCollection<IStandButton>();
+        public readonly List<IStandButton> StandButtons =
+        [
+            new ShirtEquip(),
+            new ShirtIncrease(),
+            new ShirtDecrease(),
+            new PackIncrease(),
+            new PackDecrease(),
+            new RigToggle(),
+            new Randomize(),
+            new TagIncrease(),
+            new TagDecrease(),
+            new Information(),
+            new Capture()
+        ];
 
-        public readonly List<IStandLocation> _standLocations = new List<Type>()
-        {
-            typeof(Forest),
-            typeof(Cave),
-            typeof(Canyon),
-            typeof(City),
-            typeof(Mountain),
-            typeof(Clouds),
-            typeof(Basement),
-            typeof(Beach),
-            typeof(Tutorial),
-            typeof(Rotating),
-            typeof(Metropolis),
-            typeof(Arcade),
-            typeof(Bayou),
-            typeof(VirtualStump),
-            typeof(Mall),
-            typeof(MonkeBlocks),
-            typeof(Mines_OldCaveButWorse)
-        }.FromTypeCollection<IStandLocation>();
+        public readonly List<IStandLocation> StandLocations =
+        [
+            new Forest(),
+            new Cave(),
+            new Canyon(),
+            new City(),
+            new Mountain(),
+            new Clouds(),
+            new Basement(),
+            new Beach(),
+            new Tutorial(),
+            new Rotating(),
+            new Metropolis(),
+            new Arcade(),
+            new Bayou(),
+            new VirtualStump(),
+            new Mall(),
+            new MonkeBlocks(),
+            new Mines()
+        ];
 
         public int SelectedPackIndex;
-        public List<Pack> ConstructedPacks = [];
 
-        private AssetLoader _assetLoader;
-
-        private Installation _shirtInstaller;
-
-        private List<AudioClip> _audios = [];
+        public List<Pack> Packs = [];
 
         public Shirt SelectedShirt
         {
             get => SelectedPack.PackagedShirts[SelectedPack.CurrentItem];
             set
             {
-                foreach (var pack in ConstructedPacks)
+                foreach (var pack in Packs)
                 {
                     if (pack.PackagedShirts.Contains(value))
                     {
@@ -106,14 +102,18 @@ namespace GorillaShirts.Behaviours
 
         public Pack SelectedPack
         {
-            get => ConstructedPacks[SelectedPackIndex];
-            set => SelectedPackIndex = ConstructedPacks.IndexOf(value);
+            get => Packs[SelectedPackIndex];
+            set => SelectedPackIndex = Packs.IndexOf(value);
         }
+
+        private AssetLoader asset_loader;
+        private ShirtReader shirt_reader;
+        private List<AudioClip> audio_clips = [];
 
         public Hashtable CustomProperties;
 
-        private bool IsUpdatingProperties;
-        private float PropertyUpdateTime;
+        private bool to_update_properties;
+        private float last_property_update;
 
         public void Awake()
         {
@@ -140,15 +140,15 @@ namespace GorillaShirts.Behaviours
             else if (requestVersion.downloadHandler.text.Trim() != Constants.Version)
             {
                 Logging.Warning($"GitHub version string mismatch, came back with {requestVersion.downloadHandler.text} expecting {Constants.Version}");
-                return;
+                //return;
             }
 
-            _assetLoader = new AssetLoader();
-            _shirtInstaller = new Installation();
+            asset_loader = new AssetLoader();
+            shirt_reader = new ShirtReader();
 
             await InitAll();
 
-            if (ConstructedPacks != null && ConstructedPacks.Count > 0)
+            if (Packs != null && Packs.Count > 0)
             {
                 Stand.Display.UpdateDisplay(SelectedShirt, LocalRig.Rig.Shirt, SelectedPack);
                 Stand.Display.SetTag(Configuration.CurrentTagOffset.Value);
@@ -193,10 +193,11 @@ namespace GorillaShirts.Behaviours
             LocalRig = GorillaTagger.Instance.offlineVRRig.gameObject.AddComponent<ShirtRig>();
             LocalRig.Player = PhotonNetwork.LocalPlayer;
 
-            GameObject shirtStand = Instantiate(await _assetLoader.LoadAsset<GameObject>("ShirtStand"));
+            GameObject shirtStand = Instantiate(await asset_loader.LoadAsset<GameObject>("ShirtStand"));
             shirtStand.name = "Shirt Stand";
-            shirtStand.transform.position = _standLocations.First().Location.Item1;
-            shirtStand.transform.rotation = Quaternion.Euler(_standLocations.First().Location.Item2);
+            shirtStand.transform.SetParent(transform);
+            shirtStand.transform.position = StandLocations.First().Location.Item1;
+            shirtStand.transform.rotation = Quaternion.Euler(StandLocations.First().Location.Item2);
             AudioSource standAudio = shirtStand.transform.Find("MainSource").GetComponent<AudioSource>();
 
             ZoneManagement.OnZoneChange += OnZoneChange;
@@ -237,9 +238,9 @@ namespace GorillaShirts.Behaviours
                 shirtStand.transform.Find("UI/PrimaryDisplay/Text/Interaction/Silly Icon").gameObject.SetActive(previewType == Configuration.PreviewGorilla.Silly);
                 shirtStand.transform.Find("UI/PrimaryDisplay/Text/Interaction/Steady Icon").gameObject.SetActive(previewType == Configuration.PreviewGorilla.Steady);
 
-                if (_audios.Count > 0)
+                if (audio_clips.Count > 0)
                 {
-                    standAudio.clip = previewType == Configuration.PreviewGorilla.Silly ? _audios[3] : _audios[4];
+                    standAudio.clip = previewType == Configuration.PreviewGorilla.Silly ? audio_clips[3] : audio_clips[4];
                     standAudio.PlayOneShot(standAudio.clip, 1f);
                 }
             };
@@ -271,7 +272,7 @@ namespace GorillaShirts.Behaviours
                 shirtStand.transform.Find("UI/PrimaryDisplay/Info Text").gameObject.SetActive(isActive);
 
                 StringBuilder stringBuilder = new();
-                stringBuilder.Append("Shirts: ").Append(ConstructedPacks.Select((a) => a.PackagedShirts.Count).Sum()).Append(" | Packs: ").Append(ConstructedPacks.Count);
+                stringBuilder.Append("Shirts: ").Append(Packs.Select((a) => a.PackagedShirts.Count).Sum()).Append(" | Packs: ").Append(Packs.Count);
                 shirtStand.transform.Find("UI/PrimaryDisplay/Info Text/Left Body").GetComponent<Text>().text = stringBuilder.ToString();
 
                 stringBuilder = new StringBuilder();
@@ -319,12 +320,12 @@ namespace GorillaShirts.Behaviours
                 UIButton.Type = Button.GetButtonType(btn.name);
                 UIButton.OnPress += delegate (GorillaTriggerColliderHandIndicator component)
                 {
-                    if (!_audios.Any()) return;
+                    if (!audio_clips.Any()) return;
 
                     GorillaTagger.Instance.offlineVRRig.PlayHandTapLocal(GorillaLocomotion.Player.Instance.materialData.Count - 1, component.isLeftHand, 0.028f);
 
-                    if (!ConstructedPacks.Any()) return;
-                    _standButtons.Find(button => button.Type == UIButton.Type)?.Function?.Invoke(this);
+                    if (!Packs.Any()) return;
+                    StandButtons.Find(button => button.Type == UIButton.Type)?.Function?.Invoke(this);
                 };
 
                 SetInfoVisibility += delegate (bool isActive)
@@ -356,7 +357,7 @@ namespace GorillaShirts.Behaviours
 
             foreach (GTZone currentZone in zones)
             {
-                IStandLocation currentLocation = _standLocations.FirstOrDefault(zone => zone.IsInZone(currentZone));
+                IStandLocation currentLocation = StandLocations.FirstOrDefault(zone => zone.IsInZone(currentZone));
 
                 if (currentLocation != null)
                 {
@@ -372,7 +373,6 @@ namespace GorillaShirts.Behaviours
             Stand.Object.SetActive(false);
         }
 
-        [Obsolete]
         public void MoveStand(Transform transform) => MoveStand(transform.position, transform.eulerAngles);
 
         public void MoveStand(Vector3 position, Vector3 direction)
@@ -384,32 +384,32 @@ namespace GorillaShirts.Behaviours
 
         public async Task InitAudio()
         {
-            _audios =
+            audio_clips =
             [
-                await _assetLoader.LoadAsset<AudioClip>("Wear"),
-                await _assetLoader.LoadAsset<AudioClip>("Remove"),
-                await _assetLoader.LoadAsset<AudioClip>("Button"),
-                await _assetLoader.LoadAsset<AudioClip>("SillyTXT"),
-                await _assetLoader.LoadAsset<AudioClip>("SteadyTXT"),
-                await _assetLoader.LoadAsset<AudioClip>("Randomize"),
-                await _assetLoader.LoadAsset<AudioClip>("Error"),
-                await _assetLoader.LoadAsset<AudioClip>("Shutter"),
-                await _assetLoader.LoadAsset<AudioClip>("PackOpen"),
-                await _assetLoader.LoadAsset<AudioClip>("PackClose"),
+                await asset_loader.LoadAsset<AudioClip>("Wear"),
+                await asset_loader.LoadAsset<AudioClip>("Remove"),
+                await asset_loader.LoadAsset<AudioClip>("Button"),
+                await asset_loader.LoadAsset<AudioClip>("SillyTXT"),
+                await asset_loader.LoadAsset<AudioClip>("SteadyTXT"),
+                await asset_loader.LoadAsset<AudioClip>("Randomize"),
+                await asset_loader.LoadAsset<AudioClip>("Error"),
+                await asset_loader.LoadAsset<AudioClip>("Shutter"),
+                await asset_loader.LoadAsset<AudioClip>("PackOpen"),
+                await asset_loader.LoadAsset<AudioClip>("PackClose"),
             ];
 
             GorillaLocomotion.Player.Instance.materialData.Add(new GorillaLocomotion.Player.MaterialData()
             {
                 overrideAudio = true,
-                audio = _audios[2],
+                audio = audio_clips[2],
                 matName = "gorillashirtbuttonpress"
             });
         }
 
         public void PlayShirtAudio(VRRig playerRig, int index, float volume)
         {
-            if (playerRig == null || index >= _audios.Count) return;
-            playerRig.tagSound.PlayOneShot(_audios[index], volume);
+            if (playerRig == null || index >= audio_clips.Count) return;
+            playerRig.tagSound.PlayOneShot(audio_clips[index], volume);
         }
 
         public void PlayCustomAudio(VRRig playerRig, AudioClip clip, float volume)
@@ -442,9 +442,9 @@ namespace GorillaShirts.Behaviours
 
         public async Task InitCatalog()
         {
-            ConstructedPacks = await _shirtInstaller.FindShirtsFromDirectory(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+            Packs = await shirt_reader.FindShirtsFromDirectory(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
 
-            if (ConstructedPacks == null || ConstructedPacks.Count == 0)
+            if (Packs == null || Packs.Count == 0)
             {
                 Logging.Warning("No packs found");
                 Destroy(Stand.Object);
@@ -452,10 +452,10 @@ namespace GorillaShirts.Behaviours
             }
 
             // Sort the packs based on their name, and prioritize the "Default" pack
-            ConstructedPacks.Sort((x, y) => string.Compare(x.Name, y.Name));
-            ConstructedPacks = [.. ConstructedPacks.OrderBy(a => a.Name == "Default" ? 0 : 1)];
+            Packs.Sort((x, y) => string.Compare(x.Name, y.Name));
+            Packs = [.. Packs.OrderBy(a => a.Name == "Default" ? 0 : 1)];
 
-            foreach (var myPack in ConstructedPacks)
+            foreach (var myPack in Packs)
             {
                 if (myPack.DisplayName == "Default") myPack.Randomize();
                 else myPack.PackagedShirts.Sort((x, y) => string.Compare(x.Name, y.Name));
@@ -476,13 +476,13 @@ namespace GorillaShirts.Behaviours
         public void PlaySound(ShirtAudio audio, float volume = 1f)
         {
             AudioSource mainSource = Stand.Object.transform.Find("MainSource").GetComponent<AudioSource>();
-            mainSource.clip = _audios[(int)audio];
+            mainSource.clip = audio_clips[(int)audio];
             mainSource.PlayOneShot(mainSource.clip, volume);
         }
 
         public void SetPackInfo(Pack myPack, Shirt myShirt)
         {
-            SelectedPackIndex = ConstructedPacks.IndexOf(myPack);
+            SelectedPackIndex = Packs.IndexOf(myPack);
             myPack.CurrentItem = myPack.PackagedShirts.IndexOf(myShirt);
         }
 
@@ -526,12 +526,14 @@ namespace GorillaShirts.Behaviours
 
         public void Update()
         {
-            if (IsUpdatingProperties && Time.unscaledTime > PropertyUpdateTime)
+            if (to_update_properties && Time.unscaledTime > last_property_update
+)
             {
                 PhotonNetwork.LocalPlayer.SetCustomProperties(CustomProperties);
 
-                IsUpdatingProperties = false;
-                PropertyUpdateTime = Time.unscaledTime + Constants.NetworkCooldown;
+                to_update_properties = false;
+                last_property_update
+     = Time.unscaledTime + Constants.NetworkCooldown;
             }
         }
 
@@ -554,7 +556,7 @@ namespace GorillaShirts.Behaviours
                 }
             };
 
-            IsUpdatingProperties = true;
+            to_update_properties = true;
 
             CheckHash(PhotonNetwork.LocalPlayer, CustomProperties);
         }

@@ -11,7 +11,6 @@ namespace GorillaShirts
     {
         public void Awake()
         {
-
             Logging.Initialize(Logger);
             Configuration.Initialize(Config);
 
@@ -19,5 +18,6 @@ namespace GorillaShirts
 
             GorillaTagger.OnPlayerSpawned(() => new GameObject(typeof(Main).FullName).AddComponent<Main>());
         }
+        
     }
 }
