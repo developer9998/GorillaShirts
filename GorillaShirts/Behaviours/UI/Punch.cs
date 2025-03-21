@@ -21,8 +21,8 @@ namespace GorillaShirts.Behaviours.UI
             _animator = GetComponent<Animator>();
             _animator.SetBool("Punch", false);
 
-            _leftVelocity = Player.Instance.leftControllerTransform.gameObject.GetOrAddComponent<GorillaVelocityEstimator>();
-            _rightVelocity = Player.Instance.rightControllerTransform.gameObject.GetOrAddComponent<GorillaVelocityEstimator>();
+            _leftVelocity = GTPlayer.Instance.leftControllerTransform.gameObject.GetOrAddComponent<GorillaVelocityEstimator>();
+            _rightVelocity = GTPlayer.Instance.rightControllerTransform.gameObject.GetOrAddComponent<GorillaVelocityEstimator>();
 
             gameObject.layer = (int)UnityLayer.GorillaInteractable;
             GetComponent<Collider>().isTrigger = true;

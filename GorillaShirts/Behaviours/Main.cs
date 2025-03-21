@@ -322,7 +322,7 @@ namespace GorillaShirts.Behaviours
                 {
                     if (!audio_clips.Any()) return;
 
-                    GorillaTagger.Instance.offlineVRRig.PlayHandTapLocal(GorillaLocomotion.Player.Instance.materialData.Count - 1, component.isLeftHand, 0.028f);
+                    GorillaTagger.Instance.offlineVRRig.PlayHandTapLocal(GorillaLocomotion.GTPlayer.Instance.materialData.Count - 1, component.isLeftHand, 0.028f);
 
                     if (!Packs.Any()) return;
                     StandButtons.Find(button => button.Type == UIButton.Type)?.Function?.Invoke(this);
@@ -398,7 +398,8 @@ namespace GorillaShirts.Behaviours
                 await asset_loader.LoadAsset<AudioClip>("PackClose"),
             ];
 
-            GorillaLocomotion.Player.Instance.materialData.Add(new GorillaLocomotion.Player.MaterialData()
+            // i can't remember if i still need this or not
+            GorillaLocomotion.GTPlayer.Instance.materialData.Add(new GorillaLocomotion.GTPlayer.MaterialData()
             {
                 overrideAudio = true,
                 audio = audio_clips[2],

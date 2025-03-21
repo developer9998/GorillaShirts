@@ -64,7 +64,7 @@ namespace GorillaShirts.Models
         public void UpdateDisplay(Shirt myShirt, Shirt activeShirt, Pack myPack)
         {
             SetDisplay(myShirt, myPack);
-            SetSlots(myShirt.GetSlotData());
+            SetSlots(myShirt.SlotData);
             SetEquipped(myShirt, activeShirt);
         }
     }

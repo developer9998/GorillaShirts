@@ -155,28 +155,26 @@ namespace GorillaShirts.Tools
                     try
                     {
                         Shirt newShirt = new(string.Concat(shirtDataJSON.packName, "/", shirtDataJSON.infoDescriptor.shirtName), shirtDataJSON.infoDescriptor.shirtName, fileDirectory);
-                        ShirtPair newPair = new(newShirt, shirtDataJSON);
 
-                        newShirt.Pair = newPair;
                         newShirt.Author = shirtDataJSON.infoDescriptor.shirtAuthor;
                         newShirt.Description = shirtDataJSON.infoDescriptor.shirtDescription;
 
-                        newShirt.RawAsset = await LoadAsset<GameObject>(shirtResourceBundle, "ExportShirt");
+                        newShirt.ImportedAsset = await LoadAsset<GameObject>(shirtResourceBundle, "ExportShirt");
                         shirtResourceBundle.Unload(false);
 
                         newShirt.CustomColor = shirtDataJSON.infoConfig.customColors;
-                        newShirt.HasAudio = newShirt.RawAsset.GetComponentInChildren<AudioSource>() != null;
-                        newShirt.HasLight = newShirt.RawAsset.GetComponentInChildren<Light>() != null;
-                        newShirt.HasParticles = newShirt.RawAsset.GetComponentInChildren<ParticleSystem>() != null;
+                        newShirt.HasAudio = newShirt.ImportedAsset.GetComponentInChildren<AudioSource>() != null;
+                        newShirt.HasLight = newShirt.ImportedAsset.GetComponentInChildren<Light>() != null;
+                        newShirt.HasParticles = newShirt.ImportedAsset.GetComponentInChildren<ParticleSystem>() != null;
                         newShirt.Invisibility = shirtDataJSON.infoConfig.invisibility;
 
-                        Transform WearOverride = newShirt.RawAsset.transform.Find("OverrideWearClip"), RemoveOverride = newShirt.RawAsset.transform.Find("OverrideRemoveClip");
+                        Transform WearOverride = newShirt.ImportedAsset.transform.Find("OverrideWearClip"), RemoveOverride = newShirt.ImportedAsset.transform.Find("OverrideRemoveClip");
                         if (WearOverride) newShirt.Wear = WearOverride.GetComponent<AudioSource>().clip;
                         if (RemoveOverride) newShirt.Remove = RemoveOverride.GetComponent<AudioSource>().clip;
 
                         void PrepareSector(string sectorName, SectorType sectorType)
                         {
-                            Transform tempSector = newShirt.RawAsset.transform.Find(sectorName);
+                            Transform tempSector = newShirt.ImportedAsset.transform.Find(sectorName);
                             if (tempSector != null)
                             {
                                 tempSector.gameObject.SetActive(false);
