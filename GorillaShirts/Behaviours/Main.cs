@@ -427,7 +427,7 @@ namespace GorillaShirts.Behaviours
                 {
                     Assembly pluginAssembly = pluginInfo.Instance.GetType().Assembly;
                     var pluginTypes = pluginAssembly.GetTypes();
-                    if (pluginInfo.Metadata.GUID == "com.nachoengine.playermodel" || pluginInfo.Metadata.GUID == "com.wryser.gorillatag.customcosmetics" || pluginInfo.Metadata.GUID == "com.goldentrophy.gorillatag.fortniteemotewheel" || pluginTypes.Any(type => type.Name.Contains("WristMenu") || type.Name.Contains("MenuPatch") || type.Name.Contains("Cosmetx") || type.Name.Contains("RigPatch2")))
+                    if (pluginInfo.Metadata.GUID == "com.wryser.gorillatag.customcosmetics" || pluginInfo.Metadata.GUID == "com.goldentrophy.gorillatag.fortniteemotewheel" || pluginTypes.Any(type => type.Name.Contains("WristMenu") || type.Name.Contains("MenuPatch") || type.Name.Contains("Cosmetx") || type.Name.Contains("RigPatch2")))
                     {
                         return true;
                     }
