@@ -7,5 +7,6 @@ namespace GorillaShirts.Interfaces
     {
         public bool IsInZone(GTZone zone);
         public Tuple<Vector3, Vector3> Location { get; }
+        public float Roof { get; }
     }
 }

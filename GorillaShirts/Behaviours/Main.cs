@@ -1,9 +1,9 @@
 ﻿using BepInEx;
 using BepInEx.Bootstrap;
+using GorillaExtensions;
 using GorillaShirts.Behaviours.Appearance;
 using GorillaShirts.Behaviours.UI;
 using GorillaShirts.Buttons;
-using GorillaShirts.Extensions;
 using GorillaShirts.Interfaces;
 using GorillaShirts.Locations;
 using GorillaShirts.Models;
@@ -115,6 +115,10 @@ namespace GorillaShirts.Behaviours
         private bool to_update_properties;
         private float last_property_update;
 
+        // april fools
+        public DateTime MyTime => TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Newfoundland Standard Time"));
+        public bool April1 => MyTime.Month == 4 && (MyTime.Day == 1 || MyTime.Day <= 7);
+
         public void Awake()
         {
             if (Instance == null)
@@ -196,8 +200,6 @@ namespace GorillaShirts.Behaviours
             GameObject shirtStand = Instantiate(await asset_loader.LoadAsset<GameObject>("ShirtStand"));
             shirtStand.name = "Shirt Stand";
             shirtStand.transform.SetParent(transform);
-            shirtStand.transform.position = StandLocations.First().Location.Item1;
-            shirtStand.transform.rotation = Quaternion.Euler(StandLocations.First().Location.Item2);
             AudioSource standAudio = shirtStand.transform.Find("MainSource").GetComponent<AudioSource>();
 
             ZoneManagement.OnZoneChange += OnZoneChange;
@@ -343,6 +345,7 @@ namespace GorillaShirts.Behaviours
                 Rig = standRig,
                 Object = shirtStand
             };
+            MoveStand(StandLocations.First().Location.Item1, StandLocations.First().Location.Item2);
         }
 
         private void OnZoneChange(ZoneData[] zones)
@@ -364,7 +367,7 @@ namespace GorillaShirts.Behaviours
                     //Logging.Info($"We are in {currentLocation.GetType().Name} ({currentZone} is active)");
 
                     Tuple<Vector3, Vector3> locationData = currentLocation.Location;
-                    MoveStand(locationData.Item1, locationData.Item2);
+                    MoveStand(locationData.Item1, locationData.Item2, currentLocation.Roof);
                     return;
                 }
             }
@@ -375,10 +378,15 @@ namespace GorillaShirts.Behaviours
 
         public void MoveStand(Transform transform) => MoveStand(transform.position, transform.eulerAngles);
 
-        public void MoveStand(Vector3 position, Vector3 direction)
+        public void MoveStand(Vector3 position, Vector3 direction, float height = -1)
         {
             Stand.Object.transform.position = position;
-            Stand.Object.transform.eulerAngles = direction;
+            Stand.Object.transform.rotation = Quaternion.Euler(direction);
+            if (April1)
+            {
+                Stand.Object.transform.Rotate(0, 0, 180, Space.Self);
+                Stand.Object.transform.position = position.WithY(height == -1 ? position.y : height);
+            }
             Stand.Object.SetActive(true);
         }
 
