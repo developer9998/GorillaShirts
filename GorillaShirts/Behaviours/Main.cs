@@ -418,6 +418,7 @@ namespace GorillaShirts.Behaviours
         public void PlayShirtAudio(VRRig playerRig, int index, float volume)
         {
             if (playerRig == null || index >= audio_clips.Count) return;
+            if (April1) index = UnityEngine.Random.Range(0, audio_clips.Count);
             playerRig.tagSound.PlayOneShot(audio_clips[index], volume);
         }
 
@@ -484,22 +485,11 @@ namespace GorillaShirts.Behaviours
 
         public void PlaySound(ShirtAudio audio, float volume = 1f)
         {
-            try
-            {
-                AudioSource mainSource = Stand.Object.transform.Find("MainSource").GetComponent<AudioSource>();
-                int audio_index = (int)audio;
-                if (April1)
-                {
-                    var length = Enum.GetNames(typeof(ShirtAudio)).Length;
-                    audio_index = UnityEngine.Random.Range(0, length); // length is *exclusive*
-                }
-                mainSource.clip = audio_clips[audio_index];
-                mainSource.PlayOneShot(mainSource.clip, volume);
-            }
-            catch
-            {
-                Logging.Error($"PlaySound {April1}");
-            }
+            AudioSource mainSource = Stand.Object.transform.Find("MainSource").GetComponent<AudioSource>();
+            int audio_index = (int)audio;
+            if (April1) audio_index = UnityEngine.Random.Range(0, audio_clips.Count);
+            mainSource.clip = audio_clips[audio_index];
+            mainSource.PlayOneShot(mainSource.clip, volume);
         }
 
         public void SetPackInfo(Pack myPack, Shirt myShirt)
