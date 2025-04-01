@@ -324,7 +324,8 @@ namespace GorillaShirts.Behaviours
                 {
                     if (!audio_clips.Any()) return;
 
-                    GorillaTagger.Instance.offlineVRRig.PlayHandTapLocal(GorillaLocomotion.GTPlayer.Instance.materialData.Count - 1, component.isLeftHand, 0.028f);
+                    var handPlayer = component ? GorillaTagger.Instance.offlineVRRig.leftHandPlayer : GorillaTagger.Instance.offlineVRRig.rightHandPlayer;
+                    handPlayer.PlayOneShot(April1 ? audio_clips[UnityEngine.Random.Range(0, audio_clips.Count)] : audio_clips[2], 0.028f);
 
                     if (!Packs.Any()) return;
                     StandButtons.Find(button => button.Type == UIButton.Type)?.Function?.Invoke(this);
@@ -405,14 +406,6 @@ namespace GorillaShirts.Behaviours
                 await asset_loader.LoadAsset<AudioClip>("PackOpen"),
                 await asset_loader.LoadAsset<AudioClip>("PackClose"),
             ];
-
-            // i can't remember if i still need this or not
-            GorillaLocomotion.GTPlayer.Instance.materialData.Add(new GorillaLocomotion.GTPlayer.MaterialData()
-            {
-                overrideAudio = true,
-                audio = audio_clips[2],
-                matName = "gorillashirtbuttonpress"
-            });
         }
 
         public void PlayShirtAudio(VRRig playerRig, int index, float volume)
