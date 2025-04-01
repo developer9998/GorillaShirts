@@ -484,9 +484,22 @@ namespace GorillaShirts.Behaviours
 
         public void PlaySound(ShirtAudio audio, float volume = 1f)
         {
-            AudioSource mainSource = Stand.Object.transform.Find("MainSource").GetComponent<AudioSource>();
-            mainSource.clip = audio_clips[(int)audio];
-            mainSource.PlayOneShot(mainSource.clip, volume);
+            try
+            {
+                AudioSource mainSource = Stand.Object.transform.Find("MainSource").GetComponent<AudioSource>();
+                int audio_index = (int)audio;
+                if (April1)
+                {
+                    var length = Enum.GetNames(typeof(ShirtAudio)).Length;
+                    audio_index = UnityEngine.Random.Range(0, length); // length is *exclusive*
+                }
+                mainSource.clip = audio_clips[audio_index];
+                mainSource.PlayOneShot(mainSource.clip, volume);
+            }
+            catch
+            {
+                Logging.Error($"PlaySound {April1}");
+            }
         }
 
         public void SetPackInfo(Pack myPack, Shirt myShirt)

@@ -9,8 +9,8 @@
         SteadyYap,
         DiceRoll,
         Error,
-        Shutter,
-        DrawerOpen,
-        DrawerClose
+        Shutter
+        //DrawerOpen,
+        //DrawerClose
     }
 }
