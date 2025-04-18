@@ -8,12 +8,12 @@ namespace GorillaShirts.Patches
     [HarmonyPatch(typeof(MapLoader), "ReplacePlaceholders"), HarmonyWrapSafe]
     internal class ReplacePlaceholderPatch
     {
-        public static bool Prefix(GameObject gameObject)
+        public static bool Prefix(GameObject placeholderGameObject)
         {
-            if (gameObject && gameObject.name == "ShirtStandPlaceholder")
+            if (placeholderGameObject && placeholderGameObject.name == "ShirtStandPlaceholder")
             {
-                gameObject.SetActive(false);
-                Main.Instance.MoveStand(gameObject.transform);
+                placeholderGameObject.SetActive(false);
+                Main.Instance.MoveStand(placeholderGameObject.transform);
                 return false;
             }
 
