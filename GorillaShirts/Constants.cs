@@ -6,7 +6,7 @@
 
         public const string Name = "GorillaShirts";
 
-        public const string Version = "1.1.10.1";
+        public const string Version = "1.1.11";
 
 
         public const string BundlePath = "GorillaShirts.Resources.shirtbundle";

@@ -115,10 +115,6 @@ namespace GorillaShirts.Behaviours
         private bool to_update_properties;
         private float last_property_update;
 
-        // april fools
-        public DateTime MyTime => TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Newfoundland Standard Time"));
-        public bool April1 => MyTime.Month == 4 && (MyTime.Day == 1 || MyTime.Day <= 7);
-
         public void Awake()
         {
             if (Instance == null)
@@ -325,7 +321,7 @@ namespace GorillaShirts.Behaviours
                     if (!audio_clips.Any()) return;
 
                     var handPlayer = component ? GorillaTagger.Instance.offlineVRRig.leftHandPlayer : GorillaTagger.Instance.offlineVRRig.rightHandPlayer;
-                    handPlayer.PlayOneShot(April1 ? audio_clips[UnityEngine.Random.Range(0, audio_clips.Count)] : audio_clips[2], 0.028f);
+                    handPlayer.PlayOneShot(audio_clips[2], 0.1f);
 
                     if (!Packs.Any()) return;
                     StandButtons.Find(button => button.Type == UIButton.Type)?.Function?.Invoke(this);
@@ -383,11 +379,6 @@ namespace GorillaShirts.Behaviours
         {
             Stand.Object.transform.position = position;
             Stand.Object.transform.rotation = Quaternion.Euler(direction);
-            if (April1)
-            {
-                Stand.Object.transform.Rotate(0, 0, 180, Space.Self);
-                Stand.Object.transform.position = position.WithY(height == -1 ? position.y : height);
-            }
             Stand.Object.SetActive(true);
         }
 
@@ -411,7 +402,6 @@ namespace GorillaShirts.Behaviours
         public void PlayShirtAudio(VRRig playerRig, int index, float volume)
         {
             if (playerRig == null || index >= audio_clips.Count) return;
-            if (April1) index = UnityEngine.Random.Range(0, audio_clips.Count);
             playerRig.tagSound.PlayOneShot(audio_clips[index], volume);
         }
 
@@ -480,7 +470,6 @@ namespace GorillaShirts.Behaviours
         {
             AudioSource mainSource = Stand.Object.transform.Find("MainSource").GetComponent<AudioSource>();
             int audio_index = (int)audio;
-            if (April1) audio_index = UnityEngine.Random.Range(0, audio_clips.Count);
             mainSource.clip = audio_clips[audio_index];
             mainSource.PlayOneShot(mainSource.clip, volume);
         }

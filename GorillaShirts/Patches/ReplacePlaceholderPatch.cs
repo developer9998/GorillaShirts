@@ -1,10 +1,11 @@
 ﻿using GorillaShirts.Behaviours;
 using HarmonyLib;
 using UnityEngine;
+using MapLoader = CustomMapLoader;
 
 namespace GorillaShirts.Patches
 {
-    [HarmonyPatch(typeof(ModIOMapLoader), "ReplacePlaceholders"), HarmonyWrapSafe]
+    [HarmonyPatch(typeof(MapLoader), "ReplacePlaceholders"), HarmonyWrapSafe]
     internal class ReplacePlaceholderPatch
     {
         public static bool Prefix(GameObject gameObject)
