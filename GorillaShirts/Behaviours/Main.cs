@@ -140,11 +140,11 @@ namespace GorillaShirts.Behaviours
                 Logging.Warning($"GitHub version string resulted with {requestVersion.result}: {requestVersion.downloadHandler.error}");
                 wrong_version = true;
             }
-            else if (requestVersion.downloadHandler.text.Trim() != Constants.Version)
+            else
             {
-                wrong_version = true;
                 latest_version = requestVersion.downloadHandler.text.Trim();
-                Logging.Warning($"GitHub version string mismatch, came back with {latest_version} expecting {Constants.Version}");
+                wrong_version = Constants.Version != latest_version;
+                Logging.Warning($"GitHub version string returned {latest_version} (we are on {Constants.Version})");
                 //return;
             }
 
