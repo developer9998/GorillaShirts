@@ -1,6 +1,5 @@
 ﻿using BepInEx;
 using BepInEx.Bootstrap;
-using GorillaExtensions;
 using GorillaShirts.Behaviours.Appearance;
 using GorillaShirts.Behaviours.UI;
 using GorillaShirts.Buttons;
@@ -115,6 +114,9 @@ namespace GorillaShirts.Behaviours
         private bool to_update_properties;
         private float last_property_update;
 
+        private bool wrong_version = false;
+        private string latest_version = "N/A";
+
         public void Awake()
         {
             if (Instance == null)
@@ -136,17 +138,38 @@ namespace GorillaShirts.Behaviours
             if (requestVersion.result != UnityWebRequest.Result.Success)
             {
                 Logging.Warning($"GitHub version string resulted with {requestVersion.result}: {requestVersion.downloadHandler.error}");
+                wrong_version = true;
             }
-            else if (requestVersion.downloadHandler.text.TrimEnd() != Constants.Version)
+            else if (requestVersion.downloadHandler.text.Trim() != Constants.Version)
             {
-                Logging.Warning($"GitHub version string mismatch, came back with {requestVersion.downloadHandler.text} expecting {Constants.Version}");
-                return;
+                wrong_version = true;
+                latest_version = requestVersion.downloadHandler.text.Trim();
+                Logging.Warning($"GitHub version string mismatch, came back with {latest_version} expecting {Constants.Version}");
+                //return;
             }
 
             asset_loader = new AssetLoader();
             shirt_reader = new ShirtReader();
 
-            await InitAll();
+            await InitStand();
+            Logging.Info("Shirt stand initialized");
+
+            await InitAudio();
+            Logging.Info("Shirt audio intialized");
+
+            await InitCatalog();
+            Logging.Info("Shirt catalog initialized");
+
+            if (wrong_version)
+            {
+                Stand.Object.transform.Find("UI/LoadMenu").gameObject.SetActive(false);
+                Stand.Object.transform.Find("UI/WrongVersionMenu").gameObject.SetActive(true);
+                string version_correction = Stand.Object.transform.Find("UI/WrongVersionMenu/Text (3)").GetComponent<Text>().text
+                    .Replace("[INSTALLEDVERSION]", Constants.Version)
+                    .Replace("[CURRENTVERSION]", latest_version);
+                Stand.Object.transform.Find("UI/WrongVersionMenu/Text (3)").GetComponent<Text>().text = version_correction;
+                return;
+            }
 
             if (Packs != null && Packs.Count > 0)
             {
@@ -155,37 +178,19 @@ namespace GorillaShirts.Behaviours
                 Stand.Rig.OffsetNameTag(Configuration.CurrentTagOffset.Value);
                 Stand.Rig.WearShirt(SelectedShirt);
 
-                Stand.Object.transform.Find("UI/PrimaryDisplay/Buttons").gameObject.SetActive(true);
-                Stand.Object.transform.Find("UI/PrimaryDisplay/Text").gameObject.SetActive(true);
-                Stand.Object.transform.Find("UI").GetComponent<Animator>().Play("FadeInFrame");
+                Stand.Object.transform.Find("UI/LoadMenu").gameObject.SetActive(false);
+                Stand.Object.transform.Find("UI/MainMenu").gameObject.SetActive(true);
+                Stand.Object.transform.Find("UI/MainMenu/Text").gameObject.SetActive(true);
+                Stand.Object.transform.Find("UI/MainMenu/Buttons").gameObject.SetActive(true);
             }
 
-            if (PhotonNetwork.InRoom)
+            if (NetworkSystem.Instance && NetworkSystem.Instance.InRoom)
             {
-                foreach (var player in PhotonNetwork.PlayerListOthers)
+                foreach (var player in NetworkSystem.Instance.PlayerListOthers.Select(player => player.GetPlayerRef()))
                 {
                     OnPlayerPropertiesUpdate(player, player.CustomProperties);
                 }
             }
-        }
-
-        public async Task InitAll()
-        {
-            await InitStand();
-            try
-            {
-                if (IsIncompatibile())
-                {
-                    Stand.Object.transform.Find("UI").GetComponent<Animator>().Play("IncompFrame");
-                    return;
-                }
-            }
-            catch(Exception ex)
-            {
-                Logging.Warning($"Imcomp threw an exception: {ex}\nproceeding per usual");
-            }
-            await InitAudio();
-            await InitCatalog();
         }
 
         public async Task InitStand()
@@ -233,8 +238,8 @@ namespace GorillaShirts.Behaviours
 
             standRig.OnAppearanceChange += delegate (Configuration.PreviewGorilla previewType)
             {
-                shirtStand.transform.Find("UI/PrimaryDisplay/Text/Interaction/Silly Icon").gameObject.SetActive(previewType == Configuration.PreviewGorilla.Silly);
-                shirtStand.transform.Find("UI/PrimaryDisplay/Text/Interaction/Steady Icon").gameObject.SetActive(previewType == Configuration.PreviewGorilla.Steady);
+                shirtStand.transform.Find("UI/MainMenu/Text/Interaction/Silly Icon").gameObject.SetActive(previewType == Configuration.PreviewGorilla.Silly);
+                shirtStand.transform.Find("UI/MainMenu/Text/Interaction/Steady Icon").gameObject.SetActive(previewType == Configuration.PreviewGorilla.Steady);
 
                 if (audio_clips.Count > 0)
                 {
@@ -266,30 +271,29 @@ namespace GorillaShirts.Behaviours
 
             SetInfoVisibility += delegate (bool isActive)
             {
-                shirtStand.transform.Find("UI/PrimaryDisplay/Text").gameObject.SetActive(!isActive);
-                shirtStand.transform.Find("UI/PrimaryDisplay/Info Text").gameObject.SetActive(isActive);
+                shirtStand.transform.Find("UI/MainMenu/Text").gameObject.SetActive(!isActive);
+                shirtStand.transform.Find("UI/MainMenu/Info Text").gameObject.SetActive(isActive);
 
-                StringBuilder stringBuilder = new();
-                stringBuilder.Append("Shirts: ").Append(Packs.Select((a) => a.PackagedShirts.Count).Sum()).Append(" | Packs: ").Append(Packs.Count);
-                shirtStand.transform.Find("UI/PrimaryDisplay/Info Text/Left Body").GetComponent<Text>().text = stringBuilder.ToString();
-
-                stringBuilder = new StringBuilder();
-                stringBuilder.Append("Build: ");
+                string build_config = "\"Release\"";
 #if DEBUG
-                stringBuilder.Append("Debug");
-#else
-                stringBuilder.Append("Release");
+                build_config = "\"Debug\"";
 #endif
 
-                stringBuilder.Append(" | Version: ").Append(Constants.Version);
-                shirtStand.transform.Find("UI/PrimaryDisplay/Info Text/Right Body").GetComponent<Text>().text = stringBuilder.ToString();
+                string player_data = shirtStand.transform.Find("UI/MainMenu/Info Text/PlayerDataTitle").GetComponent<Text>().text
+                    .Replace("[SHIRTCOUNT]", Packs.Select((a) => a.PackagedShirts.Count).Sum().ToString())
+                    .Replace("[PACKCOUNT]", Packs.Count.ToString())
+                    .Replace("[BUILDCONFIG]", build_config)
+                    .Replace("[VERSION]", Constants.Version)
+                    .Replace("[PLAYERNAME]", "\"" + NetworkSystem.Instance.GetMyNickName() + "\"");
+
+                shirtStand.transform.Find("UI/MainMenu/Info Text/PlayerDataTitle").GetComponent<Text>().text = player_data;
             };
 
             standRig.SillyHat = standRig.Head.Find("Flower Crown").GetComponent<MeshRenderer>();
             standRig.SteadyHat = standRig.Head.Find("Headphones").GetComponent<MeshRenderer>();
             standRig.SetAppearance(Configuration.PreviewGorillaEntry.Value == Configuration.PreviewGorilla.Silly);
 
-            Transform UITextParent = shirtStand.transform.Find("UI/PrimaryDisplay/Text");
+            Transform UITextParent = shirtStand.transform.Find("UI/MainMenu/Text");
             ShirtDisplay standDisplay = new()
             {
                 Main = UITextParent.Find("Main").GetComponent<Text>(),
@@ -310,7 +314,7 @@ namespace GorillaShirts.Behaviours
 
             standDisplay.SetSlots(null);
 
-            Transform UIButtonParent = shirtStand.transform.Find("UI/PrimaryDisplay/Buttons");
+            Transform UIButtonParent = shirtStand.transform.Find("UI/MainMenu/Buttons");
             BoxCollider[] UIButtonCollection = UIButtonParent.GetComponentsInChildren<BoxCollider>();
             UIButtonCollection.Do(btn =>
             {
@@ -320,7 +324,7 @@ namespace GorillaShirts.Behaviours
                 {
                     if (!audio_clips.Any()) return;
 
-                    var handPlayer = component ? GorillaTagger.Instance.offlineVRRig.leftHandPlayer : GorillaTagger.Instance.offlineVRRig.rightHandPlayer;
+                    var handPlayer = component.isLeftHand ? GorillaTagger.Instance.offlineVRRig.leftHandPlayer : GorillaTagger.Instance.offlineVRRig.rightHandPlayer;
                     handPlayer.PlayOneShot(audio_clips[2], 0.1f);
 
                     if (!Packs.Any()) return;
@@ -364,7 +368,7 @@ namespace GorillaShirts.Behaviours
                     //Logging.Info($"We are in {currentLocation.GetType().Name} ({currentZone} is active)");
 
                     Tuple<Vector3, Vector3> locationData = currentLocation.Location;
-                    MoveStand(locationData.Item1, locationData.Item2, currentLocation.Roof);
+                    MoveStand(locationData.Item1, locationData.Item2/*, currentLocation.Roof*/);
                     return;
                 }
             }
@@ -375,7 +379,7 @@ namespace GorillaShirts.Behaviours
 
         public void MoveStand(Transform transform) => MoveStand(transform.position, transform.eulerAngles);
 
-        public void MoveStand(Vector3 position, Vector3 direction, float height = -1)
+        public void MoveStand(Vector3 position, Vector3 direction)
         {
             Stand.Object.transform.position = position;
             Stand.Object.transform.rotation = Quaternion.Euler(direction);
@@ -411,31 +415,33 @@ namespace GorillaShirts.Behaviours
             playerRig.tagSound.PlayOneShot(clip, volume);
         }
 
-        public bool IsIncompatibile()
+        public void CatalogLoadStart()
         {
-            try
+            CatalogLoadChanged((0, 0));
+        }
+
+        public void CatalogLoadChanged((int shirtsLoaded, int shirtsToLoad) tuple)
+        {
+            if (Stand.Object.transform.Find("UI/LoadMenu/LoadCircle").TryGetComponent(out Image loadCircle))
             {
-                foreach (var pluginInfo in Chainloader.PluginInfos.Values)
-                {
-                    Assembly pluginAssembly = pluginInfo.Instance.GetType().Assembly;
-                    var pluginTypes = pluginAssembly.GetTypes();
-                    if (pluginInfo.Metadata.GUID == "com.wryser.gorillatag.customcosmetics" || pluginInfo.Metadata.GUID == "com.goldentrophy.gorillatag.fortniteemotewheel" || pluginTypes.Any(type => type.Name.Contains("WristMenu") || type.Name.Contains("MenuPatch") || type.Name.Contains("Cosmetx") || type.Name.Contains("RigPatch2")))
-                    {
-                        return true;
-                    }
-                }
+                loadCircle.fillAmount = tuple.shirtsLoaded / (float)tuple.shirtsToLoad;
             }
-            catch(Exception ex)
+            if (Stand.Object.transform.Find("UI/LoadMenu/LoadPercentText").TryGetComponent(out Text LoadPercentText))
             {
-                Logging.Error($"Incomp check threw exception: {ex}");
-                Logging.Warning("returning w true despite checks");
+                LoadPercentText.text = $"{Mathf.RoundToInt(tuple.shirtsLoaded / (float)tuple.shirtsToLoad * 100f)}%";
+                Logging.Info(LoadPercentText.text);
             }
-            return false;
         }
 
         public async Task InitCatalog()
         {
+            shirt_reader.ShirtLoadStart += CatalogLoadStart;
+            shirt_reader.ShirtLoadChanged += CatalogLoadChanged;
+
             Packs = await shirt_reader.FindShirtsFromDirectory(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+
+            shirt_reader.ShirtLoadStart -= CatalogLoadStart;
+            shirt_reader.ShirtLoadChanged -= CatalogLoadChanged;
 
             if (Packs == null || Packs.Count == 0)
             {

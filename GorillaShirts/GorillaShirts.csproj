@@ -6,11 +6,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Remove="Resources\shirtbundle" />
+	  <None Remove="Content\legacyshirtbundle" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<EmbeddedResource Include="Resources\shirtbundle" />
+	  <EmbeddedResource Include="Content\legacyshirtbundle" />
 	</ItemGroup>
 
 	<ItemGroup>

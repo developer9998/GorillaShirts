@@ -52,7 +52,7 @@ namespace GorillaShirts.Behaviours.UI
             if (other.TryGetComponent(out GorillaTriggerColliderHandIndicator component))
             {
                 GorillaVelocityEstimator _velocityEstimator = component.isLeftHand ? _leftVelocity : _rightVelocity;
-                if (_velocityEstimator.linearVelocity.magnitude < 2.4f) return;
+                if (_velocityEstimator.linearVelocity.magnitude < 1f) return;
 
                 if (PunchMethod())
                 {

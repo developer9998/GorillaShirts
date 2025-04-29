@@ -9,7 +9,7 @@
         public const string Version = "1.1.11";
 
 
-        public const string BundlePath = "GorillaShirts.Resources.shirtbundle";
+        public const string BundlePath = "GorillaShirts.Content.legacyshirtbundle";
 
         public const string StandName = "ShirtStand";
 

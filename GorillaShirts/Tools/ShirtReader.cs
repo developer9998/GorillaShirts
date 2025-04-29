@@ -11,11 +11,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.Rendering;
 using static BoingKit.BoingBones;
 using Object = UnityEngine.Object;
 
@@ -23,6 +23,12 @@ namespace GorillaShirts.Tools
 {
     public class ShirtReader
     {
+        public event Action ShirtLoadStart;
+        public event Action<(int shirtsLoaded, int shirtsToLoad)> ShirtLoadChanged;
+
+        private int shirtsLoaded = 0;
+        private int shirtsToLoad = 0;
+
         public AssetLoader AssetLoader;
         private Material _furMaterial;
 
@@ -44,18 +50,25 @@ namespace GorillaShirts.Tools
             Texture2D furTexture = await AssetLoader.LoadAsset<Texture2D>("lightfur");
             Shader uberShader = Shader.Find("GorillaTag/UberShader");
 
+            string[] keywords = (GorillaTagger.Instance.offlineVRRig && GorillaTagger.Instance.offlineVRRig.myDefaultSkinMaterialInstance) ? GorillaTagger.Instance.offlineVRRig.myDefaultSkinMaterialInstance.shaderKeywords : ["_USE_TEXTURE", "_ENVIRONMENTREFLECTIONS_OFF", "_GLOSSYREFLECTIONS_OFF", "_SPECULARHIGHLIGHTS_OFF"];
+
             _furMaterial = new Material(uberShader)
             {
                 mainTexture = furTexture,
-                shaderKeywords = ["_USE_TEXTURE", "_ENVIRONMENTREFLECTIONS_OFF", "_GLOSSYREFLECTIONS_OFF", "_SPECULARHIGHLIGHTS_OFF"],
-                enabledKeywords = [new(uberShader, "_USE_TEXTURE")]
+                shaderKeywords = keywords,
+                enabledKeywords = [.. keywords.Select(keyword => new LocalKeyword(uberShader, keyword))]
             };
         }
 
-        public void TryCreateDirectory(string path)
+        public FileInfo[] GetShirtInfo(string path)
         {
-            if (Directory.Exists(path)) return;
-            Directory.CreateDirectory(path);
+            FileInfo[] fileInfo = [];
+            if (Directory.Exists(path))
+            {
+                DirectoryInfo directoryInfo = new(path);
+                fileInfo = directoryInfo.GetFiles("*.shirt");
+            }
+            return fileInfo;
         }
 
         public async Task<List<Pack>> FindShirtsFromDirectory(string directoryPath, bool packCountCheck = true)
@@ -64,17 +77,19 @@ namespace GorillaShirts.Tools
 
             Ref_CreatedPacks.Clear();
 
-            await FindShirtsFromPackDirectory(directoryPath);
+            var baseDirectoryFiles = GetShirtInfo(directoryPath);
+            bool hasFiles = baseDirectoryFiles.Length > 0;
+            Dictionary<string, FileInfo[]> subDirectoryFiles = [];
 
-            var shirtPackDirectories = Directory.GetDirectories(directoryPath, "*", SearchOption.AllDirectories);
-            foreach (var directory in shirtPackDirectories)
+            var directory_list = Directory.GetDirectories(directoryPath, "*", SearchOption.AllDirectories);
+            foreach(var directory in directory_list)
             {
-                Logging.Info($"Locating shirt files from directory '{Path.GetFileName(directory)}'");
-                await FindShirtsFromPackDirectory(directory);
+                subDirectoryFiles.Add(directory, GetShirtInfo(directory));
+                hasFiles = hasFiles || subDirectoryFiles[directory].Length > 0;
             }
 
             int packCount = Ref_CreatedPacks.Count;
-            if (packCountCheck && packCount == 0)
+            if (packCountCheck && !hasFiles)
             {
                 Logging.Warning($"no packs, downloading defaults now");
                 string zipPath = directoryPath + "/DefaultGorillaShirts.zip";
@@ -105,22 +120,34 @@ namespace GorillaShirts.Tools
                 return await FindShirtsFromDirectory(directoryPath, false);
             }
 
+            shirtsLoaded = 0;
+            shirtsToLoad = baseDirectoryFiles.Length + subDirectoryFiles.Values.Sum(files => files.Length);
+
+            ShirtLoadStart?.Invoke();
+
+            await FindShirtsFromPackDirectory(directoryPath, baseDirectoryFiles);
+
+            foreach (var directory in directory_list)
+            {
+                Logging.Info($"Locating shirt files from directory '{Path.GetFileName(directory)}'");
+                await FindShirtsFromPackDirectory(directory, subDirectoryFiles[directory]);
+            }
+
             return [.. Ref_CreatedPacks.Values];
         }
 
-        private async Task FindShirtsFromPackDirectory(string path)
+        private async Task FindShirtsFromPackDirectory(string path, FileInfo[] fileInfo)
         {
-            var directoryInfo = new DirectoryInfo(path);
-
-            FileInfo[] fileInfos = directoryInfo.GetFiles("*.shirt");
-            if (fileInfos.Length > 0)
+            if (fileInfo.Length > 0)
             {
+                int shirtsLoadedFromPack = 0;
+
                 Pack currentPack = null;
 
-                foreach (var fileInfo in fileInfos)
+                foreach (var file in fileInfo)
                 {
-                    string fileDirectory = Path.GetFileNameWithoutExtension(fileInfo.Name);
-                    string filePath = Path.Combine(path, fileInfo.Name);
+                    string fileDirectory = Path.GetFileNameWithoutExtension(file.Name);
+                    string filePath = Path.Combine(path, file.Name);
 
                     AssetBundle shirtResourceBundle = null;
                     ShirtJSON shirtDataJSON = null;
@@ -291,6 +318,9 @@ namespace GorillaShirts.Tools
 
                         currentPack.PackagedShirts.Add(newShirt);
                         currentPack.ShirtNameDictionary.AddOrUpdate(newShirt.Name, newShirt);
+
+                        shirtsLoadedFromPack++;
+                        ShirtLoadChanged?.Invoke((shirtsLoaded + shirtsLoadedFromPack, shirtsToLoad));
                     }
                     catch (Exception ex)
                     {
@@ -305,6 +335,9 @@ namespace GorillaShirts.Tools
                     var random = new System.Random();
                     currentPack.PackagedShirts = [.. currentPack.PackagedShirts.OrderBy(a => random.Next())];
                 }
+
+                shirtsLoaded += shirtsLoadedFromPack;
+                ShirtLoadChanged?.Invoke((shirtsLoaded, shirtsToLoad));
             }
         }
 
