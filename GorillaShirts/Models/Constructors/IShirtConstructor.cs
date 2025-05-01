@@ -1,5 +1,3 @@
-using System;
-
 namespace GorillaShirts.Models.Constructors
 {
     public interface IShirtConstructor

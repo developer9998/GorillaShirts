@@ -1,6 +1,6 @@
-﻿using GorillaShirts.Behaviours;
+﻿using System;
+using GorillaShirts.Behaviours;
 using GorillaShirts.Models;
-using System;
 
 namespace GorillaShirts.Interfaces
 {

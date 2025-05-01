@@ -1,8 +1,8 @@
-﻿using GorillaShirts.Behaviours;
+﻿using System;
+using GorillaShirts.Behaviours;
 using GorillaShirts.Behaviours.UI;
 using GorillaShirts.Interfaces;
 using GorillaShirts.Models;
-using System;
 
 namespace GorillaShirts.Buttons
 {
@@ -11,13 +11,13 @@ namespace GorillaShirts.Buttons
         public ButtonType Type => ButtonType.Randomize;
         public Action<Main> Function => (Main constructor) =>
         {
-            Pack selectedPack = constructor.SelectedPack;
+            var selectedPack = constructor.SelectedPack;
 
-            selectedPack.Randomize();
+            //selectedPack.Randomize();
 
             Stand shirtStand = constructor.Stand;
             ShirtRig localRig = constructor.LocalRig;
-            Shirt selectedShirt = constructor.SelectedShirt;
+            var selectedShirt = constructor.SelectedShirt;
 
             shirtStand.Rig.WearShirt(selectedShirt);
             shirtStand.Display.UpdateDisplay(selectedShirt, localRig.Rig.Shirt, selectedPack);

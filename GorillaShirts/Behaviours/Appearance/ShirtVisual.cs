@@ -1,5 +1,5 @@
-﻿using GorillaShirts.Models;
-using System;
+﻿using System;
+using GorillaShirts.Models;
 using UnityEngine;
 
 namespace GorillaShirts.Behaviours.Appearance
@@ -39,7 +39,7 @@ namespace GorillaShirts.Behaviours.Appearance
 
             if (playerRig)
             {
-                playerRig.OnColorChanged -= TriggerColourChanged;
+                playerRig.OnColorChanged -= SetColour;
             }
         }
 
@@ -48,7 +48,7 @@ namespace GorillaShirts.Behaviours.Appearance
             if (playerRig)
             {
                 UpdateColour(playerRig.playerColor);
-                playerRig.OnColorChanged += TriggerColourChanged;
+                playerRig.OnColorChanged += SetColour;
             }
             else
             {
@@ -61,7 +61,7 @@ namespace GorillaShirts.Behaviours.Appearance
             playerColour = colour;
         }
 
-        public void TriggerColourChanged(Color colour)
+        public void SetColour(Color colour)
         {
             UpdateColour(colour);
 

@@ -1,5 +1,5 @@
-﻿using GorillaShirts.Models;
-using System;
+﻿using System;
+using GorillaShirts.Models;
 using UnityEngine;
 
 namespace GorillaShirts.Behaviours.UI

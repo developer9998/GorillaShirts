@@ -6,15 +6,15 @@ using Object = UnityEngine.Object;
 
 namespace GorillaShirts
 {
-    public class AssetLoader
+    public static class AssetLoader
     {
-        private bool _bundleLoaded;
-        private AssetBundle _storedBundle;
+        private static bool _bundleLoaded;
+        private static AssetBundle _storedBundle;
 
-        private Task _loadingTask = null;
-        private Dictionary<string, Object> _assetCache = new();
+        private static Task _loadingTask = null;
+        private static Dictionary<string, Object> _assetCache = new();
 
-        private async Task LoadBundle()
+        private static async Task LoadBundle()
         {
             var taskCompletionSource = new TaskCompletionSource<AssetBundle>();
 
@@ -31,7 +31,7 @@ namespace GorillaShirts
             _bundleLoaded = true;
         }
 
-        public async Task<T> LoadAsset<T>(string name) where T : Object
+        public static async Task<T> LoadAsset<T>(string name) where T : Object
         {
             if (_assetCache.TryGetValue(name, out var _loadedObject)) return _loadedObject as T;
 

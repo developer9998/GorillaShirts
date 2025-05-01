@@ -27,16 +27,11 @@ namespace GorillaShirts.Behaviours.Appearance
         public void ApplyColour()
         {
             Color colour = ShirtVisual.Colour;
-            material.SetColor("_BaseColor", LightenColour(colour));
-        }
+            float minimumValue = 0.05f;
 
-        private Color LightenColour(Color original, float amount = 0.8f)
-        {
-            float oneMinus = 1 - amount;
-            float r = original.r * (amount + oneMinus);
-            float g = original.g * (amount + oneMinus);
-            float b = original.b * (amount + oneMinus);
-            return new Color(r, g, b, original.a);
+            Color.RGBToHSV(colour, out float h, out float s, out float v);
+            v = Mathf.Clamp((v * (1 - minimumValue)) + minimumValue, minimumValue, 1f);
+            material.SetColor("_BaseColor", Color.HSVToRGB(h, s, v));
         }
     }
 }

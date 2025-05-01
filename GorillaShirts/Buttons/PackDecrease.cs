@@ -1,8 +1,8 @@
-﻿using GorillaShirts.Behaviours;
+﻿using System;
+using GorillaShirts.Behaviours;
 using GorillaShirts.Behaviours.UI;
 using GorillaShirts.Interfaces;
 using GorillaShirts.Models;
-using System;
 
 namespace GorillaShirts.Buttons
 {
@@ -13,11 +13,11 @@ namespace GorillaShirts.Buttons
         {
             constructor.SelectedPackIndex = constructor.SelectedPackIndex == 0 ? constructor.Packs.Count - 1 : constructor.SelectedPackIndex - 1;
 
-            Pack selectedPack = constructor.SelectedPack;
+            Pack<IShirtAsset> selectedPack = constructor.SelectedPack;
 
-            constructor.SetPackInfo(selectedPack, selectedPack.PackagedShirts[selectedPack.CurrentItem]);
+            constructor.SetPackInfo(selectedPack, selectedPack.Items[selectedPack.Selection]);
 
-            Shirt selectedShirt = constructor.SelectedShirt;
+            var selectedShirt = constructor.SelectedShirt;
             ShirtRig localRig = constructor.LocalRig;
             Stand shirtStand = constructor.Stand;
 

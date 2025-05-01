@@ -1,6 +1,6 @@
-﻿using GorillaShirts.Behaviours.Appearance;
+﻿using System;
+using GorillaShirts.Behaviours.Appearance;
 using GorillaShirts.Tools;
-using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -33,7 +33,7 @@ namespace GorillaShirts.Models
             {
                 if (shirtGameObjectArrayILoveYouSoMuchKaylieColonThree[i].TryGetComponent(out ShirtVisual component))
                 {
-                    component.TriggerColourChanged(RigSkin.material.color);
+                    component.SetColour(RigSkin.material.color);
                 }
             }
         }

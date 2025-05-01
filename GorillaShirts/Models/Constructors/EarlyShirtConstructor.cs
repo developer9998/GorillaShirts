@@ -1,5 +1,3 @@
-using System;
-
 namespace GorillaShirts.Models.Constructors
 {
     public class EarlyShirtConstructor : IShirtConstructor // Used for shirts from late 2022 to early-mid 2025

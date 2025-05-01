@@ -1,5 +1,5 @@
-﻿using GorillaShirts.Interfaces;
-using System;
+﻿using System;
+using GorillaShirts.Interfaces;
 
 namespace GorillaShirts.Locations
 {

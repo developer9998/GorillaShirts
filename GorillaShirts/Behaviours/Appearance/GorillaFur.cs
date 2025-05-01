@@ -10,8 +10,6 @@ namespace GorillaShirts.Behaviours.Appearance
 
     public class GorillaFur : MonoBehaviour
     {
-        public bool IsThisWorkingImReallyNotSureAsToWhyItWouldnt => material != null;
-
         public ShirtVisual ShirtVisual;
 
         public Material BaseFurMaterial;
@@ -25,10 +23,12 @@ namespace GorillaShirts.Behaviours.Appearance
         public void Start()
         {
             furMode = (FurMode)Convert.ToInt32(transform.GetChild(transform.childCount - 1).name[^1]);
+
             if (BaseFurMaterial)
             {
                 material = new Material(BaseFurMaterial);
             }
+
             renderer = GetComponent<Renderer>();
             ApplyColour();
         }
@@ -47,15 +47,14 @@ namespace GorillaShirts.Behaviours.Appearance
         {
             if (material == null) return;
 
-            renderer.material = ShirtVisual.PlayerRig ? (furMode == FurMode.Match ? ShirtVisual.PlayerRig.mainSkin.material : material) : ShirtVisual.Rig.RigSkin.material;
-
             switch (furMode)
             {
-                case FurMode.Default:
-                    material.color = ShirtVisual.PlayerRig ? ShirtVisual.Colour : Color.white;
+                case FurMode.Match:
+                    renderer.material = ShirtVisual.PlayerRig ? ShirtVisual.PlayerRig.mainSkin.material : ShirtVisual.Rig.RigSkin.material;
                     break;
-                case FurMode.Coloured:
-                    renderer.material.color = Color.white;
+                default:
+                    renderer.material = material;
+                    material.color = (furMode == FurMode.Coloured && ShirtVisual.PlayerRig) ? ShirtVisual.Colour : Color.white;
                     break;
             }
         }

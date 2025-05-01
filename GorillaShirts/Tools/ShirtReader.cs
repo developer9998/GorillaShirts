@@ -1,4 +1,6 @@
-﻿using BoingKit;
+﻿/*
+
+using BoingKit;
 using GorillaExtensions;
 using GorillaNetworking;
 using GorillaShirts.Behaviours.Appearance;
@@ -33,17 +35,7 @@ namespace GorillaShirts.Tools
         private Material _furMaterial;
 
         private readonly Dictionary<string, Pack> Ref_CreatedPacks = [];
-        private readonly Dictionary<string, SectorType> Ref_SectorDict = new()
-        {
-            { "BodyObject", SectorType.Body         },
-            { "HeadObject", SectorType.Head         },
-            { "LUpperArm", SectorType.LeftUpper     },
-            { "LLowerArm", SectorType.LeftLower     },
-            { "LHand", SectorType.LeftHand          },
-            { "RUpperArm", SectorType.RightUpper    },
-            { "RLowerArm", SectorType.RightLower    },
-            { "RHand", SectorType.RightHand         },
-        };
+        
 
         public async void Initialize()
         {
@@ -372,3 +364,5 @@ namespace GorillaShirts.Tools
         }
     }
 }
+
+*/

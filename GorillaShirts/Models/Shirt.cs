@@ -12,7 +12,7 @@ namespace GorillaShirts.Models
         public GameObject ImportedAsset;
         public List<Sector> SectorList = new();
 
-        public List<bool> SlotData => 
+        public List<bool> SlotData =>
         [
             ImportedAsset.GetComponentInChildren<AudioSource>(),
             Billboard,

@@ -1,7 +1,7 @@
-﻿using GorillaShirts.Behaviours.Appearance;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using GorillaShirts.Behaviours.Appearance;
 using TMPro;
 using UnityEngine;
 
@@ -16,21 +16,21 @@ namespace GorillaShirts.Models
         public SkinnedMeshRenderer RigSkin;
         public TMP_Text[] PlayerNameTags = new TMP_Text[2];
 
-        public Dictionary<Shirt, List<GameObject>> Objects = [];
+        public Dictionary<IShirtAsset, List<GameObject>> Objects = [];
 
-        public Shirt Shirt;
+        public IShirtAsset Shirt;
 
         public int NameTagOffset;
 
         internal GameObject[] ShirtGameObjectArray => Objects?.SelectMany(selector => selector.Value).ToArray();
 
-        public void WearShirt(Shirt myShirt, out Shirt oldShirt)
+        public void WearShirt(IShirtAsset myShirt, out IShirtAsset oldShirt)
         {
             oldShirt = Shirt;
             WearShirt(myShirt);
         }
 
-        public void WearShirt(Shirt myShirt)
+        public void WearShirt(IShirtAsset myShirt)
         {
             if (Shirt == myShirt) return;
 
@@ -55,7 +55,7 @@ namespace GorillaShirts.Models
 
             var newObjects = new List<GameObject>();
             Cooldown = true;
-            foreach (var sector in myShirt.SectorList)
+            foreach (var sector in myShirt.Descriptor.SectorList)
             {
                 var sectorParent = sector.Type switch
                 {

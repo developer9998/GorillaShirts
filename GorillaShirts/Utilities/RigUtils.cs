@@ -1,7 +1,7 @@
-﻿using HarmonyLib;
-using Photon.Realtime;
-using System;
+﻿using System;
 using System.Reflection;
+using HarmonyLib;
+using Photon.Realtime;
 
 namespace GorillaShirts.Utilities
 {

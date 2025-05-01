@@ -1,8 +1,8 @@
-﻿using GorillaShirts.Models;
+﻿using System.Threading.Tasks;
+using GorillaShirts.Models;
 using GorillaShirts.Tools;
 using Photon.Pun;
 using Photon.Realtime;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace GorillaShirts.Behaviours.UI
@@ -76,7 +76,7 @@ namespace GorillaShirts.Behaviours.UI
 
         public void OnShirtWorn()
         {
-            SetInvisiblityState(Rig.Shirt.Invisibility);
+            SetInvisiblityState(Rig.Shirt.Descriptor.Invisiblity);
             Rig.MoveNameTag();
         }
 

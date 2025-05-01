@@ -1,8 +1,8 @@
-﻿using GorillaShirts.Behaviours;
+﻿using System;
+using GorillaShirts.Behaviours;
 using GorillaShirts.Behaviours.UI;
 using GorillaShirts.Interfaces;
 using GorillaShirts.Models;
-using System;
 
 namespace GorillaShirts.Buttons
 {
@@ -12,7 +12,7 @@ namespace GorillaShirts.Buttons
 
         public Action<Main> Function => (Main constructor) =>
         {
-            Shirt selectedShirt = constructor.SelectedShirt;
+            var selectedShirt = constructor.SelectedShirt;
             ShirtRig localRig = constructor.LocalRig;
 
             constructor.UpdatePlayerHash(true);

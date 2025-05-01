@@ -1,7 +1,7 @@
-﻿using GorillaShirts.Behaviours;
+﻿using System;
+using GorillaShirts.Behaviours;
 using GorillaShirts.Interfaces;
 using GorillaShirts.Models;
-using System;
 
 namespace GorillaShirts.Buttons
 {

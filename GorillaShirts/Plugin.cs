@@ -18,6 +18,6 @@ namespace GorillaShirts
 
             GorillaTagger.OnPlayerSpawned(() => new GameObject(typeof(Main).FullName).AddComponent<Main>());
         }
-        
+
     }
 }

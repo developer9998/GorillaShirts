@@ -1,6 +1,6 @@
-﻿using GorillaShirts.Extensions;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
+using GorillaShirts.Extensions;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -29,16 +29,16 @@ namespace GorillaShirts.Models
             Body.text = myDescription;
         }
 
-        public void SetDisplay(Shirt myShirt)
+        public void SetDisplay(IShirtAsset myShirt)
         {
             StringBuilder str = new StringBuilder();
-            str.Append("<size=20>").Append(myShirt.DisplayName.LimitString(17)).Append("</size>").AppendLines(2);
-            str.Append("Author: <size=7>").Append(myShirt.Author.LimitString(20)).Append("</size>");
+            str.Append("<size=20>").Append(myShirt.Descriptor.DisplayName.LimitString(17)).Append("</size>").AppendLines(2);
+            str.Append("Author: <size=7>").Append(myShirt.Descriptor.Author.LimitString(20)).Append("</size>");
 
-            SetDisplay(str.ToString(), myShirt.Description.LimitString(258));
+            SetDisplay(str.ToString(), myShirt.Descriptor.Description.LimitString(258));
         }
 
-        public void SetDisplay(Shirt myShirt, Pack myPack)
+        public void SetDisplay(IShirtAsset myShirt, Pack<IShirtAsset> myPack)
         {
             SetDisplay(myShirt);
             SetPack(myPack);
@@ -46,9 +46,9 @@ namespace GorillaShirts.Models
 
         public void SetVersion(string myVersion) => Version.text = myVersion;
 
-        public void SetPack(Pack myPack) => Pack.text = myPack.DisplayName ?? "Unknown";
+        public void SetPack(Pack<IShirtAsset> myPack) => Pack.text = myPack.Name ?? "N/A";
 
-        public void SetEquipped(Shirt myShirt, Shirt currentShirt) => Equip.text = currentShirt == myShirt ? "Remove" : "Wear";
+        public void SetEquipped(IShirtAsset myShirt, IShirtAsset currentShirt) => Equip.text = currentShirt == myShirt ? "Remove" : "Wear";
 
         public void SetTag(int tagOffset) => Tag.text = tagOffset.ToString();
 
@@ -61,10 +61,10 @@ namespace GorillaShirts.Models
             }
         }
 
-        public void UpdateDisplay(Shirt myShirt, Shirt activeShirt, Pack myPack)
+        public void UpdateDisplay(IShirtAsset myShirt, IShirtAsset activeShirt, Pack<IShirtAsset> myPack)
         {
             SetDisplay(myShirt, myPack);
-            SetSlots(myShirt.SlotData);
+            SetSlots(myShirt.TemplateData);
             SetEquipped(myShirt, activeShirt);
         }
     }

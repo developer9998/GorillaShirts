@@ -2,31 +2,18 @@
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.1</TargetFramework>
-		<LangVersion>latest</LangVersion>
-		<Configurations>Debug;Release;Editor</Configurations>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<DefineConstants>TRACE;PLUGIN</DefineConstants>
-		<PlatformTarget>AnyCPU</PlatformTarget>
-		<DebugType>portable</DebugType>
-		<DebugSymbols>true</DebugSymbols>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<DefineConstants>TRACE;PLUGIN</DefineConstants>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Editor|AnyCPU'">
-		<DefineConstants>TRACE</DefineConstants>
+		<LangVersion>8.0</LangVersion>
+		<RootNamespace>GorillaShirts_Editor</RootNamespace>
+		<AssemblyName>GorillaShirts</AssemblyName>
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <None Remove="Content\legacyshirtbundle" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <EmbeddedResource Include="Content\legacyshirtbundle" />
+		<Compile Include="..\GorillaShirts\Behaviours\ShirtDescriptor.cs">
+			<Link>Behaviours\ShirtDescriptor.cs</Link>
+		</Compile>
+		<Compile Include="..\GorillaShirts\Models\EShirtVersion.cs">
+			<Link>Models\EShirtVersion.cs</Link>
+		</Compile>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -40,10 +27,10 @@
 			<HintPath>$(BepInExAssemblyPath)\BepInEx.dll</HintPath>
 		</Reference>
 		<Reference Include="Fusion.Runtime">
-		  <HintPath>$(GameAssemblyPath)\Fusion.Runtime.dll</HintPath>
+			<HintPath>$(GameAssemblyPath)\Fusion.Runtime.dll</HintPath>
 		</Reference>
 		<Reference Include="Newtonsoft.Json">
-		  <HintPath>$(GameAssemblyPath)\Newtonsoft.Json.dll</HintPath>
+			<HintPath>$(GameAssemblyPath)\Newtonsoft.Json.dll</HintPath>
 		</Reference>
 		<Reference Include="Photon3Unity3D">
 			<HintPath>$(GameAssemblyPath)\Photon3Unity3D.dll</HintPath>
@@ -55,7 +42,7 @@
 			<HintPath>$(GameAssemblyPath)\PhotonUnityNetworking.dll</HintPath>
 		</Reference>
 		<Reference Include="Unity.TextMeshPro">
-		  <HintPath>$(GameAssemblyPath)\Unity.TextMeshPro.dll</HintPath>
+			<HintPath>$(GameAssemblyPath)\Unity.TextMeshPro.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine">
 			<HintPath>$(GameAssemblyPath)\UnityEngine.dll</HintPath>
@@ -85,19 +72,19 @@
 			<HintPath>$(GameAssemblyPath)\UnityEngine.UI.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.UnityWebRequestAssetBundleModule">
-		  <HintPath>$(GameAssemblyPath)\UnityEngine.UnityWebRequestAssetBundleModule.dll</HintPath>
+			<HintPath>$(GameAssemblyPath)\UnityEngine.UnityWebRequestAssetBundleModule.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.UnityWebRequestAudioModule">
-		  <HintPath>$(GameAssemblyPath)\UnityEngine.UnityWebRequestAudioModule.dll</HintPath>
+			<HintPath>$(GameAssemblyPath)\UnityEngine.UnityWebRequestAudioModule.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.UnityWebRequestModule">
-		  <HintPath>$(GameAssemblyPath)\UnityEngine.UnityWebRequestModule.dll</HintPath>
+			<HintPath>$(GameAssemblyPath)\UnityEngine.UnityWebRequestModule.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.UnityWebRequestTextureModule">
-		  <HintPath>$(GameAssemblyPath)\UnityEngine.UnityWebRequestTextureModule.dll</HintPath>
+			<HintPath>$(GameAssemblyPath)\UnityEngine.UnityWebRequestTextureModule.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.UnityWebRequestWWWModule">
-		  <HintPath>$(GameAssemblyPath)\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
+			<HintPath>$(GameAssemblyPath)\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 </Project>

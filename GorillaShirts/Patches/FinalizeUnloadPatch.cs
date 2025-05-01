@@ -10,7 +10,7 @@ namespace GorillaShirts.Patches
         public static void Prefix()
         {
             if (!MapLoader.IsModLoaded(0L) && !MapLoader.IsLoading) return;
-            Main.Instance.OnZoneChange([ GTZone.customMaps ]);
+            Main.Instance.OnZoneChange([GTZone.customMaps]);
         }
     }
 }
