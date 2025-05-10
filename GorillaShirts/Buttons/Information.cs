@@ -1,5 +1,4 @@
-﻿using System;
-using GorillaShirts.Behaviours;
+﻿using GorillaShirts.Behaviours;
 using GorillaShirts.Interfaces;
 using GorillaShirts.Models;
 
@@ -7,11 +6,12 @@ namespace GorillaShirts.Buttons
 {
     internal class Information : IStandButton
     {
-        public ButtonType Type => ButtonType.Info;
-        public Action<Main> Function => (Main constructor) =>
+        public EButtonType ButtonType => EButtonType.Info;
+
+        public void ButtonActivation()
         {
-            constructor.UseInfoPanel ^= true;
-            constructor.SetInfoVisibility.Invoke(constructor.UseInfoPanel);
-        };
+            Singleton<Main>.Instance.UseInfoPanel ^= true;
+            Singleton<Main>.Instance.SetInfoVisibility.Invoke(Singleton<Main>.Instance.UseInfoPanel);
+        }
     }
 }

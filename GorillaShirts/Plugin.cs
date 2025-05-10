@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using GorillaShirts.Behaviours;
+using GorillaShirts.Behaviours.Networking;
 using GorillaShirts.Tools;
 using HarmonyLib;
 using UnityEngine;
@@ -15,9 +16,7 @@ namespace GorillaShirts
             Configuration.Initialize(Config);
 
             Harmony.CreateAndPatchAll(typeof(Plugin).Assembly, Constants.Guid);
-
-            GorillaTagger.OnPlayerSpawned(() => new GameObject(typeof(Main).FullName).AddComponent<Main>());
+            GorillaTagger.OnPlayerSpawned(() => new GameObject(Constants.Name, typeof(Main), typeof(NetworkHandler)));
         }
-
     }
 }

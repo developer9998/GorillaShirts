@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace GorillaShirts.Models
 {
-    public interface IShirtAsset
+    public interface IShirtAsset : IStandNavigationInfo
     {
         /// <summary>
         /// The file path at which the shirt is located
@@ -21,6 +21,8 @@ namespace GorillaShirts.Models
         /// A usable template for the shirt
         /// </summary>
         GameObject Template { get; }
+
+        List<EShirtComponentType> ComponentTypes { get; }
 
         Task<IShirtAsset> Construct(string filePath);
 

@@ -9,10 +9,12 @@ using BoingKit;
 using GorillaExtensions;
 using GorillaShirts.Behaviours;
 using GorillaShirts.Behaviours.Appearance;
+using GorillaShirts.Extensions;
 using GorillaShirts.Tools;
 using UnityEngine;
 using UnityEngine.Rendering;
 using static BoingKit.BoingBones;
+using static GorillaShirts.Behaviours.Appearance.PlayerMaterialAppearance;
 using Object = UnityEngine.Object;
 
 namespace GorillaShirts.Models
@@ -20,10 +22,14 @@ namespace GorillaShirts.Models
     public class LegacyShirtAsset : IShirtAsset
     {
         public string FilePath { get; private set; }
+
         public ShirtDescriptor Descriptor { get; private set; }
+
         public GameObject Template { get; private set; }
 
-        public List<bool> TemplateData => 
+        public List<EShirtComponentType> ComponentTypes { get; private set; }
+
+        public List<bool> TemplateData =>
         [
             Template.GetComponentInChildren<AudioSource>(),
             Descriptor.Billboard,
@@ -34,16 +40,16 @@ namespace GorillaShirts.Models
             Descriptor.Wobble
         ];
 
-        private readonly Dictionary<string, SectorType> sector_dict = new()
+        private readonly Dictionary<string, EShirtComponentType> sector_dict = new()
         {
-            { "BodyObject", SectorType.Body         },
-            { "HeadObject", SectorType.Head         },
-            { "LUpperArm", SectorType.LeftUpper     },
-            { "LLowerArm", SectorType.LeftLower     },
-            { "LHand", SectorType.LeftHand          },
-            { "RUpperArm", SectorType.RightUpper    },
-            { "RLowerArm", SectorType.RightLower    },
-            { "RHand", SectorType.RightHand         },
+            { "BodyObject", EShirtComponentType.Body         },
+            { "HeadObject", EShirtComponentType.Head         },
+            { "LUpperArm", EShirtComponentType.LeftUpper     },
+            { "LLowerArm", EShirtComponentType.LeftLower     },
+            { "LHand", EShirtComponentType.LeftHand          },
+            { "RUpperArm", EShirtComponentType.RightUpper    },
+            { "RLowerArm", EShirtComponentType.RightLower    },
+            { "RHand", EShirtComponentType.RightHand         },
         };
 
         private static Material fur_material;
@@ -93,7 +99,7 @@ namespace GorillaShirts.Models
 
                 Descriptor.Name = $"{shirtDataJSON.packName}/{shirtDataJSON.infoDescriptor.shirtName}";
                 Descriptor.DisplayName = shirtDataJSON.infoDescriptor.shirtName;
-                Descriptor.Author = shirtDataJSON.infoDescriptor.shirtAuthor;
+                Descriptor.Author = shirtDataJSON.infoDescriptor.shirtAuthor.Trim('"');
                 Descriptor.Description = shirtDataJSON.infoDescriptor.shirtDescription;
 
                 Descriptor.CustomColours = shirtDataJSON.infoConfig.customColors;
@@ -104,11 +110,27 @@ namespace GorillaShirts.Models
                 if (WearOverride) Descriptor.CustomWearSound = WearOverride.GetComponent<AudioSource>().clip;
                 if (RemoveOverride) Descriptor.CustomRemoveSound = RemoveOverride.GetComponent<AudioSource>().clip;
 
-                async Task PrepareSectorAsync(string sectorName, SectorType sectorType)
+                ComponentTypes = [];
+
+                async Task PrepareSectorAsync(string sectorName, EShirtComponentType sectorType)
                 {
-                    Transform tempSector = Template.transform.transform.Find(sectorName);
-                    if (tempSector != null)
+                    Transform body_part_tform = Template.transform.transform.Find(sectorName);
+                    if (body_part_tform && body_part_tform.gameObject is GameObject body_part)
                     {
+                        if (body_part.GetComponents(typeof(Component)).Length <= 1 && body_part_tform.childCount == 0)
+                        {
+                            // empty object
+                            Logging.Info($"{Descriptor.DisplayName} has empty {sectorType}");
+                            body_part.name = string.Concat(sectorType.ToString(), "Empty");
+                            return;
+                        }
+
+                        Logging.Info($"{Descriptor.DisplayName} has {sectorType}");
+
+                        ComponentTypes.Add(sectorType);
+                        body_part.name = sectorType.ToString();
+
+                        /*
                         tempSector.gameObject.SetActive(false);
                         Sector newSector = new()
                         {
@@ -119,25 +141,38 @@ namespace GorillaShirts.Models
                             Scale = tempSector.localScale
                         };
                         Descriptor.SectorList.Add(newSector);
+                        */
 
-                        ShirtVisual visualParent = newSector.Object.AddComponent<ShirtVisual>();
-                        List<Transform> bones = [], ignoreBones = new();
-                        foreach (var itemObject in newSector.Object.GetComponentsInChildren<Transform>(true))
+                        ShirtVisual visualParent = body_part.GetOrAddComponent<ShirtVisual>();
+                        visualParent.enabled = false;
+
+                        List<Transform> bones = [], ignoreBones = [];
+
+                        foreach (var decendant in body_part.GetComponentsInChildren<Transform>(true))
                         {
-                            bool colourSupport = itemObject.GetComponent<Renderer>();
+                            bool colourSupport = decendant.GetComponent<Renderer>();
                             bool customColour = shirtDataJSON.infoConfig.customColors;
-                            if (itemObject.childCount > 0)
+
+                            if (decendant.TryGetComponent(out Renderer renderer))
                             {
-                                for (int i = 0; i < itemObject.childCount; i++)
+                                if (renderer.materials != null && renderer.materials.Length != 0)
                                 {
-                                    Transform child = itemObject.GetChild(i);
+                                    renderer.materials = renderer.materials.Select(material => material.CreateUberShaderVariant()).ToArray();
+                                }
+                            }
+
+                            if (decendant.childCount > 0)
+                            {
+                                for (int i = 0; i < decendant.childCount; i++)
+                                {
+                                    Transform child = decendant.GetChild(i);
                                     if (child.name == "Wobble0")
                                     {
-                                        bones.Add(itemObject);
+                                        bones.Add(decendant);
                                     }
                                     else if (child.name == "Wobble1")
                                     {
-                                        ignoreBones.Add(itemObject);
+                                        ignoreBones.Add(decendant);
                                     }
                                     if (child.name.StartsWith("G_Fur") && colourSupport)
                                     {
@@ -146,7 +181,8 @@ namespace GorillaShirts.Models
                                             Texture2D furTexture = await AssetLoader.LoadAsset<Texture2D>("lightfur");
                                             Shader uberShader = Shader.Find("GorillaTag/UberShader");
 
-                                            string[] keywords = ["_USE_TEXTURE", "_ENVIRONMENTREFLECTIONS_OFF", "_GLOSSYREFLECTIONS_OFF", "_SPECULARHIGHLIGHTS_OFF"]; //(GorillaTagger.Instance.offlineVRRig && GorillaTagger.Instance.offlineVRRig.myDefaultSkinMaterialInstance) ? GorillaTagger.Instance.offlineVRRig.myDefaultSkinMaterialInstance.shaderKeywords : ["_USE_TEXTURE", "_ENVIRONMENTREFLECTIONS_OFF", "_GLOSSYREFLECTIONS_OFF", "_SPECULARHIGHLIGHTS_OFF"];
+                                            string[] keywords = (GorillaTagger.Instance.offlineVRRig && GorillaTagger.Instance.offlineVRRig.myDefaultSkinMaterialInstance) ? GorillaTagger.Instance.offlineVRRig.myDefaultSkinMaterialInstance.shaderKeywords : ["_USE_TEXTURE", "_ENVIRONMENTREFLECTIONS_OFF", "_GLOSSYREFLECTIONS_OFF", "_SPECULARHIGHLIGHTS_OFF"];
+                                            keywords = [.. keywords.Except(["_GT_BASE_MAP_ATLAS_SLICE_SOURCE__PROPERTY", "_USE_TEX_ARRAY_ATLAS"])];
 
                                             fur_material = new Material(uberShader)
                                             {
@@ -156,27 +192,29 @@ namespace GorillaShirts.Models
                                             };
                                         }
 
-                                        GorillaFur gorillaFur = itemObject.gameObject.GetOrAddComponent<GorillaFur>();
+                                        PlayerMaterialAppearance gorillaFur = decendant.gameObject.GetOrAddComponent<PlayerMaterialAppearance>();
+                                        gorillaFur.Appearance = (EAppearanceType)Convert.ToInt32(decendant.GetChild(decendant.childCount - 1).name[^1]);
+                                        gorillaFur.Source = EMaterialSource.Skin;
                                         gorillaFur.BaseFurMaterial = fur_material;
                                         gorillaFur.ShirtVisual = visualParent;
                                     }
                                     if (child.name.StartsWith("G_BB"))
                                     {
                                         Descriptor.Billboard = true;
-                                        itemObject.gameObject.GetOrAddComponent<Billboard>();
+                                        decendant.gameObject.GetOrAddComponent<Billboard>();
                                     }
                                 }
                             }
-                            bool isFur = itemObject.GetComponent<GorillaFur>();
-                            if (colourSupport && customColour && !isFur && itemObject.GetComponent<Renderer>().material.HasProperty("_BaseColor"))
+                            bool isFur = decendant.GetComponent<PlayerMaterialAppearance>();
+                            if (colourSupport && customColour && !isFur && decendant.GetComponent<Renderer>().material.HasProperty("_BaseColor"))
                             {
-                                itemObject.gameObject.AddComponent<GorillaColour>().ShirtVisual = visualParent;
+                                decendant.gameObject.AddComponent<GorillaColour>().ShirtVisual = visualParent;
                             }
                         }
 
                         if (bones.Count > 0)
                         {
-                            BoingBones boneComponent = newSector.Object.AddComponent<BoingBones>();
+                            BoingBones boneComponent = body_part.AddComponent<BoingBones>();
                             boneComponent.LockTranslationX = shirtDataJSON.infoConfig.wobbleLockHorizontal;
                             boneComponent.LockTranslationY = shirtDataJSON.infoConfig.wobbleLockVertical;
                             boneComponent.LockTranslationZ = shirtDataJSON.infoConfig.wobbleLockHorizontal;
@@ -230,6 +268,19 @@ namespace GorillaShirts.Models
             return this;
         }
 
+        public (string name, string author, string description, string type, string source, string note) GetNavigationInfo()
+        {
+            return
+            (
+                Descriptor.DisplayName,
+                Descriptor.Author,
+                Descriptor.Description,
+                "Shirt",
+                Descriptor.Pack,
+                "This shirt was made for an earlier version of GorillaShirts, and may not have the latest features."
+            );
+        }
+
         public override string ToString()
         {
             return $"{Descriptor.Name} / {Descriptor.Version}";
@@ -263,6 +314,36 @@ namespace GorillaShirts.Models
                 taskCompletionSource.SetResult(outRequest.asset as T);
             };
             return await taskCompletionSource.Task;
+        }
+
+        [Serializable]
+        public class ShirtJSON
+        {
+            public string assetName;
+            public string packName;
+            public int version = 1;
+
+            public SDescriptor infoDescriptor;
+            public SConfig infoConfig;
+        }
+
+        [Serializable]
+        public class SDescriptor
+        {
+            public string shirtName;
+            public string shirtAuthor;
+            public string shirtDescription;
+        }
+
+        [Serializable]
+        public class SConfig
+        {
+            public bool customColors;
+            public bool invisibility;
+            public bool wobbleLoose;
+            public bool wobbleLockHorizontal;
+            public bool wobbleLockVertical;
+            public bool wobbleLockRoot = true;
         }
     }
 }

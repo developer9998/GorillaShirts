@@ -30,10 +30,17 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
 		<Reference Include="0Harmony">
 			<HintPath>$(BepInExAssemblyPath)\0Harmony.dll</HintPath>
 		</Reference>
-		<Reference Include="Assembly-CSharp">
+		<Reference Include="Assembly-CSharp" Publicize="true">
 			<HintPath>$(GameAssemblyPath)\Assembly-CSharp.dll</HintPath>
 		</Reference>
 		<Reference Include="BepInEx">
@@ -98,6 +105,9 @@
 		</Reference>
 		<Reference Include="UnityEngine.UnityWebRequestWWWModule">
 		  <HintPath>$(GameAssemblyPath)\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.IMGUIModule">
+			<HintPath>$(GameAssemblyPath)\UnityEngine.IMGUIModule.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 </Project>

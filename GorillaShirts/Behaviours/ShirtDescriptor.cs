@@ -57,7 +57,9 @@ namespace GorillaShirts.Behaviours
         public bool HideRelativeCosmetic;
 
 #if PLUGIN
-        public List<Sector> SectorList = [];
+        //public List<Sector> SectorList = [];
+#else
+        public Transform RigHead, RigBody, RigLeftUpperArm, RigRightUpperArm, RigLeftForearm, RigRightForearm, RigLeftHand, RigRightHand;
 #endif
     }
 }

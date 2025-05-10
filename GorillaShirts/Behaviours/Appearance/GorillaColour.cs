@@ -17,6 +17,7 @@ namespace GorillaShirts.Behaviours.Appearance
         public void OnEnable()
         {
             ShirtVisual.OnColourChanged += ApplyColour;
+            ApplyColour();
         }
 
         public void OnDisable()
@@ -26,12 +27,15 @@ namespace GorillaShirts.Behaviours.Appearance
 
         public void ApplyColour()
         {
-            Color colour = ShirtVisual.Colour;
-            float minimumValue = 0.05f;
+            if (material is not null)
+            {
+                Color colour = ShirtVisual.Colour;
+                float minimumValue = 0.05f;
 
-            Color.RGBToHSV(colour, out float h, out float s, out float v);
-            v = Mathf.Clamp((v * (1 - minimumValue)) + minimumValue, minimumValue, 1f);
-            material.SetColor("_BaseColor", Color.HSVToRGB(h, s, v));
+                Color.RGBToHSV(colour, out float h, out float s, out float v);
+                v = Mathf.Clamp((v * (1 - minimumValue)) + minimumValue, minimumValue, 1f);
+                material.SetColor("_BaseColor", Color.HSVToRGB(h, s, v));
+            }
         }
     }
 }

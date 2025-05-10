@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using GorillaShirts.Behaviours;
+using GorillaShirts.Extensions;
 using GorillaShirts.Interfaces;
 using GorillaShirts.Models;
 using UnityEngine;
@@ -8,17 +10,31 @@ namespace GorillaShirts.Buttons
 {
     internal class Capture : IStandButton
     {
-        public ButtonType Type => ButtonType.Capture;
-        public Action<Main> Function => (Main constructor) =>
+        private bool photoSnapped = false;
+
+        public EButtonType ButtonType => EButtonType.Capture;
+
+        public void ButtonActivation()
         {
-            Camera camera = constructor.Camera;
+            if (photoSnapped) return;
+            photoSnapped = true;
 
-            camera.gameObject.SetActive(true);
+            var corutine = Singleton<Main>.Instance.Stand.Camera.SnapPhoto(OnPhotoSnapped);
+            Singleton<Main>.Instance.StartCoroutine(corutine);
 
-            constructor.PlaySound(ShirtAudio.Shutter);
+            Singleton<Main>.Instance.PlaySound(EShirtAudio.CameraShutter);
+        }
 
-            constructor.StartCoroutine(constructor.Capture(camera));
-            camera.gameObject.SetActive(false);
-        };
+        public void OnPhotoSnapped(Texture2D texture)
+        {
+            if (!photoSnapped) return;
+            photoSnapped = false;
+
+            string directory = Path.Combine(Path.GetDirectoryName(typeof(Main).Assembly.Location), "Photos");
+            if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
+
+            string file = Path.Combine(directory, $"{DateTime.Now:yy-MM-dd-HH-mm-ss-ff}.png");
+            File.WriteAllBytes(file, texture.EncodeToPNG());
+        }
     }
 }

@@ -1,6 +1,7 @@
-﻿using System;
+﻿using System.Linq;
 using GorillaShirts.Behaviours;
 using GorillaShirts.Behaviours.UI;
+using GorillaShirts.Extensions;
 using GorillaShirts.Interfaces;
 using GorillaShirts.Models;
 
@@ -8,15 +9,25 @@ namespace GorillaShirts.Buttons
 {
     internal class ShirtEquip : IStandButton
     {
-        public ButtonType Type => ButtonType.ShirtEquip;
+        public EButtonType ButtonType => EButtonType.ShirtEquip;
 
-        public Action<Main> Function => (Main constructor) =>
+        public void ButtonActivation()
         {
-            var selectedShirt = constructor.SelectedShirt;
-            ShirtRig localRig = constructor.LocalRig;
+            if (Main.Instance.Stand is not Stand stand)
+                return;
 
-            constructor.UpdatePlayerHash(true);
-            constructor.Stand.Display.SetEquipped(selectedShirt, localRig.Rig.Shirt);
-        };
+            if (Main.Instance.HasPack)
+            {
+                Main.Instance.UpdateWornShirt();
+            }
+            else
+            {
+                Main.Instance.CurrentPack = Main.Instance.SelectedPack;
+                stand.Rig.StopCycle();
+            }
+
+            stand.Rig.Shirts = Main.Instance.SelectedShirt.WithShirts(Main.Instance.LocalRig.RigHandler.Shirts);
+            stand.Display.UpdateDisplay(navigationInfo: Main.Instance.Selection, wornShirts: Main.Instance.LocalRig.RigHandler.Shirts);
+        }
     }
 }

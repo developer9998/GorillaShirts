@@ -1,4 +1,5 @@
 ﻿using GorillaShirts.Behaviours;
+using GorillaShirts.Behaviours.UI;
 using HarmonyLib;
 using UnityEngine;
 using MapLoader = CustomMapLoader;
@@ -13,7 +14,10 @@ namespace GorillaShirts.Patches
             if (placeholderGameObject && placeholderGameObject.name == "ShirtStandPlaceholder")
             {
                 placeholderGameObject.SetActive(false);
-                Main.Instance.MoveStand(placeholderGameObject.transform);
+
+                if (Main.HasInstance && Main.Instance.Stand is Stand stand)
+                    stand.MoveStand(placeholderGameObject.transform);
+
                 return false;
             }
 

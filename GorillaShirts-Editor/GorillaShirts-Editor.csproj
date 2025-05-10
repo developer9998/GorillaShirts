@@ -14,6 +14,12 @@
 		<Compile Include="..\GorillaShirts\Models\EShirtVersion.cs">
 			<Link>Models\EShirtVersion.cs</Link>
 		</Compile>
+		<Compile Include="..\GorillaShirts\Behaviours\MainMenu.cs">
+			<Link>Behaviours\MainMenu.cs</Link>
+		</Compile>
+		<Compile Include="..\GorillaShirts\Behaviours\UI\Stand.cs">
+			<Link>Behaviours\Stand.cs</Link>
+		</Compile>
 	</ItemGroup>
 
 	<ItemGroup>

@@ -6,19 +6,16 @@
 
         public const string Name = "GorillaShirts";
 
-        public const string Version = "1.1.12";
+        public const string Version = "1.2.0";
 
 
         public const string BundlePath = "GorillaShirts.Content.legacyshirtbundle";
 
         public const string StandName = "ShirtStand";
 
-
-        public const float NetworkCooldown = 0.26f;
-
-        public const int NetworkOffset = 500;
-
-        public const string HashKey = "GS";
+        public const float NetworkSetInterval = 0.25f;
+        public const string NetworkVersionKey = "ShirtVersion";
+        public const string NetworkPropertiesKey = "ShirtProperties";
 
         public const int TagOffsetLimit = 6;
     }

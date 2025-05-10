@@ -28,9 +28,9 @@ namespace GorillaShirts.Tools
             PreviewGorillaEntry = File.Bind("Appearence", "Preview Gorilla", defaultPreview, "The gorilla character that is shown when previewing a shirt.");
         }
 
-        public static void UpdateGorillaShirt(string shirtName)
+        public static void UpdateGorillaShirt(string[] shirtNames)
         {
-            CurrentShirt.Value = shirtName;
+            CurrentShirt.Value = (shirtNames == null || shirtNames.Length == 0) ? string.Empty : string.Join(Environment.NewLine, shirtNames);
             File.Save();
         }
 

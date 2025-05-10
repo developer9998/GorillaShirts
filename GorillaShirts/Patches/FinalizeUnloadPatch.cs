@@ -1,4 +1,5 @@
 ﻿using GorillaShirts.Behaviours;
+using GorillaShirts.Behaviours.UI;
 using HarmonyLib;
 using MapLoader = CustomMapLoader;
 
@@ -9,8 +10,11 @@ namespace GorillaShirts.Patches
     {
         public static void Prefix()
         {
-            if (!MapLoader.IsModLoaded(0L) && !MapLoader.IsLoading) return;
-            Main.Instance.OnZoneChange([GTZone.customMaps]);
+            if (!MapLoader.IsModLoaded(0L) && !MapLoader.IsLoading)
+                return;
+
+            if (Main.HasInstance && Main.Instance.Stand is Stand stand)
+                stand.OnZoneChange([GTZone.customMaps]);
         }
     }
 }

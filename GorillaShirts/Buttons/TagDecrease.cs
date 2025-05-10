@@ -1,27 +1,24 @@
-﻿using System;
-using GorillaShirts.Behaviours;
+﻿using GorillaShirts.Behaviours;
+using GorillaShirts.Behaviours.UI;
 using GorillaShirts.Interfaces;
 using GorillaShirts.Models;
 using GorillaShirts.Tools;
+using UnityEngine;
 
 namespace GorillaShirts.Buttons
 {
     internal class TagDecrease : IStandButton
     {
-        public ButtonType Type => ButtonType.TagDecrease;
+        public EButtonType ButtonType => EButtonType.TagDecrease;
 
-        public Action<Main> Function => (Main constructor) =>
+        public void ButtonActivation()
         {
-            if (Configuration.CurrentTagOffset.Value > 0)
-            {
-                Configuration.CurrentTagOffset.Value--;
-                Main.Instance.UpdatePlayerHash();
-            }
+            Configuration.CurrentTagOffset.Value = Mathf.Max(0, Configuration.CurrentTagOffset.Value - 1);
+            Singleton<Main>.Instance.UpdateTagOffset();
 
-            Stand shirtStand = constructor.Stand;
-            //shirtStand.Rig.WearShirt(constructor.SelectedShirt);
-            shirtStand.Rig.OffsetNameTag(Configuration.CurrentTagOffset.Value);
-            shirtStand.Display.UpdateDisplay(constructor.SelectedShirt, constructor.LocalRig.Rig.Shirt, constructor.SelectedPack);
-        };
+            Stand stand = Singleton<Main>.Instance.Stand;
+            stand.Rig.OffsetNameTag(Configuration.CurrentTagOffset.Value);
+            stand.Display.SetTag(Configuration.CurrentTagOffset.Value);
+        }
     }
 }
