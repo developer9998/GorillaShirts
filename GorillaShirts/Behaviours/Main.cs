@@ -400,13 +400,16 @@ namespace GorillaShirts.Behaviours
 
         public void CatalogLoadChanged((int shirtsLoaded, int shirtsToLoad) tuple)
         {
+            float loadAmount = Mathf.Clamp01(tuple.shirtsLoaded / (float)tuple.shirtsToLoad);
+            loadAmount = Mathf.Approximately(loadAmount, 0f) ? 0f : loadAmount;
+
             if (Stand.Object.transform.Find("UI/LoadMenu/LoadCircle").TryGetComponent(out Image loadCircle))
             {
-                loadCircle.fillAmount = Mathf.Clamp01(tuple.shirtsLoaded / (float)tuple.shirtsToLoad);
+                loadCircle.fillAmount = loadAmount;
             }
             if (Stand.Object.transform.Find("UI/LoadMenu/LoadPercentText").TryGetComponent(out Text LoadPercentText))
             {
-                LoadPercentText.text = $"{Mathf.RoundToInt(Mathf.Clamp01(tuple.shirtsLoaded / (float)tuple.shirtsToLoad) * 100f)}%";
+                LoadPercentText.text = $"{Mathf.RoundToInt(loadAmount * 100f)}%";
             }
         }
 

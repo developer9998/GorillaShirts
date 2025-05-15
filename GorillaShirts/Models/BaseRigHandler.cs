@@ -26,6 +26,8 @@ namespace GorillaShirts.Models
 
         public bool Invisible = false;
 
+        public Dictionary<EShirtComponentType, UnityLayer> LayerOverrides = [];
+
         public List<IShirtAsset> Shirts
         {
             get => shirts;
@@ -123,10 +125,19 @@ namespace GorillaShirts.Models
                     newSectorObject.transform.localScale = child.localScale;
                     newObjects.Add(newSectorObject);
                     newSectorObject.SetActive(!Invisible);
+
                     if (newSectorObject.TryGetComponent(out ShirtVisual visual))
                     {
                         visual.RigHandler = this;
                         visual.enabled = true;
+                    }
+
+                    if (LayerOverrides.TryGetValue(type, out UnityLayer layer))
+                    {
+                        newSectorObject.GetComponentsInChildren<Renderer>()
+                            .Select(renderer => renderer.gameObject)
+                            .Distinct()
+                            .ForEach(gameObject => gameObject.SetLayer(layer));
                     }
                 }
             }

@@ -6,7 +6,7 @@
 
         public const string Name = "GorillaShirts";
 
-        public const string Version = "1.2.0";
+        public const string Version = "1.2.1";
 
 
         public const string BundlePath = "GorillaShirts.Content.legacyshirtbundle";
@@ -18,5 +18,7 @@
         public const string NetworkPropertiesKey = "ShirtProperties";
 
         public const int TagOffsetLimit = 6;
+
+        public const string DefaultShirtDownloadUrl = "https://github.com/developer9998/GorillaShirts/raw/refs/heads/main/DefaultGorillaShirts.zip";
     }
 }

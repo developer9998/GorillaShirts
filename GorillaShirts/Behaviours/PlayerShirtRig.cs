@@ -39,6 +39,11 @@ namespace GorillaShirts.Behaviours
 
             RigHandler.PlayerNameTags = [PlayerRig.playerText1, PlayerRig.playerText2];
 
+            if (PlayerRig.isOfflineVRRig || (PlayerRig.Creator is var creator && creator.IsLocal))
+            {
+                RigHandler.LayerOverrides.TryAdd(EShirtComponentType.Head, UnityLayer.MirrorOnly);
+            }
+
             RigLocalInvisiblityPatch.OnSetInvisibleToLocalPlayer += OnLocalInvisibilityChanged;
         }
 

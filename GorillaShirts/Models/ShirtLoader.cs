@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using GorillaShirts.Tools;
+using GorillaShirts.Utilities;
+using UnityEngine.Networking;
 
 namespace GorillaShirts.Models
 {
@@ -31,10 +34,10 @@ namespace GorillaShirts.Models
         {
             List<IShirtAsset> shirts = [];
 
-            var directories = Directory.GetDirectories(BasePath, "*", SearchOption.AllDirectories);
+            // var directories = Directory.GetDirectories(BasePath, "*", SearchOption.AllDirectories);
 
-            var legacy_files = Directory.GetFiles(BasePath, "*.shirt", SearchOption.TopDirectoryOnly).ToList();
-            directories.ForEach(directory => legacy_files.AddRange(Directory.GetFiles(directory, "*.shirt", SearchOption.TopDirectoryOnly)));
+            var legacy_files = Directory.GetFiles(BasePath, "*.shirt", SearchOption.AllDirectories).ToList();
+            // directories.ForEach(directory => legacy_files.AddRange(Directory.GetFiles(directory, "*.shirt", SearchOption.TopDirectoryOnly)));
 
             shirtsLoaded = 0;
             shirtsToLoad = legacy_files.Count;
@@ -53,6 +56,13 @@ namespace GorillaShirts.Models
             {
                 ShirtLoadStart -= initCallback;
                 ShirtLoadChanged -= updateCallback;
+            }
+
+            if (shirts.Count == 0)
+            {
+                await DownloadZip(Constants.DefaultShirtDownloadUrl, Path.Combine(BasePath, "DefaultGorillaShirts.zip"), BasePath);
+                List<Pack<IShirtAsset>> packList = await GetAllPacks(initCallback, updateCallback);
+                return packList;
             }
 
             Dictionary<string, Pack<IShirtAsset>> packs = [];
@@ -121,6 +131,31 @@ namespace GorillaShirts.Models
             shirtsLoaded += files.Count;
 
             return shirts;
+        }
+
+        public async Task DownloadZip(string url, string zipPath, string extractPath)
+        {
+            Logging.Info($"Downloading zip file at {url}");
+
+            UnityWebRequest request = new(url)
+            {
+                downloadHandler = new DownloadHandlerFile(zipPath)
+            };
+
+            UnityWebRequestAsyncOperation operation = request.SendWebRequest();
+            await TaskYieldUtils.Yield(operation);
+
+            if (request.result != UnityWebRequest.Result.Success)
+            {
+                Logging.Error($"Failed to download zip: {request.error}");
+                return;
+            }
+            request.Dispose();
+
+            Logging.Info($"Extracting zip file to {extractPath}");
+
+            ZipFile.ExtractToDirectory(zipPath, extractPath);
+            File.Delete(zipPath);
         }
     }
 }
