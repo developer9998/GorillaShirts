@@ -53,7 +53,9 @@ namespace GorillaShirts.Behaviours.UI
             new MagmarenaLocation(),
             new HoverpackLocation(),
             new CrittersLocation(),
-            new GhostReactorLocation()
+            new GhostReactorLocation(),
+            new SharedMonkeBlockLocation(),
+            new RankedLocation()
         ];
 
         public void Awake()
