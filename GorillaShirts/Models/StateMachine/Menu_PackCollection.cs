@@ -27,11 +27,9 @@ namespace GorillaShirts.Models.StateMachine
         {
             base.Enter();
             stand.mainMenuRoot.SetActive(true);
-            stand.rigButtonObject.SetActive(false);
-            stand.captureButtonObject.SetActive(false);
-            stand.shuffleButtonObject.SetActive(false);
-            stand.tagOffsetControlObject.SetActive(false);
             stand.navigationRoot.SetActive(false);
+            SetSidebarState(false);
+
             PreviewPack();
         }
 
@@ -58,7 +56,7 @@ namespace GorillaShirts.Models.StateMachine
             StringBuilder str = new();
             str.AppendLine(pack.Description.EnforceLength(256));
 
-            if (!string.IsNullOrEmpty(pack.AdditionalNote)) 
+            if (!string.IsNullOrEmpty(pack.AdditionalNote))
                 str.AppendLine().Append("<color=#FF4C4C><size=4>NOTE: ").Append(pack.AdditionalNote).Append("</size></color>");
 
             stand.descriptionText.text = str.ToString();

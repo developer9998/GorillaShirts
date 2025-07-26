@@ -1,28 +1,41 @@
-﻿using GorillaShirts.Tools;
+﻿using UnityEngine;
+
+#if PLUGIN
+using GorillaExtensions;
+using GorillaShirts.Tools;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using UnityEngine.Rendering;
+#endif
 
 namespace GorillaShirts.Behaviours.Appearance
 {
-    [RequireComponent(typeof(MeshRenderer))]
+    [RequireComponent(typeof(MeshRenderer)), DisallowMultipleComponent]
+    [AddComponentMenu("GorillaShirts/Appearance/Custom Colour")]
     public class ShirtCustomColour : MonoBehaviour
     {
+#if PLUGIN
         public int[] MaterialIndexes = [0];
+#else
+        public int[] MaterialIndexes = new int[1] { 0 };
+#endif
 
         public bool ApplyValueChanges = true;
 
 #if PLUGIN
 
+        [SerializeField]
+        public ShirtColourProfile ShirtProfile;
+
         private List<Material> materials;
 
         private List<string> colourPropertyNames;
 
-        public ShirtProfile ShirtProfile;
-
         public void Start()
         {
+            Logging.Message("ShirtCustomColour");
+            Logging.Info(transform.GetPath());
+
             materials = [];
             colourPropertyNames = [];
 

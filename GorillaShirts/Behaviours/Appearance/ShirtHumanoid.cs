@@ -74,7 +74,7 @@ namespace GorillaShirts.Behaviours.Appearance
             {
                 shirtComponentObjects.ForEach(gameObject =>
                 {
-                    if (gameObject.TryGetComponent(out ShirtProfile profile))
+                    if (gameObject.TryGetComponent(out ShirtColourProfile profile))
                     {
                         profile.Humanoid = this;
                         profile.enabled = true;
@@ -115,7 +115,7 @@ namespace GorillaShirts.Behaviours.Appearance
                     newObjects.Add(newSectorObject);
                     newSectorObject.SetActive(!Invisible);
 
-                    if (newSectorObject.TryGetComponent(out ShirtProfile profile))
+                    if (newSectorObject.TryGetComponent(out ShirtColourProfile profile))
                     {
                         profile.Humanoid = this;
                         profile.enabled = true;
@@ -162,7 +162,7 @@ namespace GorillaShirts.Behaviours.Appearance
             {
                 shirtComponentObjects.ForEach(gameObject =>
                 {
-                    if (gameObject.TryGetComponent(out ShirtProfile profile))
+                    if (gameObject.TryGetComponent(out ShirtColourProfile profile))
                     {
                         profile.enabled = false;
                     }

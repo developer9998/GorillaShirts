@@ -1,9 +1,6 @@
 ﻿using GorillaNetworking;
-using GorillaShirts.Extensions;
-using Oculus.Platform;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 using Object = UnityEngine.Object;

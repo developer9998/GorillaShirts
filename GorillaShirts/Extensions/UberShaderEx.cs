@@ -26,16 +26,21 @@ namespace GorillaShirts.Extensions
             keywords = supportedKeywords;
         }
 
-        public static Material CreateUberShaderVariant(this Material baseMaterial)
+        public static Material CreateUberMaterial(this Material baseMaterial)
         {
-            if (baseMaterial == null || !supportedShaderNames.Contains(baseMaterial.shader.name))
+            Shader uberShader = UberShader.GetShader();
+
+            if (baseMaterial == null || !baseMaterial || !supportedShaderNames.Contains(baseMaterial.shader.name) || baseMaterial.shader == uberShader)
                 return baseMaterial;
+
+            if (baseMaterial.shader.name == uberShader.name)
+                return baseMaterial.ResolveUberMaterial();
 
             GetKeywords();
 
             Material uberMaterial = new(baseMaterial)
             {
-                shader = UberShader.GetShader()
+                shader = uberShader
             };
 
             int propertyCount = baseMaterial.shader.GetPropertyCount();
@@ -67,13 +72,15 @@ namespace GorillaShirts.Extensions
             return uberMaterial;
         }
 
-        public static Material UpdateUberShaderMaterial(this Material baseMaterial)
+        public static Material ResolveUberMaterial(this Material baseMaterial)
         {
-            if (baseMaterial == null || !baseMaterial || baseMaterial.shader.name != UberShader.GetShader().name) return null;
+            Shader uberShader = UberShader.GetShader();
+
+            if (baseMaterial == null || !baseMaterial || baseMaterial.shader.name != uberShader.name) return null;
 
             Material uberMaterial = new(baseMaterial)
             {
-                shader = UberShader.GetShader()
+                shader = uberShader
             };
             return uberMaterial;
         }

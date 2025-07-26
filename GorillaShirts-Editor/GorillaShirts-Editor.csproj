@@ -35,6 +35,18 @@
 		<Compile Include="..\GorillaShirts\Behaviours\Appearance\StandCharacterHumanoid.cs">
 			<Link>Behaviours\Appearance\StandCharacterHumanoid.cs</Link>
 		</Compile>
+		<Compile Include="..\GorillaShirts\Behaviours\Appearance\ShirtCustomColour.cs">
+			<Link>Behaviours\Appearance\ShirtCustomColour.cs</Link>
+		</Compile>
+		<Compile Include="..\GorillaShirts\Behaviours\Appearance\ShirtCustomMaterial.cs">
+			<Link>Behaviours\Appearance\ShirtCustomMaterial.cs</Link>
+		</Compile>
+		<Compile Include="..\GorillaShirts\Behaviours\Appearance\ShirtBillboard.cs">
+			<Link>Behaviours\Appearance\ShirtBillboard.cs</Link>
+		</Compile>
+		<Compile Include="..\GorillaShirts\Behaviours\Appearance\ShirtWobbleRoot.cs">
+			<Link>Behaviours\Appearance\ShirtWobbleRoot.cs</Link>
+		</Compile>
 	</ItemGroup>
 
 	<ItemGroup>

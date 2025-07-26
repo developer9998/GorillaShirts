@@ -20,12 +20,10 @@ namespace GorillaShirts.Models.StateMachine
         {
             base.Enter();
             stand.mainMenuRoot.SetActive(true);
-            stand.rigButtonObject.SetActive(true);
-            stand.captureButtonObject.SetActive(true);
-            stand.shuffleButtonObject.SetActive(true);
-            stand.tagOffsetControlObject.SetActive(true);
             stand.navigationRoot.SetActive(true);
             stand.navigationText.text = pack.PackName;
+            SetSidebarState(true);
+
             ViewShirt();
             ConfigureSidebar();
         }

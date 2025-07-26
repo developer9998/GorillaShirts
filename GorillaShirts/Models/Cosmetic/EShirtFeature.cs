@@ -7,7 +7,7 @@ namespace GorillaShirts.Models.Cosmetic
     {
         Audio = 1 << 0,
         Billboard = 1 << 1,
-        ColourRule = 1 << 2,
+        CustomColours = 1 << 2,
         Invisibility = 1 << 3,
         Light = 1 << 4,
         Particles = 1 << 5,

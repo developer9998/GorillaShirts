@@ -55,7 +55,7 @@ namespace GorillaShirts.Behaviours.Networking
                         humanoid.OffsetNameTag(tagOffset);
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Logging.Error(ex);
                 }
@@ -93,7 +93,7 @@ namespace GorillaShirts.Behaviours.Networking
                         }
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Logging.Error(ex);
                 }

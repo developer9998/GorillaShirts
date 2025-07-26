@@ -14,5 +14,13 @@ namespace GorillaShirts.Models.StateMachine
         {
 
         }
+
+        public void SetSidebarState(bool active)
+        {
+            stand.rigButtonObject.SetActive(active);
+            stand.captureButtonObject.SetActive(active);
+            stand.shuffleButtonObject.SetActive(active);
+            stand.tagOffsetControlObject.SetActive(active);
+        }
     }
 }

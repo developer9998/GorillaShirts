@@ -3,6 +3,7 @@
 namespace GorillaShirts.Behaviours.Cosmetic
 {
     [DisallowMultipleComponent]
+    [AddComponentMenu("GorillaShirts/Shirt Descriptor")]
     public class ShirtDescriptor : MonoBehaviour
     {
         public string ShirtName;

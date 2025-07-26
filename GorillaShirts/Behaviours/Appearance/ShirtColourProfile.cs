@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace GorillaShirts.Behaviours.Appearance
 {
-    public class ShirtProfile : MonoBehaviour
+    public class ShirtColourProfile : MonoBehaviour
     {
         public ShirtHumanoid Humanoid;
 
@@ -17,7 +17,7 @@ namespace GorillaShirts.Behaviours.Appearance
 
         public void CheckForVRRig()
         {
-            if (Rig == null) Rig = Humanoid?.Root?.GetComponent<VRRig>() ?? GetComponentInParent<VRRig>();
+            if (Rig == null || !Rig) Rig = Humanoid?.Root?.GetComponent<VRRig>() ?? GetComponentInParent<VRRig>();
         }
 
         public void OnEnable()

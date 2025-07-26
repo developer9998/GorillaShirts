@@ -88,9 +88,10 @@ namespace GorillaShirts.Models.Cosmetic
                 Descriptor.Author = dataJson.infoDescriptor.shirtAuthor.Trim('"');
                 Descriptor.Description = dataJson.infoDescriptor.shirtDescription;
 
-                if (dataJson.infoConfig.customColors) Features |= EShirtFeature.ColourRule;
+                if (dataJson.infoConfig.customColors) Features |= EShirtFeature.CustomColours;
                 if (dataJson.infoConfig.invisibility) Features |= EShirtFeature.Invisibility;
 
+                Template.name = $"{Descriptor.ShirtName} Legacy Asset";
                 ShirtId = Encoding.UTF8.GetString(Encoding.Default.GetBytes($"{Descriptor.PackName}/{Descriptor.ShirtName}"));
 
                 foreach (Transform child in Template.transform)
@@ -121,7 +122,7 @@ namespace GorillaShirts.Models.Cosmetic
                             return;
                         }
 
-                        Logging.Info($"{Descriptor.ShirtName} has {sectorType}");
+                        Logging.Info($"{Descriptor.ShirtName} (legacy) has {sectorType}");
 
                         Objects |= sectorType;
                         body_part.name = sectorType.ToString();
@@ -139,21 +140,22 @@ namespace GorillaShirts.Models.Cosmetic
                         Descriptor.SectorList.Add(newSector);
                         */
 
-                        ShirtProfile visualParent = body_part.GetOrAddComponent<ShirtProfile>();
+                        ShirtColourProfile visualParent = body_part.GetOrAddComponent<ShirtColourProfile>();
                         visualParent.enabled = false;
 
                         List<Transform> bones = [], ignoreBones = [];
 
                         foreach (var decendant in body_part.GetComponentsInChildren<Transform>(true))
                         {
-                            bool colourSupport = decendant.GetComponent<Renderer>();
+                            bool colourSupport = false;
                             bool customColour = dataJson.infoConfig.customColors;
 
                             if (decendant.TryGetComponent(out Renderer renderer))
                             {
+                                colourSupport = true;
                                 if (renderer.materials != null && renderer.materials.Length != 0)
                                 {
-                                    renderer.materials = renderer.materials.Select(material => material.CreateUberShaderVariant()).ToArray();
+                                    renderer.materials = [.. renderer.materials.Select(material => material.CreateUberMaterial())];
                                 }
                             }
 
@@ -301,7 +303,6 @@ namespace GorillaShirts.Models.Cosmetic
         {
             public string assetName;
             public string packName;
-            public int version = 1;
 
             public SDescriptor infoDescriptor;
             public SConfig infoConfig;

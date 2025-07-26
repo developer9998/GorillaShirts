@@ -1,5 +1,4 @@
 ﻿using GorillaShirts.Behaviours.Cosmetic;
-using GorillaShirts.Extensions;
 using GorillaShirts.Models.Cosmetic;
 using GorillaShirts.Tools;
 using System;

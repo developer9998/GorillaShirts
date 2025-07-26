@@ -1,7 +1,6 @@
 ﻿using GorillaShirts.Behaviours.Cosmetic;
 using GorillaShirts.Behaviours.Networking;
 using GorillaShirts.Behaviours.UI;
-using GorillaShirts.Extensions;
 using GorillaShirts.Models;
 using GorillaShirts.Models.Cosmetic;
 using GorillaShirts.Models.StateMachine;
@@ -156,7 +155,7 @@ namespace GorillaShirts.Behaviours
                 if (packDescriptor.PackName == "Default") packDescriptor.Shuffle();
                 else packDescriptor.Shirts.Sort((x, y) => x.Descriptor.ShirtName.CompareTo(y.Descriptor.ShirtName));
 
-                for(int i = 0; i < packDescriptor.Shirts.Count; i++)
+                for (int i = 0; i < packDescriptor.Shirts.Count; i++)
                 {
                     if (Shirts.ContainsKey(packDescriptor.Shirts[i].ShirtId))
                     {

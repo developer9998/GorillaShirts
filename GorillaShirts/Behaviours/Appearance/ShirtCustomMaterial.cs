@@ -2,6 +2,8 @@
 
 namespace GorillaShirts.Behaviours.Appearance
 {
+    [RequireComponent(typeof(MeshRenderer)), DisallowMultipleComponent]
+    [AddComponentMenu("GorillaShirts/Appearance/Custom Material")]
     public class ShirtCustomMaterial : MonoBehaviour
     {
         // public EMaterialSource Source;
@@ -9,8 +11,14 @@ namespace GorillaShirts.Behaviours.Appearance
         public EAppearanceType Appearance;
 
 #if PLUGIN
+        public int[] MaterialIndexes = [0];
+#else
+        public int[] MaterialIndexes = new int[1] { 0 };
+#endif
 
-        public ShirtProfile ShirtProfile;
+#if PLUGIN
+
+        public ShirtColourProfile ShirtProfile;
 
         public Material BaseFurMaterial;
 
@@ -59,7 +67,7 @@ namespace GorillaShirts.Behaviours.Appearance
 
         public enum EAppearanceType
         {
-            Plain,
+            Fur,
             SyncColour,
             SyncMaterial
         }
