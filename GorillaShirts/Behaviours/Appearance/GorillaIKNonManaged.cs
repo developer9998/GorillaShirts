@@ -5,41 +5,25 @@ namespace GorillaShirts.Behaviours.Appearance
     internal class GorillaIKNonManaged : MonoBehaviour
     {
         public Transform leftUpperArm;
-
         public Transform leftLowerArm;
-
         public Transform leftHand;
-
         public Transform rightUpperArm;
-
         public Transform rightLowerArm;
-
         public Transform rightHand;
 
-
         public Transform targetLeft;
-
         public Transform targetRight;
 
+        private Quaternion initialUpperLeft;
+        private Quaternion initialLowerLeft;
+        private Quaternion initialUpperRight;
+        private Quaternion initialLowerRight;
+        private Quaternion newRotationUpper;
+        private Quaternion newRotationLower;
 
-        public Quaternion initialUpperLeft;
-
-        public Quaternion initialLowerLeft;
-
-        public Quaternion initialUpperRight;
-
-        public Quaternion initialLowerRight;
-
-        public Quaternion newRotationUpper;
-
-        public Quaternion newRotationLower;
-
-
-        public float dU;
-
-        public float dL;
-
-        public float dMax;
+        private float dU;
+        private float dL;
+        private float dMax;
 
         public void Start()
         {
@@ -52,7 +36,7 @@ namespace GorillaShirts.Behaviours.Appearance
             initialLowerRight = rightLowerArm.localRotation;
         }
 
-        public void Update()
+        public void LateUpdate()
         {
             ArmIK(ref leftUpperArm, ref leftLowerArm, ref leftHand, initialUpperLeft, initialLowerLeft, targetLeft);
             ArmIK(ref rightUpperArm, ref rightLowerArm, ref rightHand, initialUpperRight, initialLowerRight, targetRight);

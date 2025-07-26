@@ -4,25 +4,22 @@ namespace GorillaShirts.Tools
 {
     public static class Logging
     {
-#pragma warning disable IDE0052 // Remove unread private members
-        private static ManualLogSource Logger;
-#pragma warning restore IDE0052 // Remove unread private members
+        private static ManualLogSource Logger => Plugin.Logger;
 
-        public static void Initialize(ManualLogSource logger)
-        {
-            Logger = logger;
-        }
+        public static void Message(object data) => Log(LogLevel.Message, data);
 
-        public static void Info(object data) => SendLog(LogLevel.Info, data);
+        public static void Info(object data) => Log(LogLevel.Info, data);
 
-        public static void Warning(object data) => SendLog(LogLevel.Warning, data);
+        public static void Warning(object data) => Log(LogLevel.Warning, data);
 
-        public static void Error(object data) => SendLog(LogLevel.Error, data);
+        public static void Error(object data) => Log(LogLevel.Error, data);
 
-        private static void SendLog(LogLevel logLevel, object data)
+        public static void Fatal(object data) => Log(LogLevel.Fatal, data);
+
+        private static void Log(LogLevel level, object data)
         {
 #if DEBUG
-            Logger?.Log(logLevel, data);
+            Logger.Log(level, data);
 #endif
         }
     }

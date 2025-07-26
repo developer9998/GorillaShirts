@@ -1,118 +1,101 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using GorillaShirts.Models;
+﻿using GorillaExtensions;
+using GorillaShirts.Models.Cosmetic;
 using GorillaShirts.Tools;
 using Photon.Realtime;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace GorillaShirts.Behaviours.Networking
 {
     [RequireComponent(typeof(RigContainer)), DisallowMultipleComponent]
-    public class NetworkedPlayer : MonoBehaviour
+    internal class NetworkedPlayer : MonoBehaviour
     {
         public bool HasGorillaShirts;
 
-        public VRRig PlayerRig;
+        public VRRig Rig;
 
-        public NetPlayer Owner;
+        public NetPlayer Creator;
 
-        private PlayerShirtRig ShirtRig;
+        private HumanoidContainer humanoid;
 
-        public async Task Start()
+        public void Start()
         {
-            ShirtRig = PlayerRig.gameObject.AddComponent<PlayerShirtRig>();
-            ShirtRig.PlayerRig = PlayerRig;
+            NetworkManager.Instance.OnPlayerPropertyChanged += OnPlayerPropertyChanged;
 
-            NetworkHandler.Instance.OnPlayerPropertyChanged += OnPlayerPropertyChanged;
+            humanoid = gameObject.GetOrAddComponent<HumanoidContainer>();
 
-            await Task.Delay(300);
+            if (!HasGorillaShirts && Creator is PunNetPlayer punPlayer && punPlayer.PlayerRef is Player playerRef)
+                NetworkManager.Instance.OnPlayerPropertiesUpdate(playerRef, playerRef.CustomProperties);
 
-            Player player = Owner.GetPlayerRef();
-            NetworkHandler.Instance.OnPlayerPropertiesUpdate(player, player.CustomProperties);
+            // humanoid.WearShirt(Main.Instance.Shirts.GetRandomItem());
         }
 
         public void OnDestroy()
         {
-            NetworkHandler.Instance.OnPlayerPropertyChanged -= OnPlayerPropertyChanged;
+            NetworkManager.Instance.OnPlayerPropertyChanged -= OnPlayerPropertyChanged;
 
-            if (HasGorillaShirts)
-            {
-                HasGorillaShirts = false;
-                Destroy(ShirtRig);
-            }
+            if (humanoid != null && humanoid) Destroy(humanoid);
         }
 
-        public void OnPlayerPropertyChanged(NetPlayer targetPlayer, Dictionary<string, object> properties)
+        public void OnPlayerPropertyChanged(NetPlayer player, Dictionary<string, object> properties)
         {
-            if (targetPlayer == Owner)
+            if (player == Creator)
             {
-                Logging.Info($"{targetPlayer.NickName} got updated properties");
+                Logging.Message($"{player.NickName} got properties");
+                //Logging.Info(string.Join(", ", properties.Select(prop => $"[{prop.Key}: {prop.Value}]")));
 
-                if (properties.TryGetValue("TagOffset", out object tagOffsetObject) && tagOffsetObject is int tagOffset)
+                try
                 {
-                    Logging.Info($"Tag Offset: {tagOffset}");
+                    if (properties.TryGetValue("TagOffset", out object tagOffsetObject) && tagOffsetObject is int tagOffset)
+                    {
+                        Logging.Info($"Tag Offset: {tagOffset}");
 
-                    ShirtRig.RigHandler.OffsetNameTag(tagOffset);
+                        humanoid.OffsetNameTag(tagOffset);
+                    }
+                }
+                catch(Exception ex)
+                {
+                    Logging.Error(ex);
                 }
 
-                if (properties.TryGetValue("Shirts", out object shirtsObject) && shirtsObject is string[] shirt_names)
+                try
                 {
-                    Logging.Info($"Shirts: {string.Join(", ", shirt_names)}");
-
-                    List<IShirtAsset> wornShirts = [], removedShirts = [];
-
-                    var shirts = new List<IShirtAsset>(ShirtRig.RigHandler.Shirts);
-
-                    foreach (var shirt in shirts)
+                    if (properties.TryGetValue("Shirts", out object shirtsObject) && shirtsObject is string[] shirtPreferences)
                     {
-                        if (shirt_names.Length > 0 && shirt_names.Contains(shirt.Descriptor.Name)) continue;
-                        removedShirts.Add(shirt);
-                    }
+                        Logging.Info($"Shirts: {string.Join(", ", shirtPreferences)}");
 
-                    foreach (var shirt_name in shirt_names)
-                    {
-                        if (ShirtRig.RigHandler.ShirtNames.Contains(shirt_name) || !Main.Shirts.TryGetValue(shirt_name, out IShirtAsset shirt)) continue;
-                        wornShirts.Add(shirt);
-                    }
-
-                    if (wornShirts.Count > 0)
-                    {
-                        int shirtVolume = wornShirts.Count;
-                        float audioVolume = 1f / shirtVolume;
-
-                        foreach (var shirt in wornShirts)
+                        List<IGorillaShirt> shirtsToRemove = [];
+                        List<IGorillaShirt> currentShirts = [.. humanoid.Shirts];
+                        foreach (IGorillaShirt shirt in currentShirts)
                         {
-                            ShirtRig.RigHandler.WearShirt(shirt);
-                            if (shirt.Descriptor.CustomWearSound)
-                            {
-                                Singleton<Main>.Instance.PlayCustomAudio(PlayerRig, shirt.Descriptor.CustomWearSound, 0.5f * audioVolume);
-                            }
-                            else
-                            {
-                                Singleton<Main>.Instance.PlayShirtAudio(PlayerRig, 0, 0.5f * audioVolume);
-                            }
+                            if (shirtPreferences.Length > 0 && shirtPreferences.Contains(shirt.ShirtId)) continue;
+                            shirtsToRemove.Add(shirt);
+                        }
+
+                        List<IGorillaShirt> shirtsToWear = [];
+                        foreach (string preference in shirtPreferences)
+                        {
+                            if (humanoid.Shirts.Any(shirt => shirt.ShirtId == preference) || !Main.Instance.Shirts.TryGetValue(preference, out IGorillaShirt shirt)) continue;
+                            shirtsToWear.Add(shirt);
+                        }
+
+                        if (shirtsToWear.Count > 0)
+                        {
+                            shirtsToWear.ForEach(humanoid.UnionShirt);
+                            Main.Instance.PlayShirtWearSound(humanoid.Rig, shirts: [.. shirtsToWear]);
+                        }
+                        else if (shirtsToRemove.Count > 0)
+                        {
+                            shirtsToRemove.ForEach(humanoid.NegateShirt);
+                            Main.Instance.PlayShirtRemoveSound(humanoid.Rig, shirts: [.. shirtsToRemove]);
                         }
                     }
-                    else if (removedShirts.Count > 0)
-                    {
-                        int shirtVolume = removedShirts.Count;
-                        float audioVolume = 1f / shirtVolume;
-
-                        foreach (var shirt in removedShirts)
-                        {
-                            ShirtRig.RigHandler.RemoveShirt(shirt);
-                            if (shirt.Descriptor.CustomRemoveSound)
-                            {
-                                Singleton<Main>.Instance.PlayCustomAudio(PlayerRig, shirt.Descriptor.CustomRemoveSound, 0.5f * audioVolume);
-                            }
-                            else
-                            {
-                                Singleton<Main>.Instance.PlayShirtAudio(PlayerRig, EShirtAudio.ShirtRemove, 0.5f * audioVolume);
-                            }
-                        }
-                    }
+                }
+                catch(Exception ex)
+                {
+                    Logging.Error(ex);
                 }
             }
         }

@@ -1,108 +1,82 @@
-﻿using UnityEngine;
-
-#if PLUGIN
-using System.Collections.Generic;
-using System.Linq;
-using GorillaShirts.Models;
-using GorillaShirts.Models.Locations;
-using GorillaShirts.Extensions;
-#endif
+﻿using GorillaShirts.Behaviours.Appearance;
+using TMPro;
+using UnityEngine;
+using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 namespace GorillaShirts.Behaviours.UI
 {
     public class Stand : MonoBehaviour
     {
-        public GameObject Object;
+        public GameObject Root;
 
-        public AudioSource Audio;
+        public AudioSource AudioDevice;
 
         public Camera Camera;
 
-        public MainMenu Display;
+        public StandCharacterHumanoid Character;
 
-#if PLUGIN
-        public StandRigHandler Rig; // TODO: define standrig in unity
+        [Header("Welcome Menu")]
 
-        private List<Renderer> renderers;
+        public GameObject welcomeMenuRoot;
 
-        private Dictionary<Renderer, Material[]> original_materials;
+        public TMP_Text tipText;
 
-        private Dictionary<Renderer, Material[]> uber_shader_materials;
+        [Header("Shirt Process/Load Menu")]
 
-        private bool uber_variants_used = false;
+        public GameObject loadMenuRoot;
 
-        private readonly List<IStandLocation> locations =
-        [
-            new ForestLocation(),
-            new CaveLocation(),
-            new CanyonLocation(),
-            new CityLocation(),
-            new MountainLocation(),
-            new CloudsLocation(),
-            new BasementLocation(),
-            new BeachLocation(),
-            new TutorialLocation(),
-            new RotatingLocation(),
-            new MetropolisLocation(),
-            new ArcadeLocation(),
-            new BayouLocation(),
-            new VStumpLocation(),
-            new AtriumLocation(),
-            new MonkeBlockLocation(),
-            new MinesLocation(),
-            new MagmarenaLocation(),
-            new HoverpackLocation(),
-            new CrittersLocation(),
-            new GhostReactorLocation()
-        ];
+        public Image loadRadial;
 
-        public void Awake()
-        {
-            ZoneManagement.OnZoneChange += OnZoneChange;
+        public Text loadPercent;
 
-            renderers = [.. Object.GetComponentsInChildren<Renderer>(true)];
+        [Header("Version Notice Screen")]
 
-            original_materials = renderers.ToDictionary(renderer => renderer, renderer => renderer.materials);
+        public GameObject versionMenuRoot;
 
-            uber_shader_materials = renderers.ToDictionary(renderer => renderer, renderer => renderer.materials.Select(material => material.CreateUberShaderVariant()).ToArray());
-        }
+        public TMP_Text versionDiffText;
 
-        public void OnZoneChange(ZoneData[] zones)
-        {
-            IEnumerable<GTZone> activeZones = zones.Where(zone => zone.active).Select(zone => zone.zone);
-            OnZoneChange(activeZones.ToArray());
-        }
+        [TextArea(2, 4)]
+        public string versionDiffFormat;
 
-        public void OnZoneChange(GTZone[] zones)
-        {
-            foreach (GTZone currentZone in zones)
-            {
-                IStandLocation currentLocation = locations.Find(location => location.Zones.Contains(currentZone));
+        [Header("Main Menu")]
 
-                if (currentLocation != null)
-                {
-                    bool use_uber_variants = currentZone == GTZone.ghostReactor;
-                    if (uber_variants_used != use_uber_variants)
-                    {
-                        uber_variants_used = use_uber_variants;
-                        renderers.ForEach(renderer => renderer.materials = uber_variants_used ? uber_shader_materials[renderer] : original_materials[renderer]);
-                    }
-                    MoveStand(currentLocation.Position, currentLocation.EulerAngles);
-                    return;
-                }
-            }
+        public GameObject mainMenuRoot;
 
-            Object.SetActive(false);
-        }
+        public GameObject navigationRoot;
 
-        public void MoveStand(Transform transform) => MoveStand(transform.position, transform.eulerAngles);
+        public GameObject mainContentRoot;
 
-        public void MoveStand(Vector3 position, Vector3 direction)
-        {
-            Object.transform.position = position;
-            Object.transform.rotation = Quaternion.Euler(direction);
-            Object.SetActive(true);
-        }
-#endif
+        public GameObject infoContentRoot;
+
+        public TMP_Text navigationText;
+
+        public TMP_Text headerText;
+
+        [TextArea(2, 8)]
+        public string headerFormat;
+
+        public Text playerInfoText;
+
+        [TextArea(4, 6), FormerlySerializedAs("personalDataFormat")]
+        public string playerInfoFormat;
+
+        public TMP_Text descriptionText;
+
+        public GameObject[] featureObjects;
+
+        public TMP_Text shirtStatusText;
+
+        public GameObject rigButtonObject;
+
+        public GameObject sillyHeadObject, steadyHeadObject;
+
+        public GameObject captureButtonObject;
+
+        public GameObject shuffleButtonObject;
+
+        public GameObject tagOffsetControlObject;
+
+        public Text tagOffsetText;
     }
 }
