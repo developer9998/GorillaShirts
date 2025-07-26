@@ -35,9 +35,9 @@ namespace GorillaShirts.Models
             DirectoryInfo directoryInfo = new(directory);
             Logging.Message($"LoadShirts: {directoryInfo.FullName}");
 
-            FileInfo[] files = directoryInfo.GetFiles("*.gshirt*", SearchOption.AllDirectories);
+            FileInfo[] files = directoryInfo.GetFiles("*.gshirt", SearchOption.AllDirectories);
             Logging.Info($"{files.Length} files: {string.Join(", ", files.Select(file => file.Name))}");
-            FileInfo[] legacyFiles = directoryInfo.GetFiles("*.shirt*", SearchOption.AllDirectories);
+            FileInfo[] legacyFiles = directoryInfo.GetFiles("*.shirt", SearchOption.AllDirectories);
             Logging.Info($"{legacyFiles.Length} legacy files: {string.Join(", ", legacyFiles.Select(file => file.Name))}");
 
             contentLoaded = 0;
@@ -69,10 +69,8 @@ namespace GorillaShirts.Models
             {
                 pack.Author = string.Join(", ", pack.Shirts.Select(shirt => shirt.Descriptor.Author).Distinct().OrderBy(author => author, StringComparer.CurrentCultureIgnoreCase));
 
-                if (hardcodedDescriptions.TryGetValue(pack.PackName, out string description))
-                    pack.Description = description;
-                else
-                    pack.Description = $"{pack.PackName} is a pack containing {pack.Shirts.Count} shirts by {pack.Author}";
+                if (hardcodedDescriptions.TryGetValue(pack.PackName, out string description)) pack.Description = description;
+                else pack.Description = $"{pack.PackName} is a pack containing {pack.Shirts.Count} shirts by {pack.Author}";
 
                 int legacyShirtCount = pack.Shirts.Count(shirt => shirt is LegacyGorillaShirt);
                 if (legacyShirtCount == pack.Shirts.Count) pack.AdditionalNote = "All shirts in pack were made for an earlier version of GorillaShirts";

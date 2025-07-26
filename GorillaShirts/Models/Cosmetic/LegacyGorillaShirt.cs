@@ -89,7 +89,13 @@ namespace GorillaShirts.Models.Cosmetic
                 Descriptor.Description = dataJson.infoDescriptor.shirtDescription;
 
                 if (dataJson.infoConfig.customColors) Features |= EShirtFeature.CustomColours;
-                if (dataJson.infoConfig.invisibility) Features |= EShirtFeature.Invisibility;
+
+                if (dataJson.infoConfig.invisibility)
+                {
+                    Features |= EShirtFeature.Invisibility;
+                    Descriptor.BodyType = EShirtBodyType.Invisible;
+                }
+                // else Descriptor.BodyType = EShirtBodyType.Default;
 
                 Template.name = $"{Descriptor.ShirtName} Legacy Asset";
                 ShirtId = Encoding.UTF8.GetString(Encoding.Default.GetBytes($"{Descriptor.PackName}/{Descriptor.ShirtName}"));

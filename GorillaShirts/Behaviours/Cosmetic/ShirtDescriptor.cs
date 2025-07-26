@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using GorillaShirts.Models.Cosmetic;
+using UnityEngine;
 
 namespace GorillaShirts.Behaviours.Cosmetic
 {
@@ -39,6 +40,8 @@ namespace GorillaShirts.Behaviours.Cosmetic
         public GameObject LeftHand;
 
         public GameObject RightHand;
+
+        public EShirtBodyType BodyType;
 
         public AudioClip CustomWearSound;
 

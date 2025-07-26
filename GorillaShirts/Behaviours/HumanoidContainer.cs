@@ -52,20 +52,14 @@ namespace GorillaShirts.Behaviours
 
         public override void OnShirtWorn()
         {
-            SetInvisiblityState(ApplyInvisibility);
+            RefreshBodyRenderer();
             MoveNameTag();
         }
 
         public override void OnShirtRemoved()
         {
-            SetInvisiblityState(false);
+            RefreshBodyRenderer();
             MoveNameTag();
-        }
-
-        private void SetInvisiblityState(bool invisible)
-        {
-            MainSkin.forceRenderingOff = invisible;
-            FaceSkin.forceRenderingOff = invisible;
         }
 
         private void OnLocalInvisibilityChanged(VRRig targetRig, bool isInvisible)
@@ -73,7 +67,7 @@ namespace GorillaShirts.Behaviours
             if (targetRig is null || targetRig != Rig)
                 return;
 
-            Invisible = isInvisible;
+            InvisibleToLocalPlayer = isInvisible;
 
             var shirts = Shirts;
             foreach (var shirtAsset in shirts)
@@ -83,6 +77,11 @@ namespace GorillaShirts.Behaviours
                     objects.ForEach(gameObject => gameObject.SetActive(!isInvisible));
                 }
             }
+        }
+
+        private void RefreshBodyRenderer()
+        {
+            if (Rig != null && Rig.bodyRenderer is GorillaBodyRenderer bodyRenderer) bodyRenderer.Refresh();
         }
     }
 }

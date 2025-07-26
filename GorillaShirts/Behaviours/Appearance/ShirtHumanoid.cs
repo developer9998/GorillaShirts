@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 
 #if PLUGIN
+using GorillaShirts.Behaviours.Cosmetic;
 using GorillaShirts.Extensions;
 using GorillaShirts.Models.Cosmetic;
 using System;
@@ -31,15 +32,15 @@ namespace GorillaShirts.Behaviours.Appearance
 
         public Dictionary<IGorillaShirt, List<GameObject>> Objects = [];
 
-        public bool Invisible = false;
+        public bool InvisibleToLocalPlayer = false;
+
+        public EShirtBodyType BodyType = EShirtBodyType.Default;
 
         public Dictionary<EShirtObject, UnityLayer> LayerOverrides = [];
 
         public readonly List<IGorillaShirt> Shirts = [];
 
         public int NameTagOffset;
-
-        public bool ApplyInvisibility = false;
 
         public void SetShirt(IGorillaShirt shirt) => SetShirts(shirt == null ? [] : [shirt]);
 
@@ -79,7 +80,7 @@ namespace GorillaShirts.Behaviours.Appearance
                         profile.Humanoid = this;
                         profile.enabled = true;
                     }
-                    gameObject.SetActive(!Invisible);
+                    gameObject.SetActive(!InvisibleToLocalPlayer);
                 });
 
                 goto ApplyCheck;
@@ -113,7 +114,7 @@ namespace GorillaShirts.Behaviours.Appearance
                     newSectorObject.transform.localEulerAngles = child.localEulerAngles;
                     newSectorObject.transform.localScale = child.localScale;
                     newObjects.Add(newSectorObject);
-                    newSectorObject.SetActive(!Invisible);
+                    newSectorObject.SetActive(!InvisibleToLocalPlayer);
 
                     if (newSectorObject.TryGetComponent(out ShirtColourProfile profile))
                     {
@@ -180,7 +181,18 @@ namespace GorillaShirts.Behaviours.Appearance
 
         public void CheckShirts()
         {
-            ApplyInvisibility = Shirts.Any(shirt => shirt.Features.HasFlag(EShirtFeature.Invisibility));
+            BodyType = EShirtBodyType.Default;
+
+            foreach(ShirtDescriptor descriptor in Shirts.Select(shirt => shirt.Descriptor))
+            {
+                if (descriptor.BodyType == EShirtBodyType.Invisible)
+                {
+                    BodyType = EShirtBodyType.Invisible;
+                    break;
+                }
+                if (descriptor.BodyType > BodyType) BodyType = descriptor.BodyType;
+            }
+
             MoveNameTag();
         }
 

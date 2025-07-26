@@ -47,6 +47,9 @@
 		<Compile Include="..\GorillaShirts\Behaviours\Appearance\ShirtWobbleRoot.cs">
 			<Link>Behaviours\Appearance\ShirtWobbleRoot.cs</Link>
 		</Compile>
+		<Compile Include="..\GorillaShirts\Models\Cosmetic\EShirtBodyType.cs">
+			<Link>Models\Cosmetic\EShirtBodyType.cs</Link>
+		</Compile>
 	</ItemGroup>
 
 	<ItemGroup>

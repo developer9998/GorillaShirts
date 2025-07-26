@@ -27,34 +27,6 @@ namespace GorillaShirts.Models.Cosmetic
         public EShirtObject Objects { get; private set; }
         public EShirtFeature Features { get; private set; }
 
-        private static readonly List<Type> allowedTypeList =
-        [
-            typeof(Transform),
-            typeof(MeshFilter),
-            typeof(MeshRenderer),
-            typeof(Light),
-            typeof(ReflectionProbe),
-            typeof(AudioSource),
-            typeof(Animator),
-            typeof(TextMesh),
-            typeof(ParticleSystem),
-            typeof(ParticleSystemRenderer),
-            typeof(RectTransform),
-            typeof(SpriteRenderer),
-            typeof(BillboardRenderer),
-            typeof(Canvas),
-            typeof(CanvasRenderer),
-            typeof(CanvasScaler),
-            typeof(GraphicRaycaster),
-            typeof(TrailRenderer),
-            typeof(Camera),
-            typeof(Text),
-            typeof(ShirtDescriptor),
-            typeof(ShirtCustomColour),
-            typeof(ShirtCustomMaterial),
-            typeof(ShirtWobbleRoot)
-        ];
-
         private static Material furMaterial = null;
 
         public async Task CreateShirt(FileInfo file)
@@ -81,7 +53,7 @@ namespace GorillaShirts.Models.Cosmetic
 
                 if (Template.TryGetComponent(out ShirtDescriptor shirtDescriptor))
                 {
-                    SanitizeObjectRecursive(Template);
+                    Template.SanitizeObjectRecursive();
 
                     Descriptor = shirtDescriptor;
                     Template.name = $"{Descriptor.ShirtName} Asset";
@@ -237,32 +209,6 @@ namespace GorillaShirts.Models.Cosmetic
                 taskCompletionSource.SetResult(outRequest.asset as T);
             };
             return await taskCompletionSource.Task;
-        }
-
-        private static void SanitizeObjectRecursive(GameObject gameObject)
-        {
-            SanitizeObject(gameObject);
-            for (int i = 0; i < gameObject.transform.childCount; i++)
-            {
-                GameObject child = gameObject.transform.GetChild(i).gameObject;
-                if (child != null && child)
-                {
-                    SanitizeObjectRecursive(child);
-                }
-            }
-        }
-
-        private static void SanitizeObject(GameObject gameObject)
-        {
-            if (gameObject == null || !gameObject) return;
-
-            Component[] components = gameObject.GetComponents<Component>();
-
-            for (int i = 0; i < components.Length; i++)
-            {
-                if (allowedTypeList.Contains(components[i].GetType())) continue;
-                Object.DestroyImmediate(components[i]);
-            }
         }
 
         public override string ToString() => Descriptor == null ? "n/a" : $"{Descriptor.Author}: {Descriptor.ShirtName}";

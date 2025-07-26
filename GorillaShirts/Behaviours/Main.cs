@@ -1,6 +1,7 @@
 ﻿using GorillaShirts.Behaviours.Cosmetic;
 using GorillaShirts.Behaviours.Networking;
 using GorillaShirts.Behaviours.UI;
+using GorillaShirts.Extensions;
 using GorillaShirts.Models;
 using GorillaShirts.Models.Cosmetic;
 using GorillaShirts.Models.StateMachine;
@@ -79,7 +80,7 @@ namespace GorillaShirts.Behaviours
 
             ShirtStand.Character.OnShirtWornEvent += delegate ()
             {
-                bool invisibility = ShirtStand.Character.ApplyInvisibility;
+                bool invisibility = ShirtStand.Character.BodyType == EShirtBodyType.Invisible;
 
                 ShirtStand.Character.MainSkin.forceRenderingOff = invisibility;
                 ShirtStand.Character.Head.Find("Face").gameObject.SetActive(!invisibility);
