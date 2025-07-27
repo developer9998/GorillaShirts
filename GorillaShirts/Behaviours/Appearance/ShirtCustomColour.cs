@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 #if PLUGIN
-using GorillaExtensions;
+//using GorillaExtensions;
 using GorillaShirts.Tools;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,8 +33,8 @@ namespace GorillaShirts.Behaviours.Appearance
 
         public void Start()
         {
-            Logging.Message("ShirtCustomColour");
-            Logging.Info(transform.GetPath());
+            //Logging.Message("ShirtCustomColour (Start)");
+            //Logging.Info(transform.GetPath());
 
             materials = [];
             colourPropertyNames = [];
@@ -68,8 +68,8 @@ namespace GorillaShirts.Behaviours.Appearance
                             if (shaderPropertyType == ShaderPropertyType.Color)
                             {
                                 string propertyName = material.shader.GetPropertyName(k);
-                                Logging.Message($"ShirtCustomColour identified property name");
-                                Logging.Info($"{material.name}: {propertyName}");
+                                //Logging.Message($"ShirtCustomColour identified property name");
+                                //Logging.Info($"{material.name}: {propertyName}");
                                 colourProperty = propertyName;
                                 break;
                             }
@@ -84,25 +84,12 @@ namespace GorillaShirts.Behaviours.Appearance
                 renderer.materials = providedMaterialArray;
             }
 
-            ApplyColour();
+            ShirtProfile.AddRecipient(this, ApplyColour);
         }
 
-        public void OnEnable()
-        {
-            ShirtProfile.OnColourChanged += ApplyColour;
-            ApplyColour();
-        }
-
-        public void OnDisable()
-        {
-            ShirtProfile.OnColourChanged -= ApplyColour;
-        }
-
-        public void ApplyColour()
+        public void ApplyColour(Color colour)
         {
             if (materials == null || materials.Count == 0) return;
-
-            Color colour = ShirtProfile.Colour;
 
             if (ApplyValueChanges)
             {
@@ -117,7 +104,6 @@ namespace GorillaShirts.Behaviours.Appearance
                 materials[i].SetColor(colourPropertyNames[i], colour);
             }
         }
-
 #endif
     }
 }

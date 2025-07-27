@@ -17,11 +17,18 @@ namespace GorillaShirts.Models.StateMachine
             stand.loadMenuRoot.SetActive(false);
         }
 
-        public void SetLoadAppearance(int assetsLoaded, int assetCount)
+        public void SetLoadAppearance(int assetsLoaded, int assetCount, int errorCount)
         {
-            float loadAmount = assetCount == 0 ? 0 : Mathf.Clamp01(assetsLoaded / (float)assetCount);
+            float loadAmount = Mathf.Approximately(assetsLoaded, 0) ? 0 : Mathf.Clamp01(assetsLoaded / (float)assetCount);
             stand.loadRadial.fillAmount = loadAmount;
             stand.loadPercent.text = $"{Mathf.RoundToInt(loadAmount * 100f)}%";
+
+            if (errorCount != 0 && stand.greenFlag.activeSelf)
+            {
+                stand.greenFlag.SetActive(false);
+                stand.redFlag.SetActive(true);
+            }
+            stand.flagText.text = errorCount.ToString();
         }
     }
 }

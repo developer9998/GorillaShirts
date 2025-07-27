@@ -38,7 +38,7 @@ namespace GorillaShirts.Models.StateMachine
         {
             IGorillaShirt shirt = pack.Shirts[pack.Selection];
 
-            stand.headerText.text = string.Format(stand.headerFormat, shirt.Descriptor.ShirtName.EnforceLength(20), "Shirt", shirt.Descriptor.Author);
+            stand.headerText.text = string.Format(stand.headerFormat, shirt.Descriptor.ShirtName.EnforceLength(20), "Shirt", shirt.Descriptor.Author.EnforceLength(30));
 
             List<IGorillaShirt> wornShirts = HumanoidContainer.LocalHumanoid.Shirts;
             if (wornShirts.Contains(shirt)) stand.shirtStatusText.text = "Remove";
@@ -54,6 +54,14 @@ namespace GorillaShirts.Models.StateMachine
                 str.AppendLine().Append("<color=#FF4C4C><size=4>NOTE: ").Append("This shirt was made for an earlier version of GorillaShirts, and may not have the latest features.").Append("</size></color>");
 
             stand.descriptionText.text = str.ToString();
+
+            var features = Enum.GetValues(typeof(EShirtFeature)).Cast<EShirtFeature>().ToList();
+
+            for(int i = 0; i < features.Count; i++)
+            {
+                if (stand.featureObjects.ElementAtOrDefault(i) is GameObject featureObject)
+                    featureObject.SetActive(shirt.Features.HasFlag(features[i]));
+            }
 
             stand.Character.SetShirt(shirt);
         }

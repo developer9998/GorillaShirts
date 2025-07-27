@@ -165,6 +165,25 @@ namespace GorillaShirts.Models.Cosmetic
                                 }
                             }
 
+                            if (decendant.TryGetComponent(out AudioSource audioSource))
+                            {
+                                if (!Features.HasFlag(EShirtFeature.Audio)) Features |= EShirtFeature.Audio;
+                                if (audioSource.spatialBlend == 0)
+                                {
+                                    audioSource.spatialBlend = 1f;
+                                    audioSource.rolloffMode = AudioRolloffMode.Linear;
+                                    audioSource.minDistance = 2f;
+                                    audioSource.maxDistance = 10f;
+                                    audioSource.volume = 0.5f;
+                                }
+                            }
+
+                            if ((decendant.GetComponent<ParticleSystem>() || decendant.GetComponent<ParticleSystemRenderer>()) && !Features.HasFlag(EShirtFeature.Particles))
+                                Features |= EShirtFeature.Particles;
+
+                            if (decendant.GetComponent<Light>() && !Features.HasFlag(EShirtFeature.Light))
+                                Features |= EShirtFeature.Light;
+
                             if (decendant.childCount > 0)
                             {
                                 for (int i = 0; i < decendant.childCount; i++)

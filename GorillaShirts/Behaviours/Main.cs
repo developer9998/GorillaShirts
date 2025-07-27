@@ -1,7 +1,6 @@
 ﻿using GorillaShirts.Behaviours.Cosmetic;
 using GorillaShirts.Behaviours.Networking;
 using GorillaShirts.Behaviours.UI;
-using GorillaShirts.Extensions;
 using GorillaShirts.Models;
 using GorillaShirts.Models.Cosmetic;
 using GorillaShirts.Models.StateMachine;
@@ -103,9 +102,11 @@ namespace GorillaShirts.Behaviours
                 }
             };
 
+            ShirtStand.Character.gameObject.SetActive(false);
+
             foreach (EAudioType audioType in Enum.GetValues(typeof(EAudioType)).Cast<EAudioType>())
             {
-                AudioClip audioClip = await AssetLoader.LoadAsset<AudioClip>(audioType.ToString());
+                AudioClip audioClip = await AssetLoader.LoadAsset<AudioClip>(audioType.GetName());
                 Audio.Add(audioType, audioClip);
             }
 
@@ -169,6 +170,7 @@ namespace GorillaShirts.Behaviours
                     if (shirtPreferences != null && shirtPreferences.Contains(packDescriptor.Shirts[i].ShirtId))
                     {
                         shirtsToWear.Add((packDescriptor.Shirts[i], packDescriptor));
+                        packDescriptor.Selection = i;
                     }
                 }
             }
@@ -184,6 +186,8 @@ namespace GorillaShirts.Behaviours
 
             menuState_PackList = new Menu_PackCollection(ShirtStand, Packs);
             MenuStateMachine.SwitchState(menuState_PackList);
+
+            ShirtStand.Character.gameObject.SetActive(true);
         }
 
         public void Update()

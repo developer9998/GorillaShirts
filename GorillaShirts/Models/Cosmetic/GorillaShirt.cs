@@ -11,9 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.InputSystem.HID;
 using UnityEngine.Rendering;
-using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 namespace GorillaShirts.Models.Cosmetic
@@ -79,6 +77,25 @@ namespace GorillaShirts.Models.Cosmetic
                                 {
                                     wobbleList.Add(wobbleRoot);
                                 }
+
+                                if (decendant.TryGetComponent(out AudioSource audioSource))
+                                {
+                                    if (!Features.HasFlag(EShirtFeature.Audio)) Features |= EShirtFeature.Audio;
+                                    if (audioSource.spatialBlend == 0f)
+                                    {
+                                        audioSource.spatialBlend = 1f;
+                                        audioSource.rolloffMode = AudioRolloffMode.Linear;
+                                        audioSource.minDistance = 2f;
+                                        audioSource.maxDistance = 10f;
+                                        audioSource.volume = 0.5f;
+                                    }
+                                }
+
+                                if (!Features.HasFlag(EShirtFeature.Particles) && (decendant.GetComponent<ParticleSystem>() || decendant.GetComponent<ParticleSystemRenderer>()))
+                                    Features |= EShirtFeature.Particles;
+
+                                if (!Features.HasFlag(EShirtFeature.Light) && decendant.GetComponent<Light>())
+                                    Features |= EShirtFeature.Light;
 
                                 if (decendant.TryGetComponent(out MeshRenderer renderer))
                                 {

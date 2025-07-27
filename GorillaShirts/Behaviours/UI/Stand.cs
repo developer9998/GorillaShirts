@@ -20,15 +20,23 @@ namespace GorillaShirts.Behaviours.UI
 
         public GameObject welcomeMenuRoot;
 
-        public TMP_Text tipText;
-
         [Header("Shirt Process/Load Menu")]
 
         public GameObject loadMenuRoot;
 
         public Image loadRadial;
 
-        public Text loadPercent;
+        public TMP_Text loadPercent;
+
+        public TMP_Text didYouKnowText;
+
+        public TMP_Text flagText;
+
+        public GameObject greenFlag;
+
+        public GameObject redFlag;
+
+        public TMP_Text loadStatusText;
 
         [Header("Version Notice Screen")]
 

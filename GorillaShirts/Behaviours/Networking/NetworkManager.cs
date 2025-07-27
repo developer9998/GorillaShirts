@@ -89,13 +89,11 @@ namespace GorillaShirts.Behaviours.Networking
 
             if (changedProps.ContainsKey(Constants.NetworkPropertyKey))
             {
-                Logging.Info($"{netPlayer.NickName} has GorillaShirts property");
                 propertiesObject = changedProps[Constants.NetworkPropertyKey];
             }
-            else if (changedProps.ContainsKey("ShirtProperties"))
+            else if (changedProps.ContainsKey("GorillaShirts"))
             {
-                Logging.Info($"{netPlayer.NickName} has ShirtProperties property");
-                propertiesObject = changedProps["ShirtProperties"];
+                propertiesObject = changedProps["GorillaShirts"];
             }
 
             if (propertiesObject != null && propertiesObject is Dictionary<string, object> properties)

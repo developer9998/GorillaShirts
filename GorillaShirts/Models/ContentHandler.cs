@@ -14,11 +14,11 @@ namespace GorillaShirts.Models
 {
     internal class ContentHandler(string directory)
     {
-        public event Action<int, int> LoadStageCallback;
+        public event Action<int, int, int> LoadStageCallback;
 
         private readonly string directory = directory;
 
-        private int contentLoaded, contentCount;
+        private int contentLoaded, contentCount, errorCount;
 
         private readonly Dictionary<string, string> hardcodedDescriptions = new()
         {
@@ -42,7 +42,8 @@ namespace GorillaShirts.Models
 
             contentLoaded = 0;
             contentCount = files.Length + legacyFiles.Length;
-            LoadStageCallback?.Invoke(contentLoaded, contentCount);
+            errorCount = 0;
+            LoadStageCallback?.Invoke(contentLoaded, contentCount, errorCount);
 
             List<IGorillaShirt> shirts = [];
             shirts.AddRange(await LoadShirts<GorillaShirt>(files));
@@ -73,8 +74,8 @@ namespace GorillaShirts.Models
                 else pack.Description = $"{pack.PackName} is a pack containing {pack.Shirts.Count} shirts by {pack.Author}";
 
                 int legacyShirtCount = pack.Shirts.Count(shirt => shirt is LegacyGorillaShirt);
-                if (legacyShirtCount == pack.Shirts.Count) pack.AdditionalNote = "All shirts in pack were made for an earlier version of GorillaShirts";
-                else if (legacyShirtCount > 0) pack.AdditionalNote = "Some shirts in pack were made for an earlier version of GorillaShirts";
+                if (legacyShirtCount == pack.Shirts.Count) pack.AdditionalNote = "All shirts in pack were made in an earlier editor version";
+                else if (legacyShirtCount > 0) pack.AdditionalNote = "Some shirts in pack were made in an earlier editor version";
             }
 
             Logging.Info($"ShirtLoader loaded {contentLoaded} out of {contentCount} shirts");
@@ -96,19 +97,22 @@ namespace GorillaShirts.Models
                 await asset.CreateShirt(file);
 
                 contentLoaded++;
-                LoadStageCallback?.Invoke(contentLoaded, contentCount);
 
                 if (asset.Descriptor == null)
                 {
-                    Logging.Warning($"Shirt: {file.Name} is broken");
+                    Logging.Warning($"Shirt {file.Name}: broken");
                     File.Move(file.FullName, string.Concat(file, ".broken"));
+
+                    errorCount++;
+                    LoadStageCallback?.Invoke(contentLoaded, contentCount, errorCount);
                     continue;
                 }
 
+                LoadStageCallback?.Invoke(contentLoaded, contentCount, errorCount);
                 shirts.Add(asset);
             }
 
-            LoadStageCallback?.Invoke(contentLoaded, contentCount);
+            LoadStageCallback?.Invoke(contentLoaded, contentCount, errorCount);
 
             return shirts;
         }

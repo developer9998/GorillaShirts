@@ -7,6 +7,7 @@ using GorillaShirts.Models.UI;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Unity.Burst.CompilerServices;
 using UnityEngine;
 
 namespace GorillaShirts.Models.StateMachine
@@ -50,7 +51,7 @@ namespace GorillaShirts.Models.StateMachine
         {
             PackDescriptor pack = packs[packIndex];
 
-            stand.headerText.text = string.Format(stand.headerFormat, pack.PackName.EnforceLength(20), "Pack", pack.Author);
+            stand.headerText.text = string.Format(stand.headerFormat, pack.PackName.EnforceLength(20), "Pack", pack.Author.EnforceLength(30));
             stand.shirtStatusText.text = "View";
 
             StringBuilder str = new();
@@ -60,6 +61,12 @@ namespace GorillaShirts.Models.StateMachine
                 str.AppendLine().Append("<color=#FF4C4C><size=4>NOTE: ").Append(pack.AdditionalNote).Append("</size></color>");
 
             stand.descriptionText.text = str.ToString();
+
+            for (int i = 0; i < stand.featureObjects.Length; i++)
+            {
+                if (stand.featureObjects.ElementAtOrDefault(i) is GameObject featureObject && featureObject.activeSelf)
+                    featureObject.SetActive(false);
+            }
 
             shirtStack.Clear();
             PerformShirtCycle();

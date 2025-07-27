@@ -34,20 +34,11 @@ namespace GorillaShirts.Behaviours.Appearance
             }
 
             renderer = GetComponent<Renderer>();
-            ApplyColour();
+
+            ShirtProfile.AddRecipient(this, ApplyColour);
         }
 
-        public void OnEnable()
-        {
-            ShirtProfile.OnColourChanged += ApplyColour;
-        }
-
-        public void OnDisable()
-        {
-            ShirtProfile.OnColourChanged -= ApplyColour;
-        }
-
-        public void ApplyColour()
+        public void ApplyColour(Color colour)
         {
             if (material == null) return;
 
@@ -58,7 +49,7 @@ namespace GorillaShirts.Behaviours.Appearance
                     break;
                 default:
                     renderer.material = material;
-                    material.color = (Appearance == EAppearanceType.SyncColour && ShirtProfile.Rig) ? ShirtProfile.Colour : Color.white;
+                    material.color = (Appearance == EAppearanceType.SyncColour/* && ShirtProfile.Rig*/) ? colour : Color.white;
                     break;
             }
         }

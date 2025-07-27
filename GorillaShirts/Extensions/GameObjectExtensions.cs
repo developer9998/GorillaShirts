@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace GorillaShirts.Extensions
 {
-    internal static class GameObectExtensions
+    internal static class GameObjectExtensions
     {
         private static readonly List<Type> allowedTypeList =
         [

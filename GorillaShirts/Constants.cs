@@ -9,6 +9,6 @@
         public const string Version = "1.3.0.0";
 
         public const float NetworkRaiseInterval = 0.25f;
-        public const string NetworkPropertyKey = "GorillaShirts";
+        public const string NetworkPropertyKey = "ShirtProperties";//"GorillaShirts";
     }
 }

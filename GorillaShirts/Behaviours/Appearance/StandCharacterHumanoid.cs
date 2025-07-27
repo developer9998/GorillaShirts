@@ -3,6 +3,7 @@ using UnityEngine.UI;
 
 #if PLUGIN
 using System;
+using System.Linq;
 using GorillaShirts.Models.UI;
 #endif
 
@@ -46,6 +47,15 @@ namespace GorillaShirts.Behaviours.Appearance
                     characterNameTag.text = femIdentity;
                     MainSkin.material.color = femColour;
                     break;
+            }
+
+            GameObject[] allShirtObjects = Objects?.SelectMany(selector => selector.Value).ToArray();
+            for (int i = 0; i < allShirtObjects.Length; i++)
+            {
+                if (allShirtObjects[i].TryGetComponent(out ShirtColourProfile colourProfile))
+                {
+                    colourProfile.SetColour(MainSkin.material.color);
+                }
             }
         }
 

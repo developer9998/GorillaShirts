@@ -1,5 +1,4 @@
-﻿using GorillaNetworking;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -9,60 +8,41 @@ namespace GorillaShirts.Tools
 {
     internal class AssetLoader
     {
-        public static AssetBundle Bundle => is_bundle_loaded ? asset_bundle : null;
+        private static AssetBundle loadedBundle;
+        private static readonly Dictionary<string, Object> loadedAssets = [];
 
-        private static bool is_bundle_loaded;
-        private static AssetBundle asset_bundle;
-        private static Task bundle_load_task = null;
+        private static Task bundleLoadTask;
 
-        private static readonly Dictionary<string, object> loaded_assets = [];
-
-        private static async Task LoadBundle()
+        private static async Task LoadAssetBundle()
         {
+            TaskCompletionSource<AssetBundle> completionSource = new();
+
             Stream stream = typeof(Plugin).Assembly.GetManifestResourceStream("GorillaShirts.Content.legacyshirtbundle");
-            var bundleLoadRequest = AssetBundle.LoadFromStreamAsync(stream);
 
-            var taskCompletionSource = new TaskCompletionSource<AssetBundle>();
+            AssetBundleCreateRequest request = AssetBundle.LoadFromStreamAsync(stream);
+            request.completed += _ => completionSource.SetResult(request.assetBundle);
 
-            bundleLoadRequest.completed += operation =>
-            {
-                var outRequest = operation as AssetBundleCreateRequest;
-                taskCompletionSource.SetResult(outRequest.assetBundle);
-            };
-
-            asset_bundle = await taskCompletionSource.Task;
-            is_bundle_loaded = true;
-            stream.Close();
+            loadedBundle = await completionSource.Task;
         }
 
-        public static async Task<T> LoadAsset<T>(string name) where T : Object
+        public static async Task<T> LoadAsset<T>(string assetName) where T : Object
         {
-            if (loaded_assets.ContainsKey(name) && loaded_assets[name] is Object _loadedObject) return _loadedObject as T;
+            if (loadedAssets.TryGetValue(assetName, out Object asset) && asset is T) return (T)asset;
 
-            if (!is_bundle_loaded)
+            if (loadedBundle is null)
             {
-                bundle_load_task ??= LoadBundle();
-                await bundle_load_task;
+                bundleLoadTask ??= LoadAssetBundle();
+                await bundleLoadTask;
             }
 
-            var taskCompletionSource = new TaskCompletionSource<T>();
-            var assetLoadRequest = asset_bundle.LoadAssetAsync<T>(name);
+            TaskCompletionSource<T> completionSource = new();
 
-            assetLoadRequest.completed += operation =>
-            {
-                var outRequest = operation as AssetBundleRequest;
-                if (outRequest.asset == null)
-                {
-                    taskCompletionSource.SetResult(null);
-                    return;
-                }
+            AssetBundleRequest request = loadedBundle.LoadAssetAsync<T>(assetName);
+            request.completed += _ => completionSource.SetResult(request.asset is Object asset ? (T)asset : null);
 
-                taskCompletionSource.SetResult(outRequest.asset as T);
-            };
-
-            var asset = await taskCompletionSource.Task;
-            loaded_assets.AddOrUpdate(name, asset);
-            return asset;
+            T result = await completionSource.Task;
+            loadedAssets.Add(assetName, result);
+            return result;
         }
     }
 }
