@@ -63,7 +63,7 @@ namespace GorillaShirts.Models.StateMachine
                     featureObject.SetActive(shirt.Features.HasFlag(features[i]));
             }
 
-            stand.Character.SetShirt(shirt);
+            stand.Character.SetShirts(shirt.Concat(HumanoidContainer.LocalHumanoid.Shirts));
         }
 
         public void ConfigureSidebar()
