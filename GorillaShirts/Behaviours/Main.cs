@@ -1,4 +1,5 @@
-﻿using GorillaShirts.Behaviours.Cosmetic;
+﻿using Fusion;
+using GorillaShirts.Behaviours.Cosmetic;
 using GorillaShirts.Behaviours.Networking;
 using GorillaShirts.Behaviours.UI;
 using GorillaShirts.Models;
@@ -68,12 +69,12 @@ namespace GorillaShirts.Behaviours
             {
                 ShirtStand.sillyHeadObject.SetActive(preference == ECharacterPreference.Feminine);
                 ShirtStand.steadyHeadObject.SetActive(preference == ECharacterPreference.Masculine);
-                ShirtStand.AudioDevice.PlayOneShot(preference switch
+                PlayShirtAudio(preference switch
                 {
-                    ECharacterPreference.Masculine => Audio[EAudioType.SteadySpeech],
-                    ECharacterPreference.Feminine => Audio[EAudioType.SillySpeech],
-                    _ => null
-                });
+                    ECharacterPreference.Masculine => EAudioType.SteadySpeech,
+                    ECharacterPreference.Feminine => EAudioType.SillySpeech,
+                    _ => EAudioType.Error
+                }, 1f);
                 Plugin.StandCharacter.Value = preference;
             };
 
@@ -238,7 +239,7 @@ namespace GorillaShirts.Behaviours
             if (playerRig == null || shirts == null || shirts.Length == 0) return;
 
             int quantity = shirts.Length;
-            float volume = 1f / quantity;
+            float volume = 1 / (float)quantity;
 
             foreach (IGorillaShirt shirt in shirts)
             {
@@ -256,7 +257,7 @@ namespace GorillaShirts.Behaviours
             if (playerRig == null || shirts == null || shirts.Length == 0) return;
 
             int quantity = shirts.Length;
-            float volume = 1f / quantity;
+            float volume = 1 / (float)quantity;
 
             foreach (IGorillaShirt shirt in shirts)
             {
@@ -280,6 +281,17 @@ namespace GorillaShirts.Behaviours
             if (playerRig == null || clip == null) return;
             playerRig.tagSound.volume = 0.25f;
             playerRig.tagSound.GTPlayOneShot(clip, volume);
+        }
+
+        public void PlayShirtAudio(EAudioType audio, float volume)
+        {
+            if (!Audio.TryGetValue(audio, out AudioClip audioClip)) return;
+            PlayCustomAudio(audioClip, volume);
+        }
+
+        public void PlayCustomAudio(AudioClip clip, float volume)
+        {
+            ShirtStand.AudioDevice.GTPlayOneShot(clip, volume);
         }
     }
 }

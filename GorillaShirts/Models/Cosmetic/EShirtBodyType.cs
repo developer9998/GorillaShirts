@@ -4,7 +4,7 @@
     {
         Invisible = -1,
         Default,
-        NoHead,
-        Skeleton
+        NoHead
+        //Skeleton
     }
 }

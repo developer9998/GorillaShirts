@@ -57,6 +57,8 @@ namespace GorillaShirts.Behaviours.Appearance
                     colourProfile.SetColour(MainSkin.material.color);
                 }
             }
+
+            OnPreferenceSet?.Invoke(preference);
         }
 
         public override void MoveNameTag()

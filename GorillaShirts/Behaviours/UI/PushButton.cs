@@ -13,9 +13,9 @@ namespace GorillaShirts.Behaviours.UI
 
         public Color PressedColour = new Color32(140, 140, 140, 255);
 
-#if PLUGIN
-        public const float Debounce = 0.25f;
+        public float Debounce = 0.25f;
 
+#if PLUGIN
         private static float _lastPress;
 
         private Gradient gradient;

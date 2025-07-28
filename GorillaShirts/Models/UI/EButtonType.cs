@@ -1,11 +1,19 @@
-﻿namespace GorillaShirts.Models.UI
+﻿using System;
+using UnityEngine.Serialization;
+
+namespace GorillaShirts.Models.UI
 {
     internal enum EButtonType
     {
-        ShirtEquip,
-        ShirtIncrease,
-        ShirtDecrease,
+        [FormerlySerializedAs("ShirtEquip")]
+        NavigateSelect,
+        [FormerlySerializedAs("ShirtIncrease")]
+        NavigateIncrease,
+        [FormerlySerializedAs("ShirtDecrease")]
+        NavigateDecrease,
+        [Obsolete]
         PackDecrease,
+        [Obsolete]
         PackIncrease,
         Return,
         Info,

@@ -1,5 +1,6 @@
 ﻿using GorillaShirts.Models.Cosmetic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace GorillaShirts.Behaviours.Cosmetic
 {
@@ -43,9 +44,13 @@ namespace GorillaShirts.Behaviours.Cosmetic
 
         public EShirtBodyType BodyType;
 
-        public AudioClip CustomWearSound;
+        [FormerlySerializedAs("CustomWearSound")]
+        public AudioClip WearSound;
 
-        public AudioClip CustomRemoveSound;
+        [FormerlySerializedAs("CustomRemoveSound")]
+        public AudioClip RemoveSound;
+
+        public EShirtFallback Fallback;
 
 #if PLUGIN
 

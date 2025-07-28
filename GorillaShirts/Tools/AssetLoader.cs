@@ -23,6 +23,7 @@ namespace GorillaShirts.Tools
             request.completed += _ => completionSource.SetResult(request.assetBundle);
 
             loadedBundle = await completionSource.Task;
+            stream.Close();
         }
 
         public static async Task<T> LoadAsset<T>(string assetName) where T : Object

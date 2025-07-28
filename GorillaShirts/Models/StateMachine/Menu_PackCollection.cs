@@ -101,7 +101,7 @@ namespace GorillaShirts.Models.StateMachine
                 return;
             }
 
-            if (button == EButtonType.ShirtEquip)
+            if (button == EButtonType.NavigateSelect)
             {
                 PackDescriptor pack = packs[packIndex];
                 if (!menuPerPack.ContainsKey(pack)) menuPerPack.Add(pack, new Menu_ShirtCollection(stand, this, pack));
@@ -111,10 +111,10 @@ namespace GorillaShirts.Models.StateMachine
 
             switch (button)
             {
-                case EButtonType.ShirtIncrease:
+                case EButtonType.NavigateIncrease:
                     packIndex = (packIndex + 1) % packs.Count;
                     break;
-                case EButtonType.ShirtDecrease:
+                case EButtonType.NavigateDecrease:
                     packIndex = packIndex <= 0 ? (packIndex + packs.Count - 1) : (packIndex - 1);
                     break;
                 default:

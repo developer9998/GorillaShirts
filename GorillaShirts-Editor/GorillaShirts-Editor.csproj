@@ -50,6 +50,9 @@
 		<Compile Include="..\GorillaShirts\Models\Cosmetic\EShirtBodyType.cs">
 			<Link>Models\Cosmetic\EShirtBodyType.cs</Link>
 		</Compile>
+		<Compile Include="..\GorillaShirts\Models\Cosmetic\EShirtFallback.cs">
+			<Link>Models\Cosmetic\EShirtFallback.cs</Link>
+		</Compile>
 	</ItemGroup>
 
 	<ItemGroup>

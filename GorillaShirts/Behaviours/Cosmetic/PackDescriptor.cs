@@ -3,7 +3,7 @@
 #if PLUGIN
 using GorillaShirts.Models.Cosmetic;
 using System.Collections.Generic;
-using System.Linq;
+using Random = System.Random;
 #endif
 
 namespace GorillaShirts.Behaviours.Cosmetic
@@ -28,7 +28,15 @@ namespace GorillaShirts.Behaviours.Cosmetic
 
         public void Shuffle()
         {
-            Shirts = [.. Shirts.OrderBy(shirt => Random.value)];
+            Random random = new();
+
+            int shirtsToShuffle = Shirts.Count;
+            while (shirtsToShuffle > 1)
+            {
+                shirtsToShuffle--;
+                int index = random.Next(shirtsToShuffle + 1);
+                (Shirts[shirtsToShuffle], Shirts[index]) = (Shirts[index], Shirts[shirtsToShuffle]);
+            }
         }
 #endif
     }
