@@ -255,10 +255,6 @@ namespace GorillaShirts.Models.Cosmetic
                                     BendAngleCapCustomCurve = AnimationCurve.Linear(0f, 0.1f, 1f, 0.06f),
                                     SquashAndStretchCurveType = Chain.CurveType.ConstantZero,
                                     LengthStiffnessCurveType = Chain.CurveType.ConstantOne,
-                                    ParamsOverride = new()
-                                    {
-                                        Params = boneComponent.Params
-                                    },
                                     LooseRoot = !dataJson.infoConfig.wobbleLockRoot
                                 } : new()
                                 {
@@ -266,12 +262,13 @@ namespace GorillaShirts.Models.Cosmetic
                                     Exclusion = ignoreBones.ToArray(),
                                     SquashAndStretchCurveType = Chain.CurveType.ConstantZero,
                                     LengthStiffnessCurveType = Chain.CurveType.ConstantOne,
-                                    ParamsOverride = new()
-                                    {
-                                        Params = boneComponent.Params
-                                    },
                                     LooseRoot = !dataJson.infoConfig.wobbleLockRoot
                                 };
+
+                                SharedBoingParams boingParams = ScriptableObject.CreateInstance<SharedBoingParams>();
+                                boingParams.Params = boneComponent.Params;
+                                chain.ParamsOverride = boingParams;
+
                                 boneChainList.Add(chain);
                             }
 

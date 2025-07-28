@@ -13,24 +13,39 @@ namespace GorillaShirts.Models.StateMachine
 {
     internal class Menu_PackCollection(Stand stand, List<PackDescriptor> packs) : Menu_StateBase(stand)
     {
-        protected List<PackDescriptor> packs = packs;
+        protected List<PackDescriptor> filteredPackList;
 
+        // selection
         private int packIndex = 0;
+        private PackDescriptor lastPack;
 
+        // cycle
         private float previewCycleTimer = 0;
-
         private readonly Stack<IGorillaShirt> shirtStack = [];
 
         protected readonly Dictionary<PackDescriptor, Menu_ShirtCollection> menuPerPack = [];
 
         public override void Enter()
         {
+            filteredPackList = [.. packs.Where(pack => pack.Shirts.Count > 0)];
+
             base.Enter();
+
             stand.mainMenuRoot.SetActive(true);
             stand.navigationRoot.SetActive(false);
             SetSidebarState(false);
 
             PreviewPack();
+        }
+
+        public override void Resume()
+        {
+            base.Resume();
+
+            if (lastPack != null && filteredPackList.ElementAtOrDefault(packIndex) != lastPack && filteredPackList.Contains(lastPack))
+            {
+                packIndex = filteredPackList.IndexOf(lastPack);
+            }
         }
 
         public override void Exit()
@@ -48,9 +63,10 @@ namespace GorillaShirts.Models.StateMachine
 
         public void PreviewPack()
         {
-            PackDescriptor pack = packs[packIndex];
+            PackDescriptor pack = filteredPackList[packIndex];
+            lastPack = pack;
 
-            stand.headerText.text = string.Format(stand.headerFormat, pack.PackName.EnforceLength(20), "Pack", pack.Author.EnforceLength(30));
+            stand.headerText.text = string.Format(stand.headerFormat, pack.PackName.EnforceLength(20), "Pack", pack == Main.Instance.FavouritePack ? GorillaTagger.Instance.offlineVRRig.NormalizeName(true, NetworkSystem.Instance.GetMyNickName()) : pack.Author.EnforceLength(30));
             stand.shirtStatusText.text = "View";
 
             StringBuilder str = new();
@@ -79,7 +95,7 @@ namespace GorillaShirts.Models.StateMachine
 
             if (shirtStack.Count == 0)
             {
-                PackDescriptor pack = packs[packIndex];
+                PackDescriptor pack = filteredPackList[packIndex];
 
                 single = stand.Character.SingleShirt;
                 if (single != null && pack.Shirts.Contains(single)) shirtStack.Push(single);
@@ -87,10 +103,7 @@ namespace GorillaShirts.Models.StateMachine
                 pack.Shirts.Where(shirt => !shirtStack.Contains(shirt)).OrderBy(shirt => Random.value).ForEach(shirtStack.Push);
             }
 
-            if (shirtStack.TryPop(out single))
-            {
-                stand.Character.SetShirt(single);
-            }
+            if (shirtStack.TryPop(out single)) stand.Character.SetShirt(single);
         }
 
         public override void OnButtonPress(EButtonType button)
@@ -103,7 +116,7 @@ namespace GorillaShirts.Models.StateMachine
 
             if (button == EButtonType.NavigateSelect)
             {
-                PackDescriptor pack = packs[packIndex];
+                PackDescriptor pack = filteredPackList[packIndex];
                 if (!menuPerPack.ContainsKey(pack)) menuPerPack.Add(pack, new Menu_ShirtCollection(stand, this, pack));
                 Main.Instance.MenuStateMachine.SwitchState(menuPerPack[pack]);
                 return;
@@ -112,10 +125,10 @@ namespace GorillaShirts.Models.StateMachine
             switch (button)
             {
                 case EButtonType.NavigateIncrease:
-                    packIndex = (packIndex + 1) % packs.Count;
+                    packIndex = (packIndex + 1) % filteredPackList.Count;
                     break;
                 case EButtonType.NavigateDecrease:
-                    packIndex = packIndex <= 0 ? (packIndex + packs.Count - 1) : (packIndex - 1);
+                    packIndex = packIndex <= 0 ? (packIndex + filteredPackList.Count - 1) : (packIndex - 1);
                     break;
                 default:
                     return;

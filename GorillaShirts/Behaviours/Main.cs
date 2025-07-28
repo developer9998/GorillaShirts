@@ -1,4 +1,4 @@
-﻿using Fusion;
+﻿using BepInEx.Configuration;
 using GorillaShirts.Behaviours.Cosmetic;
 using GorillaShirts.Behaviours.Networking;
 using GorillaShirts.Behaviours.UI;
@@ -7,6 +7,7 @@ using GorillaShirts.Models.Cosmetic;
 using GorillaShirts.Models.StateMachine;
 using GorillaShirts.Models.UI;
 using GorillaShirts.Tools;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,6 +28,8 @@ namespace GorillaShirts.Behaviours
         public Dictionary<EAudioType, AudioClip> Audio = [];
 
         public ContentHandler Loader;
+
+        public PackDescriptor FavouritePack;
 
         public List<PackDescriptor> Packs;
 
@@ -148,9 +151,10 @@ namespace GorillaShirts.Behaviours
             Loader = new ContentHandler(Path.GetDirectoryName(Plugin.Info.Location));
             Loader.LoadStageCallback += menuState_Load.SetLoadAppearance;
 
-            Packs = [.. (await Loader.LoadContent()).OrderByDescending(pack => pack.Shirts.Max(shirt => shirt.FileInfo.LastWriteTime)).OrderBy(x => x.PackName == "Default" ? 0 : (x.PackName == "Custom" ? 1 : 2))];
+            Packs = [.. (await Loader.LoadContent()).OrderByDescending(pack => pack.Shirts.Max(shirt => shirt.FileInfo.LastWriteTime)).OrderBy(x => x.PackName == "Favourites" ? 0 : (x.PackName == "Default" ? 1 : (x.PackName == "Custom" ? 2 : 3)))];
 
-            string[] shirtPreferences = string.IsNullOrEmpty(Plugin.ShirtPreferences.Value) ? null : Plugin.ShirtPreferences.Value.Split(Environment.NewLine);
+            List<string> wornGorillaShirts = GetShirtNames(Plugin.ShirtPreferences);
+
             List<(IGorillaShirt shirt, PackDescriptor pack)> shirtsToWear = [];
 
             foreach (PackDescriptor packDescriptor in Packs)
@@ -168,7 +172,7 @@ namespace GorillaShirts.Behaviours
                     }
                     Shirts.Add(packDescriptor.Shirts[i].ShirtId, packDescriptor.Shirts[i]);
 
-                    if (shirtPreferences != null && shirtPreferences.Contains(packDescriptor.Shirts[i].ShirtId))
+                    if (wornGorillaShirts != null && wornGorillaShirts.Contains(packDescriptor.Shirts[i].ShirtId))
                     {
                         shirtsToWear.Add((packDescriptor.Shirts[i], packDescriptor));
                         packDescriptor.Selection = i;
@@ -185,6 +189,23 @@ namespace GorillaShirts.Behaviours
             }
             AdjustTagOffset(Plugin.TagOffsetPreference.Value);
 
+            FavouritePack = ScriptableObject.CreateInstance<PackDescriptor>();
+            FavouritePack.PackName = "Favourites";
+            FavouritePack.Author = null;
+            FavouritePack.Description = "Favourites contains all of your shirts you consider to be your favourite!";
+
+            Packs.Insert(0, FavouritePack);
+
+            List<string> favouriteShirts = GetShirtNames(Plugin.Favourites);
+
+            foreach (string shirtId in favouriteShirts)
+            {
+                if (Shirts.TryGetValue(shirtId, out IGorillaShirt shirt))
+                {
+                    FavouritePack.Shirts.Add(shirt);
+                }
+            }
+
             menuState_PackList = new Menu_PackCollection(ShirtStand, Packs);
             MenuStateMachine.SwitchState(menuState_PackList);
 
@@ -194,6 +215,20 @@ namespace GorillaShirts.Behaviours
         public void Update()
         {
             MenuStateMachine?.Update();
+        }
+
+        public bool IsFavourite(IGorillaShirt shirt) => FavouritePack.Shirts.Contains(shirt);
+
+        public void FavouriteShirt(IGorillaShirt shirt)
+        {
+            if (IsFavourite(shirt)) FavouritePack.Shirts.Remove(shirt);
+            else
+            {
+                FavouritePack.Shirts.Add(shirt);
+                // TODO: play sound
+            }
+
+            SetShirtNames(FavouritePack.Shirts, Plugin.Favourites);
         }
 
         public void HandleShirt(IGorillaShirt shirt)
@@ -209,9 +244,7 @@ namespace GorillaShirts.Behaviours
                 PlayShirtWearSound(LocalHumanoid.Rig, shirt);
             }
 
-            var shirtNames = LocalHumanoid.Shirts.Select(shirt => shirt.ShirtId).ToArray();
-            Plugin.ShirtPreferences.Value = (shirtNames == null || shirtNames.Length == 0) ? string.Empty : string.Join(Environment.NewLine, shirtNames);
-
+            SetShirtNames(LocalHumanoid.Shirts, Plugin.ShirtPreferences);
             NetworkShirts(LocalHumanoid.Shirts);
         }
 
@@ -292,6 +325,30 @@ namespace GorillaShirts.Behaviours
         public void PlayCustomAudio(AudioClip clip, float volume)
         {
             ShirtStand.AudioDevice.GTPlayOneShot(clip, volume);
+        }
+
+        private List<string> GetShirtNames(ConfigEntry<string> entry)
+        {
+            List<string> shirtNames = [];
+
+            try
+            {
+                string[] shirtArray = JsonConvert.DeserializeObject<string[]>(entry.Value);
+                Logging.Info($"Shirt array: {string.Join(", ", shirtArray)}");
+                shirtNames.AddRange(shirtArray);
+            }
+            catch (Exception)
+            {
+                entry.Value = JsonConvert.SerializeObject(Enumerable.Empty<string>());
+            }
+
+            return shirtNames;
+        }
+
+        private void SetShirtNames(IList<IGorillaShirt> shirts, ConfigEntry<string> entry)
+        {
+            var shirtNames = shirts == null ? Enumerable.Empty<string>().ToArray() : [.. shirts.Select(shirt => shirt.ShirtId)];
+            entry.Value = JsonConvert.SerializeObject(shirtNames, Formatting.None);
         }
     }
 }

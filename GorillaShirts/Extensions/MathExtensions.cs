@@ -1,0 +1,17 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace GorillaShirts.Extensions
+{
+    public static class MathExtensions
+    {
+        public static int Wrap(this int x, int min, int max)
+        {
+            int range = max - min;
+            int result = (x - min) % range;
+            if (result < 0) result += range;
+            return result + min;
+        }
+    }
+}

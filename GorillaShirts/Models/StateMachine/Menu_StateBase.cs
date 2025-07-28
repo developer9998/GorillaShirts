@@ -21,6 +21,7 @@ namespace GorillaShirts.Models.StateMachine
             stand.captureButtonObject.SetActive(active);
             stand.shuffleButtonObject.SetActive(active);
             stand.tagOffsetControlObject.SetActive(active);
+            stand.favouriteButtonObject.SetActive(active);
         }
     }
 }

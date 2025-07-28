@@ -39,6 +39,13 @@ namespace GorillaShirts.Models.StateMachine
 
         public void ViewShirt()
         {
+            if (pack.Shirts.Count == 0)
+            {
+                Main.Instance.MenuStateMachine.SwitchState(previousState);
+                return;
+            }
+
+            pack.Selection = pack.Selection.Wrap(0, pack.Shirts.Count);
             IGorillaShirt shirt = pack.Shirts[pack.Selection];
 
             stand.headerText.text = string.Format(stand.headerFormat, shirt.Descriptor.ShirtName.EnforceLength(20), "Shirt", shirt.Descriptor.Author.EnforceLength(30));
@@ -74,6 +81,12 @@ namespace GorillaShirts.Models.StateMachine
             stand.sillyHeadObject.SetActive(stand.Character.Preference == ECharacterPreference.Feminine);
             stand.steadyHeadObject.SetActive(stand.Character.Preference == ECharacterPreference.Masculine);
             stand.tagOffsetText.text = HumanoidContainer.LocalHumanoid.NameTagOffset.ToString();
+
+            if (pack.Shirts.Count != 0)
+            {
+                IGorillaShirt shirt = pack.Shirts[pack.Selection];
+                stand.favouriteButtonSymbol.color = Main.Instance.IsFavourite(shirt) ? Color.yellow : Color.white;
+            }
         }
 
         public async override void OnButtonPress(EButtonType button)
@@ -141,6 +154,11 @@ namespace GorillaShirts.Models.StateMachine
                     Main.Instance.AdjustTagOffset(Mathf.Max(HumanoidContainer.LocalHumanoid.NameTagOffset - 1, 0));
                     ConfigureSidebar();
                     return;
+                case EButtonType.Favourite:
+                    Main.Instance.FavouriteShirt(pack.Shirts[pack.Selection]);
+                    ViewShirt();
+                    ConfigureSidebar();
+                    return;
             }
 
             // main
@@ -150,10 +168,10 @@ namespace GorillaShirts.Models.StateMachine
                     Main.Instance.HandleShirt(pack.Shirts[pack.Selection]);
                     break;
                 case EButtonType.NavigateIncrease:
-                    pack.Selection = (pack.Selection + 1) % pack.Shirts.Count;
+                    pack.Selection++;
                     break;
                 case EButtonType.NavigateDecrease:
-                    pack.Selection = pack.Selection <= 0 ? (pack.Selection + pack.Shirts.Count - 1) : (pack.Selection - 1);
+                    pack.Selection--;
                     break;
                 default:
                     return;

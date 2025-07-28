@@ -32,7 +32,7 @@ namespace GorillaShirts.Behaviours
 
             PlayerNameTags = [Rig.playerText1, Rig.playerText2];
 
-            if (Rig.isOfflineVRRig || Rig.isLocal || (Rig.Creator is NetPlayer creator && creator.IsLocal))
+            if (LocalHumanoid == null && (Rig.isOfflineVRRig || Rig.isLocal || (Rig.Creator is NetPlayer creator && creator.IsLocal)))
             {
                 LayerOverrides.TryAdd(EShirtObject.Head, UnityLayer.MirrorOnly);
                 LocalHumanoid = this;

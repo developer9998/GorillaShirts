@@ -18,7 +18,7 @@ namespace GorillaShirts.Models.StateMachine
         {
             base.Enter();
             stand.versionMenuRoot.SetActive(true);
-            stand.versionDiffText.text = string.Format("{0} --> {1}", installed, latest);
+            stand.versionDiffText.text = string.Format(stand.versionDiffFormat, installed, latest);
         }
 
         public override void Exit()

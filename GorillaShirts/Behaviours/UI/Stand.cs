@@ -86,5 +86,9 @@ namespace GorillaShirts.Behaviours.UI
         public GameObject tagOffsetControlObject;
 
         public Text tagOffsetText;
+
+        public GameObject favouriteButtonObject;
+
+        public Image favouriteButtonSymbol;
     }
 }

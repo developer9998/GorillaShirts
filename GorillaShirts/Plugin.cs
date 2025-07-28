@@ -8,6 +8,7 @@ using HarmonyLib;
 using System;
 using System.Linq;
 using UnityEngine;
+using Newtonsoft.Json;
 
 namespace GorillaShirts
 {
@@ -18,7 +19,7 @@ namespace GorillaShirts
         public static new ManualLogSource Logger;
 
         public static ConfigEntry<ECharacterPreference> StandCharacter;
-        public static ConfigEntry<string> ShirtPreferences;
+        public static ConfigEntry<string> ShirtPreferences, Favourites;
         public static ConfigEntry<int> TagOffsetPreference;
 
         public void Awake()
@@ -28,8 +29,9 @@ namespace GorillaShirts
 
             Config.SaveOnConfigSet = true;
 
-            ShirtPreferences = Config.Bind("Preferences", "Shirts", string.Empty, "A collection of shirts worn by the player by name");
+            ShirtPreferences = Config.Bind("Preferences", "Shirts", JsonConvert.SerializeObject(Enumerable.Empty<string>()), "A collection of shirts worn by the player by name");
             TagOffsetPreference = Config.Bind("Preferences", "Tag Offset", 0, "The relative name tag offset applied to the player");
+            Favourites = Config.Bind("Preferences", "Favourites", JsonConvert.SerializeObject(Enumerable.Empty<string>()), "A collection of shirts favourited by the player");
 
             var characters = Enum.GetValues(typeof(ECharacterPreference)).Cast<ECharacterPreference>().ToArray();
             StandCharacter = Config.Bind("Appearance", "Stand Character Identity", characters[UnityEngine.Random.Range(0, characters.Length)], "The gender identity of the character present at the shirt stand");
