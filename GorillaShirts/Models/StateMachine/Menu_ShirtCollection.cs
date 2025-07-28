@@ -74,6 +74,8 @@ namespace GorillaShirts.Models.StateMachine
             }
 
             stand.Character.SetShirts(shirt.Concat(HumanoidContainer.LocalHumanoid.Shirts));
+
+            ConfigureSidebar();
         }
 
         public void ConfigureSidebar()
@@ -157,7 +159,6 @@ namespace GorillaShirts.Models.StateMachine
                 case EButtonType.Favourite:
                     Main.Instance.FavouriteShirt(pack.Shirts[pack.Selection]);
                     ViewShirt();
-                    ConfigureSidebar();
                     return;
             }
 
