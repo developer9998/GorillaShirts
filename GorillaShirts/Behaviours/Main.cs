@@ -192,7 +192,7 @@ namespace GorillaShirts.Behaviours
             FavouritePack = ScriptableObject.CreateInstance<PackDescriptor>();
             FavouritePack.PackName = "Favourites";
             FavouritePack.Author = null;
-            FavouritePack.Description = "Favourites contains all of your shirts you consider to be your favourite!";
+            FavouritePack.Description = "This is a special pack reserved for all of your favourite shirts!<br><br>To add or remove a shirt from your favourites, press the favourite button on the top right when viewing the shirt.";
 
             Packs.Insert(0, FavouritePack);
 

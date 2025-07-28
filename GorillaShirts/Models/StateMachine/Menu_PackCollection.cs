@@ -66,7 +66,7 @@ namespace GorillaShirts.Models.StateMachine
             PackDescriptor pack = filteredPackList[packIndex];
             lastPack = pack;
 
-            stand.headerText.text = string.Format(stand.headerFormat, pack.PackName.EnforceLength(20), "Pack", pack == Main.Instance.FavouritePack ? GorillaTagger.Instance.offlineVRRig.NormalizeName(true, NetworkSystem.Instance.GetMyNickName()) : pack.Author.EnforceLength(30));
+            stand.headerText.text = pack.Author == null ? pack.PackName.EnforceLength(20) : string.Format(stand.headerFormat, pack.PackName.EnforceLength(20), "Pack", pack.Author.EnforceLength(30));
             stand.shirtStatusText.text = "View";
 
             StringBuilder str = new();

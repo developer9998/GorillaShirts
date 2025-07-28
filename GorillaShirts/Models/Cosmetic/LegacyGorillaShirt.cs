@@ -151,6 +151,30 @@ namespace GorillaShirts.Models.Cosmetic
 
                         List<Transform> bones = [], ignoreBones = [];
 
+                        void FindFeature<T>(EShirtFeature feature, Action<T> handleFeature = null) where T : Component
+                        {
+                            var components = body_part.GetComponentsInChildren<T>();
+                            if (components.Length > 0)
+                            {
+                                Features |= feature;
+                                if (handleFeature != null) components.ForEach(component => handleFeature(component));
+                            }
+                        }
+
+                        FindFeature<AudioSource>(EShirtFeature.Audio, audioSource =>
+                        {
+                            if (audioSource.spatialBlend == 0)
+                            {
+                                audioSource.spatialBlend = 1f;
+                                audioSource.rolloffMode = AudioRolloffMode.Linear;
+                                audioSource.minDistance = 2f;
+                                audioSource.maxDistance = 10f;
+                                audioSource.volume = 0.5f;
+                            }
+                        });
+                        FindFeature<ParticleSystem>(EShirtFeature.Particles);
+                        FindFeature<Light>(EShirtFeature.Light);
+
                         foreach (var decendant in body_part.GetComponentsInChildren<Transform>(true))
                         {
                             bool colourSupport = false;
@@ -164,25 +188,6 @@ namespace GorillaShirts.Models.Cosmetic
                                     renderer.materials = [.. renderer.materials.Select(material => material.CreateUberMaterial())];
                                 }
                             }
-
-                            if (decendant.TryGetComponent(out AudioSource audioSource))
-                            {
-                                if (!Features.HasFlag(EShirtFeature.Audio)) Features |= EShirtFeature.Audio;
-                                if (audioSource.spatialBlend == 0)
-                                {
-                                    audioSource.spatialBlend = 1f;
-                                    audioSource.rolloffMode = AudioRolloffMode.Linear;
-                                    audioSource.minDistance = 2f;
-                                    audioSource.maxDistance = 10f;
-                                    audioSource.volume = 0.5f;
-                                }
-                            }
-
-                            if ((decendant.GetComponent<ParticleSystem>() || decendant.GetComponent<ParticleSystemRenderer>()) && !Features.HasFlag(EShirtFeature.Particles))
-                                Features |= EShirtFeature.Particles;
-
-                            if (decendant.GetComponent<Light>() && !Features.HasFlag(EShirtFeature.Light))
-                                Features |= EShirtFeature.Light;
 
                             if (decendant.childCount > 0)
                             {

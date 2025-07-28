@@ -71,31 +71,36 @@ namespace GorillaShirts.Models.Cosmetic
 
                             List<ShirtWobbleRoot> wobbleList = [];
 
+                            void FindFeature<T>(EShirtFeature feature, Action<T> handleFeature = null) where T : Component
+                            {
+                                var components = child.GetComponentsInChildren<T>();
+                                if (components.Length > 0)
+                                {
+                                    Features |= feature;
+                                    if (handleFeature != null) components.ForEach(component => handleFeature(component));
+                                }
+                            }
+
+                            FindFeature<AudioSource>(EShirtFeature.Audio, audioSource =>
+                            {
+                                if (audioSource.spatialBlend == 0)
+                                {
+                                    audioSource.spatialBlend = 1f;
+                                    audioSource.rolloffMode = AudioRolloffMode.Linear;
+                                    audioSource.minDistance = 2f;
+                                    audioSource.maxDistance = 10f;
+                                    audioSource.volume = 0.5f;
+                                }
+                            });
+                            FindFeature<ParticleSystem>(EShirtFeature.Particles);
+                            FindFeature<Light>(EShirtFeature.Light);
+
                             foreach (Transform decendant in child.GetComponentsInChildren<Transform>(true))
                             {
                                 if (decendant.TryGetComponent(out ShirtWobbleRoot wobbleRoot))
                                 {
                                     wobbleList.Add(wobbleRoot);
                                 }
-
-                                if (decendant.TryGetComponent(out AudioSource audioSource))
-                                {
-                                    if (!Features.HasFlag(EShirtFeature.Audio)) Features |= EShirtFeature.Audio;
-                                    if (audioSource.spatialBlend == 0f)
-                                    {
-                                        audioSource.spatialBlend = 1f;
-                                        audioSource.rolloffMode = AudioRolloffMode.Linear;
-                                        audioSource.minDistance = 2f;
-                                        audioSource.maxDistance = 10f;
-                                        audioSource.volume = 0.5f;
-                                    }
-                                }
-
-                                if (!Features.HasFlag(EShirtFeature.Particles) && (decendant.GetComponent<ParticleSystem>() || decendant.GetComponent<ParticleSystemRenderer>()))
-                                    Features |= EShirtFeature.Particles;
-
-                                if (!Features.HasFlag(EShirtFeature.Light) && decendant.GetComponent<Light>())
-                                    Features |= EShirtFeature.Light;
 
                                 if (decendant.TryGetComponent(out MeshRenderer renderer))
                                 {
