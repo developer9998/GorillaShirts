@@ -104,13 +104,13 @@ namespace GorillaShirts.Models.Cosmetic
                 {
                     if (child.gameObject.name == "OverrideWearClip" && child.TryGetComponent(out AudioSource customWearDevice))
                     {
-                        Descriptor.CustomWearSound = customWearDevice.clip;
+                        Descriptor.WearSound = customWearDevice.clip;
                         continue;
                     }
 
                     if (child.gameObject.name == "OverrideRemoveClip" && child.TryGetComponent(out AudioSource customRemoveDevice))
                     {
-                        Descriptor.CustomRemoveSound = customRemoveDevice.clip;
+                        Descriptor.RemoveSound = customRemoveDevice.clip;
                         continue;
                     }
                 }

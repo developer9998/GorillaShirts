@@ -243,9 +243,9 @@ namespace GorillaShirts.Behaviours
 
             foreach (IGorillaShirt shirt in shirts)
             {
-                if (shirt.Descriptor.CustomWearSound is not null)
+                if (shirt.Descriptor.WearSound is not null)
                 {
-                    PlayCustomAudio(playerRig, shirt.Descriptor.CustomWearSound, 0.5f * volume);
+                    PlayCustomAudio(playerRig, shirt.Descriptor.WearSound, 0.5f * volume);
                     continue;
                 }
                 PlayShirtAudio(playerRig, EAudioType.ShirtWear, 0.5f * volume);
@@ -261,9 +261,9 @@ namespace GorillaShirts.Behaviours
 
             foreach (IGorillaShirt shirt in shirts)
             {
-                if (shirt.Descriptor.CustomRemoveSound is not null)
+                if (shirt.Descriptor.RemoveSound is not null)
                 {
-                    PlayCustomAudio(playerRig, shirt.Descriptor.CustomRemoveSound, 0.5f * volume);
+                    PlayCustomAudio(playerRig, shirt.Descriptor.RemoveSound, 0.5f * volume);
                     continue;
                 }
                 PlayShirtAudio(playerRig, EAudioType.ShirtRemove, 0.5f * volume);
