@@ -1,7 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
-using GorillaExtensions;
 using GorillaShirts.Behaviours;
 using GorillaShirts.Behaviours.Networking;
 using GorillaShirts.Models.UI;
@@ -28,9 +27,12 @@ namespace GorillaShirts
             Logger = base.Logger;
 
             Config.SaveOnConfigSet = true;
-            StandCharacter = Config.Bind("Appearance", "Stand Character Identity", Enum.GetValues(typeof(ECharacterPreference)).Cast<ECharacterPreference>().ToList().GetRandomItem(), "The gender identity of the character present at the shirt stand");
+
             ShirtPreferences = Config.Bind("Preferences", "Shirts", string.Empty, "A collection of shirts worn by the player by name");
             TagOffsetPreference = Config.Bind("Preferences", "Tag Offset", 0, "The relative name tag offset applied to the player");
+
+            var characters = Enum.GetValues(typeof(ECharacterPreference)).Cast<ECharacterPreference>().ToArray();
+            StandCharacter = Config.Bind("Appearance", "Stand Character Identity", characters[UnityEngine.Random.Range(0, characters.Length)], "The gender identity of the character present at the shirt stand");
 
             Harmony.CreateAndPatchAll(typeof(Main).Assembly, Constants.GUID);
             GorillaTagger.OnPlayerSpawned(() => new GameObject(Constants.Name, typeof(NetworkManager), typeof(Main)));

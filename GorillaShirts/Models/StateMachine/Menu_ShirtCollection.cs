@@ -57,7 +57,7 @@ namespace GorillaShirts.Models.StateMachine
 
             var features = Enum.GetValues(typeof(EShirtFeature)).Cast<EShirtFeature>().ToList();
 
-            for(int i = 0; i < features.Count; i++)
+            for (int i = 0; i < features.Count; i++)
             {
                 if (stand.featureObjects.ElementAtOrDefault(i) is GameObject featureObject)
                     featureObject.SetActive(shirt.Features.HasFlag(features[i]));

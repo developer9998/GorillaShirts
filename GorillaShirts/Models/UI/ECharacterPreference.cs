@@ -2,7 +2,8 @@
 {
     public enum ECharacterPreference
     {
-        Masculine,
-        Feminine
+        Masculine, // Steady
+        Feminine // Silly
+        // TODO: add a gender neutral option for a configurable gorilla
     }
 }

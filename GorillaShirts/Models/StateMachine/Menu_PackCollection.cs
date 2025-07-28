@@ -7,7 +7,6 @@ using GorillaShirts.Models.UI;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Unity.Burst.CompilerServices;
 using UnityEngine;
 
 namespace GorillaShirts.Models.StateMachine

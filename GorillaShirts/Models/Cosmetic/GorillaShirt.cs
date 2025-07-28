@@ -140,14 +140,14 @@ namespace GorillaShirts.Models.Cosmetic
                                 Logging.Message("Has ShirtWobbleRoot");
                                 Dictionary<(bool LockTranslationX, bool LockTranslationY, bool LockTranslationZ), List<ShirtWobbleRoot>> wobbleDict = [];
 
-                                foreach(ShirtWobbleRoot wobbleRoot in wobbleList)
+                                foreach (ShirtWobbleRoot wobbleRoot in wobbleList)
                                 {
                                     var tuple = (wobbleRoot.LockTranslationX, wobbleRoot.LockTranslationY, wobbleRoot.LockTranslationZ);
                                     if (!wobbleDict.ContainsKey(tuple)) wobbleDict.Add(tuple, []);
                                     wobbleDict[tuple].Add(wobbleRoot);
                                 }
 
-                                foreach(var (tuple, wobbleListPerLock) in wobbleDict)
+                                foreach (var (tuple, wobbleListPerLock) in wobbleDict)
                                 {
                                     Logging.Info($"BoingBones: {tuple.LockTranslationX}, {tuple.LockTranslationY}, {tuple.LockTranslationZ}");
                                     BoingBones boingBones = child.AddComponent<BoingBones>();
@@ -155,7 +155,7 @@ namespace GorillaShirts.Models.Cosmetic
                                     boingBones.LockTranslationY = tuple.LockTranslationY;
                                     boingBones.LockTranslationZ = tuple.LockTranslationZ;
                                     List<BoingBones.Chain> chainList = [];
-                                    foreach(ShirtWobbleRoot wobbleRoot in wobbleListPerLock)
+                                    foreach (ShirtWobbleRoot wobbleRoot in wobbleListPerLock)
                                     {
                                         Logging.Info(wobbleRoot.gameObject.name);
                                         var chain = new BoingBones.Chain()

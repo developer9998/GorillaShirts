@@ -39,7 +39,7 @@ namespace GorillaShirts.Behaviours.Appearance
                 playerColour = Humanoid.MainSkin.material.color;
             }
 
-            foreach(var (behaviour, callback) in recievers)
+            foreach (var (behaviour, callback) in recievers)
             {
                 LogInfo(behaviour.GetType().Name);
                 behaviour.enabled = true;

@@ -183,7 +183,7 @@ namespace GorillaShirts.Behaviours.Appearance
         {
             BodyType = EShirtBodyType.Default;
 
-            foreach(ShirtDescriptor descriptor in Shirts.Select(shirt => shirt.Descriptor))
+            foreach (ShirtDescriptor descriptor in Shirts.Select(shirt => shirt.Descriptor))
             {
                 if (descriptor.BodyType == EShirtBodyType.Invisible)
                 {
