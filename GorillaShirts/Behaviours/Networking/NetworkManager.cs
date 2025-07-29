@@ -15,19 +15,19 @@ namespace GorillaShirts.Behaviours.Networking
         public Action<NetPlayer, Dictionary<string, object>> OnPlayerPropertyChanged;
 
         private readonly Dictionary<string, object> properties = [];
-        private bool setProperties;
+        private bool propertiesReady;
         private float propertySetTimer;
 
         public override void OnEnable()
         {
-            base.OnEnable();
-
             if (Instance != null && Instance != this)
             {
                 Destroy(this);
                 return;
             }
+
             Instance = this;
+            base.OnEnable();
 
             if (NetworkSystem.Instance is NetworkSystem netSys && netSys is NetworkSystemPUN)
             {
@@ -44,29 +44,20 @@ namespace GorillaShirts.Behaviours.Networking
             enabled = false;
         }
 
-        public override void OnDisable()
-        {
-            base.OnDisable();
-
-            if (Instance == this) Instance = null;
-        }
-
         public void Update()
         {
-            propertySetTimer -= Time.deltaTime;
+            propertySetTimer = Mathf.Max(propertySetTimer - Time.deltaTime, 0f);
 
-            if (setProperties && properties.Count > 0 && propertySetTimer <= 0)
+            if (propertiesReady && propertySetTimer <= 0)
             {
-                PhotonNetwork.LocalPlayer.SetCustomProperties(new()
-                {
-                    {
-                        Constants.NetworkPropertyKey,
-                        new Dictionary<string, object>(properties)
-                    }
-                });
-
-                setProperties = false;
+                propertiesReady = false;
                 propertySetTimer = Constants.NetworkRaiseInterval;
+
+                PhotonNetwork.LocalPlayer.SetCustomProperties(new()
+                {{
+                    Constants.NetworkPropertyKey,
+                    new Dictionary<string, object>(properties)
+                }});
             }
         }
 
@@ -74,9 +65,9 @@ namespace GorillaShirts.Behaviours.Networking
         {
             if (properties.ContainsKey(key)) properties[key] = value;
             else properties.Add(key, value);
-            setProperties = true;
-        }
 
+            propertiesReady = true;
+        }
 
         public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
         {
@@ -93,6 +84,7 @@ namespace GorillaShirts.Behaviours.Networking
             }
             else if (changedProps.ContainsKey("GorillaShirts"))
             {
+                // NOTE: "GorillaShirts" property is currently obsolete, though I'd like to adopt it once more updates come out that use this codebase
                 propertiesObject = changedProps["GorillaShirts"];
             }
 

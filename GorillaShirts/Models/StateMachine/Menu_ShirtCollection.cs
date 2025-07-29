@@ -48,7 +48,7 @@ namespace GorillaShirts.Models.StateMachine
             pack.Selection = pack.Selection.Wrap(0, pack.Shirts.Count);
             IGorillaShirt shirt = pack.Shirts[pack.Selection];
 
-            stand.headerText.text = string.Format(stand.headerFormat, shirt.Descriptor.ShirtName.EnforceLength(20), "Shirt", shirt.Descriptor.Author.EnforceLength(30));
+            stand.headerText.text = string.Format(stand.headerFormat, shirt.Descriptor.ShirtName.EnforceLength(50), "Shirt", shirt.Descriptor.Author.EnforceLength(30));
 
             List<IGorillaShirt> wornShirts = HumanoidContainer.LocalHumanoid.Shirts;
             if (wornShirts.Contains(shirt)) stand.shirtStatusText.text = "Remove";

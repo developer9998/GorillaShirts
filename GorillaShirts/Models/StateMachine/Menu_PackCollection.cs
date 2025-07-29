@@ -63,6 +63,7 @@ namespace GorillaShirts.Models.StateMachine
 
         public void PreviewPack()
         {
+            packIndex = packIndex.Wrap(0, filteredPackList.Count);
             PackDescriptor pack = filteredPackList[packIndex];
             lastPack = pack;
 
@@ -125,10 +126,10 @@ namespace GorillaShirts.Models.StateMachine
             switch (button)
             {
                 case EButtonType.NavigateIncrease:
-                    packIndex = (packIndex + 1) % filteredPackList.Count;
+                    packIndex++;
                     break;
                 case EButtonType.NavigateDecrease:
-                    packIndex = packIndex <= 0 ? (packIndex + filteredPackList.Count - 1) : (packIndex - 1);
+                    packIndex--;
                     break;
                 default:
                     return;

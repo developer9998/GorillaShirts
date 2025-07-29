@@ -151,7 +151,12 @@ namespace GorillaShirts.Behaviours
             Loader = new ContentHandler(Path.GetDirectoryName(Plugin.Info.Location));
             Loader.LoadStageCallback += menuState_Load.SetLoadAppearance;
 
-            Packs = [.. (await Loader.LoadContent()).OrderByDescending(pack => pack.Shirts.Max(shirt => shirt.FileInfo.LastWriteTime)).OrderBy(x => x.PackName == "Favourites" ? 0 : (x.PackName == "Default" ? 1 : (x.PackName == "Custom" ? 2 : 3)))];
+            Packs = [.. (await Loader.LoadContent()).OrderByDescending(pack => pack.Shirts.Max(shirt => shirt.FileInfo.LastWriteTime)).OrderBy(x => x.PackName switch
+            {
+                "Default" => 0,
+                "Custom" => 1,
+                _ => 99
+            })];
 
             List<string> wornGorillaShirts = GetShirtNames(Plugin.ShirtPreferences);
 
@@ -334,7 +339,6 @@ namespace GorillaShirts.Behaviours
             try
             {
                 string[] shirtArray = JsonConvert.DeserializeObject<string[]>(entry.Value);
-                Logging.Info($"Shirt array: {string.Join(", ", shirtArray)}");
                 shirtNames.AddRange(shirtArray);
             }
             catch (Exception)

@@ -27,8 +27,8 @@ namespace GorillaShirts.Behaviours.Appearance
         public void OnEnable()
         {
             LogMessage("ShirtColourProfile Enable");
-            CheckForVRRig();
 
+            CheckForVRRig();
             if (Rig != null)
             {
                 Rig.OnColorChanged += SetColour;
@@ -45,8 +45,6 @@ namespace GorillaShirts.Behaviours.Appearance
                 behaviour.enabled = true;
                 callback?.Invoke(playerColour);
             }
-
-            //Logging.Info($"ShirtVisual OnEnable {Mathf.RoundToInt(playerColour.r * 255)}, {Mathf.RoundToInt(playerColour.g * 255)}, {Mathf.RoundToInt(playerColour.b * 255)}");
         }
 
         public void OnDisable()
