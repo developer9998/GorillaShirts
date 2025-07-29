@@ -253,6 +253,9 @@ namespace GorillaShirts.Behaviours
 
         private void NetworkShirts(List<IGorillaShirt> shirts)
         {
+            var fallbacks = shirts.Select(shirt => shirt.Descriptor.Fallback).Select(fallback => (int)fallback).ToArray();
+            NetworkManager.Instance.SetProperty("Fallbacks", fallbacks);
+
             var shirtNames = shirts.Select(shirt => shirt.ShirtId).ToArray();
             NetworkManager.Instance.SetProperty("Shirts", shirtNames);
         }

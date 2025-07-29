@@ -28,7 +28,7 @@ namespace GorillaShirts.Behaviours.UI
 
         public GameObject welcomeMenuRoot;
 
-        [Header("Shirt Process/Load Menu")]
+        [Header("Load Menu")]
 
         public GameObject loadMenuRoot;
 
@@ -43,8 +43,6 @@ namespace GorillaShirts.Behaviours.UI
         public GameObject greenFlag;
 
         public GameObject redFlag;
-
-        public TMP_Text loadStatusText;
 
         [Header("Version Notice Screen")]
 
@@ -127,7 +125,6 @@ namespace GorillaShirts.Behaviours.UI
             renderers = Root.GetComponentsInChildren<Renderer>(true);
 
             materials = renderers.ToDictionary(renderer => renderer, renderer => renderer.materials);
-
             uberMaterials = renderers.ToDictionary(renderer => renderer, renderer => renderer.materials.Select(material => material.CreateUberMaterial()).ToArray());
 
             ZoneManagement.OnZoneChange += OnZoneChange;
