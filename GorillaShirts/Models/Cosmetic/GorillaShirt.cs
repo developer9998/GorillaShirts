@@ -20,6 +20,7 @@ namespace GorillaShirts.Models.Cosmetic
     {
         public string ShirtId { get; private set; }
         public FileInfo FileInfo { get; private set; }
+        public AssetBundle Bundle { get; private set; }
         public ShirtDescriptor Descriptor { get; private set; }
         public GameObject Template { get; private set; }
         public EShirtObject Objects { get; private set; }
@@ -30,12 +31,12 @@ namespace GorillaShirts.Models.Cosmetic
         public async Task CreateShirt(FileInfo file)
         {
             FileInfo = file;
-
-            AssetBundle assetBundle;
+            Bundle = null;
 
             try
             {
-                assetBundle = await LoadFromFile(file.FullName);
+                AssetBundle bundleFromFile = await LoadFromFile(file.FullName);
+                Bundle = bundleFromFile;
             }
             catch (Exception ex)
             {
@@ -46,7 +47,7 @@ namespace GorillaShirts.Models.Cosmetic
 
             try
             {
-                Template = await LoadAsset<GameObject>(assetBundle, "GorillaShirtAsset");
+                Template = await LoadAsset<GameObject>(Bundle, "GorillaShirtAsset");
                 Template.SetActive(false);
 
                 if (Template.TryGetComponent(out ShirtDescriptor shirtDescriptor))
@@ -88,7 +89,7 @@ namespace GorillaShirts.Models.Cosmetic
                                     audioSource.spatialBlend = 1f;
                                     audioSource.rolloffMode = AudioRolloffMode.Linear;
                                     audioSource.minDistance = 2f;
-                                    audioSource.maxDistance = 10f;
+                                    audioSource.maxDistance = 30f;
                                     audioSource.volume = 0.5f;
                                 }
                             });
@@ -145,6 +146,8 @@ namespace GorillaShirts.Models.Cosmetic
                                 Logging.Message("Has ShirtWobbleRoot");
                                 Dictionary<(bool LockTranslationX, bool LockTranslationY, bool LockTranslationZ), List<ShirtWobbleRoot>> wobbleDict = [];
 
+                                static BoingBones.Chain.CurveType ToNativeCurveType(ShirtWobbleRoot.CurveType curveType) => (BoingBones.Chain.CurveType)(int)curveType;
+                             
                                 foreach (ShirtWobbleRoot wobbleRoot in wobbleList)
                                 {
                                     var tuple = (wobbleRoot.LockTranslationX, wobbleRoot.LockTranslationY, wobbleRoot.LockTranslationZ);
@@ -168,15 +171,15 @@ namespace GorillaShirts.Models.Cosmetic
                                             Root = wobbleRoot.transform,
                                             Exclusion = wobbleRoot.Exclusion,
                                             LooseRoot = wobbleRoot.LooseRoot,
-                                            AnimationBlendCurveType = (BoingBones.Chain.CurveType)(int)wobbleRoot.AnimationBlendCurveType,
+                                            AnimationBlendCurveType = ToNativeCurveType(wobbleRoot.AnimationBlendCurveType),
                                             AnimationBlendCustomCurve = wobbleRoot.AnimationBlendCustomCurve,
-                                            LengthStiffnessCurveType = (BoingBones.Chain.CurveType)(int)wobbleRoot.LengthStiffnessCurveType,
+                                            LengthStiffnessCurveType = ToNativeCurveType(wobbleRoot.LengthStiffnessCurveType),
                                             LengthStiffnessCustomCurve = wobbleRoot.LengthStiffnessCustomCurve,
-                                            PoseStiffnessCurveType = (BoingBones.Chain.CurveType)(int)wobbleRoot.PoseStiffnessCurveType,
+                                            PoseStiffnessCurveType = ToNativeCurveType(wobbleRoot.PoseStiffnessCurveType),
                                             PoseStiffnessCustomCurve = wobbleRoot.PoseStiffnessCustomCurve,
-                                            BendAngleCapCurveType = (BoingBones.Chain.CurveType)(int)wobbleRoot.BendAngleCapCurveType,
+                                            BendAngleCapCurveType = ToNativeCurveType(wobbleRoot.BendAngleCapCurveType),
                                             BendAngleCapCustomCurve = wobbleRoot.BendAngleCapCustomCurve,
-                                            SquashAndStretchCurveType = (BoingBones.Chain.CurveType)(int)wobbleRoot.SquashAndStretchCurveType,
+                                            SquashAndStretchCurveType = ToNativeCurveType(wobbleRoot.SquashAndStretchCurveType),
                                             SquashAndStretchCustomCurve = wobbleRoot.SquashAndStretchCustomCurve
                                         };
 
@@ -188,7 +191,7 @@ namespace GorillaShirts.Models.Cosmetic
 
                                     if (!Features.HasFlag(EShirtFeature.Wobble)) Features |= EShirtFeature.Wobble;
                                     boingBones.BoneChains = [.. chainList];
-                                    boingBones.RescanBoneChains();
+                                    if (boingBones.isActiveAndEnabled) boingBones.RescanBoneChains();
                                 }
                             }
                         }

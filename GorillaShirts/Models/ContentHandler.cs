@@ -49,6 +49,11 @@ namespace GorillaShirts.Models
             shirts.AddRange(await LoadShirts<GorillaShirt>(files));
             shirts.AddRange(await LoadShirts<LegacyGorillaShirt>(legacyFiles));
 
+            if (shirts.Count == 0)
+            {
+                // TODO: implement behaviour for downloading the "Default" pack
+            }
+
             Dictionary<string, PackDescriptor> packs = [];
 
             foreach (IGorillaShirt shirt in shirts)

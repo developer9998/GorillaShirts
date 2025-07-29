@@ -149,6 +149,7 @@ namespace GorillaShirts.Behaviours
             Loader = new ContentHandler(Path.GetDirectoryName(Plugin.Info.Location));
             Loader.LoadStageCallback += menuState_Load.SetLoadAppearance;
 
+            ShirtStand.Character.gameObject.SetActive(true);
             Packs = [.. (await Loader.LoadContent()).OrderByDescending(pack => pack.Shirts.Max(shirt => shirt.FileInfo.LastWriteTime)).OrderBy(x => x.PackName switch
             {
                 "Default" => 0,
@@ -211,8 +212,6 @@ namespace GorillaShirts.Behaviours
 
             menuState_PackList = new Menu_PackCollection(ShirtStand, Packs);
             MenuStateMachine.SwitchState(menuState_PackList);
-
-            ShirtStand.Character.gameObject.SetActive(true);
         }
 
         public void Update()
@@ -224,11 +223,15 @@ namespace GorillaShirts.Behaviours
 
         public void FavouriteShirt(IGorillaShirt shirt)
         {
-            if (IsFavourite(shirt)) FavouritePack.Shirts.Remove(shirt);
+            if (IsFavourite(shirt))
+            {
+                FavouritePack.Shirts.Remove(shirt);
+                PlayShirtAudio(EAudioType.NegativeClick, 0.75f);
+            }
             else
             {
                 FavouritePack.Shirts.Add(shirt);
-                // TODO: play sound
+                PlayShirtAudio(EAudioType.PositiveClick, 0.75f);
             }
 
             SetShirtNames(FavouritePack.Shirts, Plugin.Favourites);

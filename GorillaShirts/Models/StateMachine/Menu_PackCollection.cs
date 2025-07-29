@@ -11,9 +11,9 @@ using UnityEngine;
 
 namespace GorillaShirts.Models.StateMachine
 {
-    internal class Menu_PackCollection(Stand stand, List<PackDescriptor> packs) : Menu_StateBase(stand)
+    internal class Menu_PackCollection(Stand stand, List<PackDescriptor> collection) : Menu_StateBase(stand)
     {
-        protected List<PackDescriptor> filteredPackList;
+        protected List<PackDescriptor> packs;
 
         // selection
         private int packIndex = 0;
@@ -27,13 +27,16 @@ namespace GorillaShirts.Models.StateMachine
 
         public override void Enter()
         {
-            filteredPackList = [.. packs.Where(pack => pack.Shirts.Count > 0)];
+            packs = [.. collection.Where(pack => pack.Shirts.Count > 0)];
 
             base.Enter();
 
             stand.mainMenuRoot.SetActive(true);
             stand.navigationRoot.SetActive(false);
+
             SetSidebarState(false);
+            stand.favouriteButtonObject.SetActive(packs.Contains(Main.Instance.FavouritePack));
+            stand.favouriteButtonSymbol.color = Color.white;
 
             PreviewPack();
         }
@@ -42,9 +45,9 @@ namespace GorillaShirts.Models.StateMachine
         {
             base.Resume();
 
-            if (lastPack != null && filteredPackList.ElementAtOrDefault(packIndex) != lastPack && filteredPackList.Contains(lastPack))
+            if (lastPack != null && packs.ElementAtOrDefault(packIndex) != lastPack && packs.Contains(lastPack))
             {
-                packIndex = filteredPackList.IndexOf(lastPack);
+                packIndex = packs.IndexOf(lastPack);
             }
         }
 
@@ -63,8 +66,8 @@ namespace GorillaShirts.Models.StateMachine
 
         public void PreviewPack()
         {
-            packIndex = packIndex.Wrap(0, filteredPackList.Count);
-            PackDescriptor pack = filteredPackList[packIndex];
+            packIndex = packIndex.Wrap(0, packs.Count);
+            PackDescriptor pack = packs[packIndex];
             lastPack = pack;
 
             stand.headerText.text = pack.Author == null ? pack.PackName.EnforceLength(20) : string.Format(stand.headerFormat, pack.PackName.EnforceLength(20), "Pack", pack.Author.EnforceLength(30));
@@ -96,7 +99,7 @@ namespace GorillaShirts.Models.StateMachine
 
             if (shirtStack.Count == 0)
             {
-                PackDescriptor pack = filteredPackList[packIndex];
+                PackDescriptor pack = packs[packIndex];
 
                 single = stand.Character.SingleShirt;
                 if (single != null && pack.Shirts.Contains(single)) shirtStack.Push(single);
@@ -117,7 +120,7 @@ namespace GorillaShirts.Models.StateMachine
 
             if (button == EButtonType.NavigateSelect)
             {
-                PackDescriptor pack = filteredPackList[packIndex];
+                PackDescriptor pack = packs[packIndex];
                 if (!menuPerPack.ContainsKey(pack)) menuPerPack.Add(pack, new Menu_ShirtCollection(stand, this, pack));
                 Main.Instance.MenuStateMachine.SwitchState(menuPerPack[pack]);
                 return;
@@ -130,6 +133,9 @@ namespace GorillaShirts.Models.StateMachine
                     break;
                 case EButtonType.NavigateDecrease:
                     packIndex--;
+                    break;
+                case EButtonType.Favourite:
+                    packIndex = packs.IndexOf(Main.Instance.FavouritePack);
                     break;
                 default:
                     return;

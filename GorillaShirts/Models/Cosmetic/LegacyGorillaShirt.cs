@@ -23,6 +23,7 @@ namespace GorillaShirts.Models.Cosmetic
     {
         public string ShirtId { get; private set; }
         public FileInfo FileInfo { get; private set; }
+        public AssetBundle Bundle { get; private set; }
         public ShirtDescriptor Descriptor { get; private set; }
         public GameObject Template { get; private set; }
         public EShirtObject Objects { get; private set; }
@@ -45,8 +46,7 @@ namespace GorillaShirts.Models.Cosmetic
         public async Task CreateShirt(FileInfo file)
         {
             FileInfo = file;
-
-            AssetBundle assetBundle = null;
+            Bundle = null;
             ShirtJSON dataJson = null;
 
             using ZipArchive archive = ZipFile.OpenRead(FileInfo.FullName);
@@ -65,8 +65,8 @@ namespace GorillaShirts.Models.Cosmetic
 
                 using MemoryStream memStream = new();
                 await assetEntry.Open().CopyToAsync(memStream);
-
-                assetBundle = await LoadFromStream(memStream);
+                AssetBundle bundleFromStream = await LoadFromStream(memStream);
+                Bundle = bundleFromStream;
                 memStream.Close();
             }
             catch (Exception ex)
@@ -78,7 +78,7 @@ namespace GorillaShirts.Models.Cosmetic
 
             try
             {
-                Template = await LoadAsset<GameObject>(assetBundle, "ExportShirt");
+                Template = await LoadAsset<GameObject>(Bundle, "ExportShirt");
 
                 Descriptor = Template.AddComponent<ShirtDescriptor>();
 
@@ -168,7 +168,7 @@ namespace GorillaShirts.Models.Cosmetic
                                 audioSource.spatialBlend = 1f;
                                 audioSource.rolloffMode = AudioRolloffMode.Linear;
                                 audioSource.minDistance = 2f;
-                                audioSource.maxDistance = 10f;
+                                audioSource.maxDistance = 30f;
                                 audioSource.volume = 0.5f;
                             }
                         });

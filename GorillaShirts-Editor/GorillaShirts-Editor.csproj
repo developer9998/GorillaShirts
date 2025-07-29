@@ -56,6 +56,9 @@
 		<Compile Include="..\GorillaShirts\Behaviours\UI\Punch.cs">
 			<Link>Behaviours\UI\Punch.cs</Link>
 		</Compile>
+		<Compile Include="..\GorillaShirts\Models\ReleaseInfo.cs">
+			<Link>Models\ReleaseInfo.cs</Link>
+		</Compile>
 	</ItemGroup>
 
 	<ItemGroup>

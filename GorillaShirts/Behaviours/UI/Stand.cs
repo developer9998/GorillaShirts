@@ -63,6 +63,10 @@ namespace GorillaShirts.Behaviours.UI
 
         public GameObject infoContentRoot;
 
+        public GameObject[] infoMenuPanels;
+
+        public GameObject creditsRoot;
+
         public TMP_Text navigationText;
 
         public TMP_Text headerText;
@@ -81,6 +85,14 @@ namespace GorillaShirts.Behaviours.UI
 
         public TMP_Text shirtStatusText;
 
+        public GameObject infoButtonObject;
+
+        public GameObject packBrowserButtonObject;
+
+        public GameObject favouriteButtonObject;
+
+        public Image favouriteButtonSymbol;
+
         public GameObject rigButtonObject;
 
         public GameObject sillyHeadObject, steadyHeadObject;
@@ -92,10 +104,6 @@ namespace GorillaShirts.Behaviours.UI
         public GameObject tagOffsetControlObject;
 
         public Text tagOffsetText;
-
-        public GameObject favouriteButtonObject;
-
-        public Image favouriteButtonSymbol;
 
 #if PLUGIN
 
