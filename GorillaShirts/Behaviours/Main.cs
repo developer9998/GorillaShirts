@@ -56,8 +56,6 @@ namespace GorillaShirts.Behaviours
             GameObject standObject = Instantiate(await AssetLoader.LoadAsset<GameObject>("ShirtStand"));
             standObject.name = "Shirt Stand";
             standObject.transform.SetParent(transform);
-            standObject.transform.position = new(-64.0157f, 12.51f, -83.8341f);
-            standObject.transform.eulerAngles = Vector3.up * 25.7659f;
 
             ShirtStand = standObject.GetComponent<Stand>();
 

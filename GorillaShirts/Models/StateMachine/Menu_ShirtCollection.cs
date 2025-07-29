@@ -94,7 +94,7 @@ namespace GorillaShirts.Models.StateMachine
         public async override void OnButtonPress(EButtonType button)
         {
             // state machine handling
-            switch(button)
+            switch (button)
             {
                 case EButtonType.Info:
                     Main.Instance.MenuStateMachine.SwitchState(new Menu_Info(stand, this));
@@ -105,7 +105,7 @@ namespace GorillaShirts.Models.StateMachine
             }
 
             // sidebar
-            switch(button)
+            switch (button)
             {
                 case EButtonType.RigToggle:
                     stand.Character.SetAppearence(stand.Character.Preference switch

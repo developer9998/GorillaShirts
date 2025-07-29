@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace GorillaShirts.Extensions
+﻿namespace GorillaShirts.Extensions
 {
     public static class MathExtensions
     {

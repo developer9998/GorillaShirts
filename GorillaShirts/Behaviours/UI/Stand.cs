@@ -4,6 +4,14 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
+#if PLUGIN
+using GorillaShirts.Extensions;
+using System;
+using GorillaShirts.Models.Locations;
+using System.Collections.Generic;
+using System.Linq;
+#endif
+
 namespace GorillaShirts.Behaviours.UI
 {
     public class Stand : MonoBehaviour
@@ -90,5 +98,76 @@ namespace GorillaShirts.Behaviours.UI
         public GameObject favouriteButtonObject;
 
         public Image favouriteButtonSymbol;
+
+#if PLUGIN
+
+        private readonly Dictionary<GTZone, Location_Base> locationFromZoneDict = [];
+
+        private Renderer[] renderers;
+
+        private Dictionary<Renderer, Material[]> materials;
+
+        private Dictionary<Renderer, Material[]> uberMaterials;
+
+        private bool uberMaterialsUsed = false;
+
+        public void Start()
+        {
+            Type[] typeArray = typeof(Main).Assembly.GetTypes();
+
+            foreach(Type type in typeArray)
+            {
+                if (type.IsSubclassOf(typeof(Location_Base)))
+                {
+                    Location_Base location = (Location_Base)Activator.CreateInstance(type);
+                    location.Zones.Where(zone => !locationFromZoneDict.ContainsKey(zone)).ForEach(zone => locationFromZoneDict.Add(zone, location));
+                }
+            }
+
+            renderers = Root.GetComponentsInChildren<Renderer>(true);
+
+            materials = renderers.ToDictionary(renderer => renderer, renderer => renderer.materials);
+
+            uberMaterials = renderers.ToDictionary(renderer => renderer, renderer => renderer.materials.Select(material => material.CreateUberMaterial()).ToArray());
+
+            ZoneManagement.OnZoneChange += OnZoneChange;
+            OnZoneChange(ZoneManagement.instance.zones);
+        }
+
+        public void OnZoneChange(ZoneData[] zones)
+        {
+            IEnumerable<GTZone> activeZones = zones.Where(zone => zone.active).Select(zone => zone.zone);
+            OnZoneChange(activeZones.ToArray());
+        }
+
+        public void OnZoneChange(GTZone[] zones)
+        {
+            foreach(GTZone zone in zones)
+            {
+                if (locationFromZoneDict.TryGetValue(zone, out Location_Base location))
+                {
+                    bool useUberMaterials = zone == GTZone.ghostReactor;
+                    if (uberMaterialsUsed != useUberMaterials)
+                    {
+                        uberMaterialsUsed = useUberMaterials;
+                        renderers.ForEach(renderer => renderer.materials = uberMaterialsUsed ? uberMaterials[renderer] : materials[renderer]);
+                    }
+                    MoveStand(location.Position, location.EulerAngles);
+                    return;
+                }
+            }
+
+            Root.SetActive(false); 
+        }
+
+        public void MoveStand(Transform transform) => MoveStand(transform.position, transform.eulerAngles);
+
+        public void MoveStand(Vector3 position, Vector3 direction)
+        {
+            Root.transform.position = position;
+            Root.transform.rotation = Quaternion.Euler(direction);
+            Root.SetActive(true);
+        }
+#endif
     }
 }

@@ -5,10 +5,10 @@ using GorillaShirts.Behaviours;
 using GorillaShirts.Behaviours.Networking;
 using GorillaShirts.Models.UI;
 using HarmonyLib;
+using Newtonsoft.Json;
 using System;
 using System.Linq;
 using UnityEngine;
-using Newtonsoft.Json;
 
 namespace GorillaShirts
 {
