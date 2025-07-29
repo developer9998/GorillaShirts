@@ -1,4 +1,4 @@
-﻿using GorillaShirts.Behaviours.UI;
+using GorillaShirts.Behaviours.UI;
 using UnityEngine;
 
 namespace GorillaShirts.Models.StateMachine
@@ -21,7 +21,8 @@ namespace GorillaShirts.Models.StateMachine
             "Try to be reasonable with the tag offset controls while they're still avaliable.",
             "Silly and Steady are well accustomed to dressup.",
             "Respect other players choices of shirts, they look good!",
-            "GorillaShirts is a progressive mod, and will continue to recieve updates in the future."
+            "GorillaShirts is a progressive mod, and will continue to recieve updates in the future.",
+            "GorillaShirts used to feature a mirror on the side of the shirt stand, but was removed in a later update."
         ];
 
         public override void Enter()
