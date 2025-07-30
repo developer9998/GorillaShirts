@@ -8,6 +8,7 @@ namespace GorillaShirts.Patches
     internal class RigAnchorOverridePatches
     {
         [HarmonyPatch(nameof(VRRigAnchorOverrides.UpdateName))]
+        [HarmonyPriority(Priority.High)]
         [HarmonyPrefix, HarmonyWrapSafe]
         public static bool NamePatch(VRRigAnchorOverrides __instance)
         {
@@ -22,6 +23,7 @@ namespace GorillaShirts.Patches
         }
 
         [HarmonyPatch(nameof(VRRigAnchorOverrides.UpdateBadge))]
+        [HarmonyPriority(Priority.High)]
         [HarmonyPrefix, HarmonyWrapSafe]
         public static bool BadgePatch(VRRigAnchorOverrides __instance)
         {

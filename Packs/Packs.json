@@ -9,8 +9,22 @@
     {
         "Title": "Custom",
         "Author": "GorillaShirts",
-        "Description": "Custom contains plenty of diverse shirts assorted into a singular pack.",
+        "Description": "Custom contains plenty of diverse and random shirts assorted into one singular pack.",
         "Link": "https://github.com/developer9998/GorillaShirts/raw/refs/heads/main/Packs/Custom.zip",
         "Rank": 1
+    },
+    {
+        "Title": "Expressions",
+        "Author": "cresmondo",
+        "Description": "a pack i made for content creators to use for their videos!! features a wide array of expressions, credit isnt required but would be nice!!",
+        "Link": "https://github.com/developer9998/GorillaShirts/raw/refs/heads/main/Packs/Expressions.zip",
+        "Rank": 10
+    },
+    {
+        "Title": "Pride Hoodies",
+        "Author": "cresmondo",
+        "Description": "a pack that comes with 14 pride-flag themed hoodies!",
+        "Link": "https://github.com/developer9998/GorillaShirts/raw/refs/heads/main/Packs/Pride Hoodies.zip",
+        "Rank": 10
     }
 ]

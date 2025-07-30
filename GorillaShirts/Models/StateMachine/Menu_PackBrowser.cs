@@ -27,11 +27,10 @@ namespace GorillaShirts.Models.StateMachine
 
         public override void Enter()
         {
-            releases = Main.Instance.Releases;
+            releases = [.. Main.Instance.Releases.OrderBy(info => info.Rank)];
             stand.mainMenuRoot.SetActive(true);
             stand.navigationRoot.SetActive(false);
             SetSidebarState(SidebarState.PackBrowser);
-
             DisplayRelease();
         }
 

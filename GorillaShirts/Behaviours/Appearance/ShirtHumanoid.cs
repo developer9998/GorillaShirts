@@ -34,9 +34,7 @@ namespace GorillaShirts.Behaviours.Appearance
 
         public Dictionary<IGorillaShirt, Dictionary<EShirtAnchor, Transform>> Anchors = [];
 
-        public GameObject NameTagAnchor;
-
-        public GameObject BadgeAnchor;
+        public GameObject NameTagAnchor, BadgeAnchor, SlingshotAnchor;
 
         public bool InvisibleToLocalPlayer = false;
 
@@ -221,11 +219,16 @@ namespace GorillaShirts.Behaviours.Appearance
 
             NameTagAnchor = null;
             BadgeAnchor = null;
+            SlingshotAnchor = null;
 
             var anchors = Anchors.Where(pair => Shirts.Contains(pair.Key)).Select(pair => pair.Value).ToArray();
-
             foreach(var dictionary in anchors)
             {
+                CheckForAnchor(dictionary, EShirtAnchor.NameTagAnchor, ref NameTagAnchor);
+                CheckForAnchor(dictionary, EShirtAnchor.BadgeAnchor, ref BadgeAnchor);
+                CheckForAnchor(dictionary, EShirtAnchor.SlingshotAnchor, ref SlingshotAnchor);
+
+                /*
                 if (dictionary.TryGetValue(EShirtAnchor.NameTagAnchor, out Transform nameTagAnchor) && (NameTagAnchor == null || nameTagAnchor.localPosition.z > NameTagAnchor.transform.localPosition.z))
                 {
                     NameTagAnchor = nameTagAnchor.gameObject;
@@ -235,6 +238,7 @@ namespace GorillaShirts.Behaviours.Appearance
                 {
                     BadgeAnchor = badgeAnchor.gameObject;
                 }
+                */
             }
 
             MoveNameTag();
@@ -290,6 +294,14 @@ namespace GorillaShirts.Behaviours.Appearance
             }
 
             Objects.Clear();
+        }
+
+        private static void CheckForAnchor(Dictionary<EShirtAnchor, Transform> dictionary, EShirtAnchor anchor, ref GameObject anchorObject)
+        {
+            if (dictionary.TryGetValue(anchor, out Transform value) && (anchorObject is null || !anchorObject || value.localPosition.z > anchorObject.transform.localPosition.z))
+            {
+                anchorObject = value.gameObject;
+            }
         }
 #endif
     }
