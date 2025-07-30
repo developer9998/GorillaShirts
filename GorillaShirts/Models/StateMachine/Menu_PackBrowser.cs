@@ -122,7 +122,7 @@ namespace GorillaShirts.Models.StateMachine
                             0 => "Downloading Pack",
                             1 => "Installing Pack",
                             2 => "Loading Shirts",
-                            _ => "huh, stop playing with me"
+                            _ => "huh, stop playing with me!"
                         };
                         stand.packBrowserStatus.text = string.Format("<size=60%>Step {0}:</size><br>{1}", (step + 1).ToString(), stepTitle);
                         stand.packBrowserRadial.fillAmount = progress;

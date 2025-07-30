@@ -32,6 +32,12 @@ namespace GorillaShirts.Behaviours.Appearance
 
         public Dictionary<IGorillaShirt, List<GameObject>> Objects = [];
 
+        public Dictionary<IGorillaShirt, Dictionary<EShirtAnchor, Transform>> Anchors = [];
+
+        public GameObject NameTagAnchor;
+
+        public GameObject BadgeAnchor;
+
         public bool InvisibleToLocalPlayer = false;
 
         public EShirtBodyType BodyType = EShirtBodyType.Default;
@@ -108,7 +114,7 @@ namespace GorillaShirts.Behaviours.Appearance
                     if (!parentObject) continue;
 
                     var newSectorObject = Instantiate(child.gameObject);
-                    newSectorObject.name = child.gameObject.name;
+                    newSectorObject.name = $"{myShirt.Descriptor.ShirtName}: {child.gameObject.name}";
                     newSectorObject.transform.SetParent(parentObject, false);
                     newSectorObject.transform.localPosition = child.localPosition;
                     newSectorObject.transform.localEulerAngles = child.localEulerAngles;
@@ -133,6 +139,26 @@ namespace GorillaShirts.Behaviours.Appearance
             }
 
             Objects.Add(myShirt, newObjects);
+
+            foreach(EShirtAnchor anchor in Enum.GetValues(typeof(EShirtAnchor)).Cast<EShirtAnchor>())
+            {
+                if (myShirt.Anchors.HasFlag(anchor) && myShirt.Template.transform.Find(anchor.GetName()) is Transform child)
+                {
+                    Transform anchorParent = Body;
+                    if (anchorParent is null || !anchorParent) continue;
+
+                    GameObject anchorGameObject = Instantiate(child.gameObject);
+                    anchorGameObject.name = $"{myShirt.Descriptor.ShirtName}: {child.gameObject.name}";
+                    anchorGameObject.transform.SetParent(anchorParent, false);
+                    anchorGameObject.transform.localPosition = child.localPosition;
+                    anchorGameObject.transform.localEulerAngles = child.localEulerAngles;
+                    anchorGameObject.transform.localScale = child.localScale;
+
+                    if (!Anchors.ContainsKey(myShirt)) Anchors.Add(myShirt, []);
+
+                    if (!Anchors[myShirt].ContainsKey(anchor)) Anchors[myShirt].Add(anchor, anchorGameObject.transform);
+                }
+            }
 
         ApplyCheck:
 
@@ -191,6 +217,24 @@ namespace GorillaShirts.Behaviours.Appearance
                     break;
                 }
                 if (descriptor.BodyType > BodyType) BodyType = descriptor.BodyType;
+            }
+
+            NameTagAnchor = null;
+            BadgeAnchor = null;
+
+            var anchors = Anchors.Where(pair => Shirts.Contains(pair.Key)).Select(pair => pair.Value).ToArray();
+
+            foreach(var dictionary in anchors)
+            {
+                if (dictionary.TryGetValue(EShirtAnchor.NameTagAnchor, out Transform nameTagAnchor) && (NameTagAnchor == null || nameTagAnchor.localPosition.z > NameTagAnchor.transform.localPosition.z))
+                {
+                    NameTagAnchor = nameTagAnchor.gameObject;
+                }
+
+                if (dictionary.TryGetValue(EShirtAnchor.BadgeAnchor, out Transform badgeAnchor) && (BadgeAnchor == null || badgeAnchor.localPosition.z > BadgeAnchor.transform.localPosition.z))
+                {
+                    BadgeAnchor = badgeAnchor.gameObject;
+                }
             }
 
             MoveNameTag();

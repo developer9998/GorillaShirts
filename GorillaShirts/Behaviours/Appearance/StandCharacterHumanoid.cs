@@ -11,7 +11,9 @@ namespace GorillaShirts.Behaviours.Appearance
 {
     public class StandCharacterHumanoid : ShirtHumanoid
     {
-        public Text characterNameTag;
+        public GameObject characterNameTagAnchor;
+
+        public Text characterNameText;
 
         [Header("Masculine / Steady")]
         public Color mascColour;// = new Color(0.8f, 0.2f, 0.2f);
@@ -38,13 +40,13 @@ namespace GorillaShirts.Behaviours.Appearance
                 case ECharacterPreference.Masculine:
                     mascAccessory.enabled = true;
                     femAccessory.enabled = false;
-                    characterNameTag.text = mascIdentity;
+                    characterNameText.text = mascIdentity;
                     MainSkin.material.color = mascColour;
                     break;
                 case ECharacterPreference.Feminine:
                     mascAccessory.enabled = false;
                     femAccessory.enabled = true;
-                    characterNameTag.text = femIdentity;
+                    characterNameText.text = femIdentity;
                     MainSkin.material.color = femColour;
                     break;
             }
@@ -63,7 +65,11 @@ namespace GorillaShirts.Behaviours.Appearance
 
         public override void MoveNameTag()
         {
-            MoveNameTagTransform(characterNameTag.transform, NameTagOffset);
+            characterNameTagAnchor.transform.parent = NameTagAnchor is not null ? NameTagAnchor.transform : Body;
+            characterNameTagAnchor.transform.localPosition = Vector3.zero;
+            characterNameTagAnchor.transform.localRotation = Quaternion.identity;
+
+            MoveNameTagTransform(characterNameText.transform, NameTagOffset);
         }
 #endif
     }

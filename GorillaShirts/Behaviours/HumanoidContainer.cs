@@ -62,6 +62,17 @@ namespace GorillaShirts.Behaviours
             MoveNameTag();
         }
 
+        public override void MoveNameTag()
+        {
+            if (Rig.TryGetComponent(out VRRigAnchorOverrides anchorOverrides))
+            {
+                anchorOverrides.UpdateName();
+                anchorOverrides.UpdateBadge();
+            }
+
+            base.MoveNameTag();
+        }
+
         private void OnLocalInvisibilityChanged(VRRig targetRig, bool isInvisible)
         {
             if (targetRig is null || targetRig != Rig)

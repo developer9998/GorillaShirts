@@ -65,6 +65,9 @@ namespace GorillaShirts.Behaviours
             ShirtStand.loadMenuRoot.SetActive(false);
             ShirtStand.versionMenuRoot.SetActive(false);
             ShirtStand.mainMenuRoot.SetActive(false);
+            ShirtStand.mainContentRoot.SetActive(true);
+            ShirtStand.packBrowserRoot.SetActive(false);
+            ShirtStand.infoContentRoot.SetActive(false);
 
             ShirtStand.Character.SetAppearence(Plugin.StandCharacter.Value);
 

@@ -217,7 +217,7 @@ namespace GorillaShirts.Models
 
             LoadStageCallback += (assetsLoaded, assetCount, errorCount) =>
             {
-                callback?.Invoke(2, (float)assetsLoaded / assetCount);
+                callback.Invoke(2, (float)assetsLoaded / assetCount);
             };
 
             await LoadContent(folderDestination);

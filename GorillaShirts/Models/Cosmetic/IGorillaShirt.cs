@@ -13,6 +13,7 @@ namespace GorillaShirts.Models.Cosmetic
         ShirtDescriptor Descriptor { get; }
         GameObject Template { get; }
         EShirtObject Objects { get; }
+        EShirtAnchor Anchors { get; }
         EShirtFeature Features { get; }
         Task CreateShirt(FileInfo file);
     }

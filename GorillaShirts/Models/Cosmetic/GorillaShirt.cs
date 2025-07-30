@@ -24,6 +24,7 @@ namespace GorillaShirts.Models.Cosmetic
         public ShirtDescriptor Descriptor { get; private set; }
         public GameObject Template { get; private set; }
         public EShirtObject Objects { get; private set; }
+        public EShirtAnchor Anchors { get; private set; }
         public EShirtFeature Features { get; private set; }
 
         private static Material furMaterial = null;
@@ -60,13 +61,24 @@ namespace GorillaShirts.Models.Cosmetic
                     Template.name = $"{Descriptor.ShirtName} Asset";
                     Template.SanitizeObjectRecursive();
 
+                    var anchorTypes = Enum.GetValues(typeof(EShirtAnchor)).Cast<EShirtAnchor>().ToArray();
+                    for (int i = 0; i < anchorTypes.Length; i++)
+                    {
+                        Transform child = Template.transform.Find(anchorTypes[i].GetName());
+                        if (child is not null && child)
+                        {
+                            Logging.Info($"Anchor: {anchorTypes[i].GetName()}");
+                            Anchors |= anchorTypes[i];
+                        }
+                    }
+
                     var objectTypes = Enum.GetValues(typeof(EShirtObject)).Cast<EShirtObject>().ToArray();
                     for (int i = 0; i < objectTypes.Length; i++)
                     {
                         Transform child = Template.transform.Find(objectTypes[i].ToString());
                         if (child != null && child)
                         {
-                            Logging.Info($"{Descriptor.ShirtName} has {objectTypes[i]}");
+                            Logging.Info($"Object: {objectTypes[i]}");
                             Objects |= objectTypes[i];
 
                             ShirtColourProfile shirtProfile = child.gameObject.GetOrAddComponent<ShirtColourProfile>();

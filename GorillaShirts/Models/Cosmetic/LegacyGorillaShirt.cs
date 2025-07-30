@@ -27,6 +27,7 @@ namespace GorillaShirts.Models.Cosmetic
         public ShirtDescriptor Descriptor { get; private set; }
         public GameObject Template { get; private set; }
         public EShirtObject Objects { get; private set; }
+        public EShirtAnchor Anchors { get; private set; }
         public EShirtFeature Features { get; private set; }
 
         private static readonly Dictionary<string, EShirtObject> shirtObjectFromNameDict = new()

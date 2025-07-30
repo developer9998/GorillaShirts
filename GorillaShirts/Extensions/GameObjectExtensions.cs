@@ -68,9 +68,9 @@ namespace GorillaShirts.Extensions
             for (int i = components.Length - 1; i >= 0; i--)
             {
                 Type type = components[i].GetType();
-                Logging.Info(type.Name);
+                // Logging.Info(type.Name);
                 if (allowedTypeList.Contains(type)) continue;
-                Logging.Warning("Component is not allowed");
+                Logging.Warning($"Component not allowed: {type.Name}");
                 Object.Destroy(components[i]);
             }
         }
