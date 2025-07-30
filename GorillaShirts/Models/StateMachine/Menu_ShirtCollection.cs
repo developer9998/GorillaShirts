@@ -25,7 +25,7 @@ namespace GorillaShirts.Models.StateMachine
             stand.mainMenuRoot.SetActive(true);
             stand.navigationRoot.SetActive(true);
             stand.navigationText.text = pack.PackName;
-            SetSidebarState(true);
+            SetSidebarState(SidebarState.ShirtNavigation);
 
             ViewShirt();
             ConfigureSidebar();

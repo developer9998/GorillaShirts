@@ -8,11 +8,11 @@ using UnityEngine;
 
 namespace GorillaShirts.Models.StateMachine
 {
-    internal class Menu_WrongVersion(Stand stand, string installedVersion, string latestVersion, TaskCompletionSource<bool> completionSource) : Menu_StateBase(stand)
+    internal class Menu_WrongVersion(Stand stand, string installedVersion, string latestVersion, TaskCompletionSource<object> completionSource) : Menu_StateBase(stand)
     {
         protected string installed = installedVersion;
         protected string latest = latestVersion;
-        protected TaskCompletionSource<bool> completionSource = completionSource;
+        protected TaskCompletionSource<object> completionSource = completionSource;
 
         public override void Enter()
         {
@@ -31,7 +31,7 @@ namespace GorillaShirts.Models.StateMachine
         {
             if (button == EButtonType.GeneralUse1)
             {
-                completionSource.SetResult(true);
+                completionSource.TrySetResult(null);
                 return;
             }
 

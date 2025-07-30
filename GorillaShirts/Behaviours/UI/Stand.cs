@@ -119,11 +119,12 @@ namespace GorillaShirts.Behaviours.UI
 
         public void Start()
         {
-            Type[] typeArray = typeof(Main).Assembly.GetTypes();
+            Type baseType = typeof(Location_Base);
+            Type[] typeArray = baseType.Assembly.GetTypes();
 
-            foreach(Type type in typeArray)
+            foreach (Type type in typeArray)
             {
-                if (type.IsSubclassOf(typeof(Location_Base)))
+                if (type.IsSubclassOf(baseType))
                 {
                     Location_Base location = (Location_Base)Activator.CreateInstance(type);
                     location.Zones.Where(zone => !locationFromZoneDict.ContainsKey(zone)).ForEach(zone => locationFromZoneDict.Add(zone, location));
@@ -147,7 +148,7 @@ namespace GorillaShirts.Behaviours.UI
 
         public void OnZoneChange(GTZone[] zones)
         {
-            foreach(GTZone zone in zones)
+            foreach (GTZone zone in zones)
             {
                 if (locationFromZoneDict.TryGetValue(zone, out Location_Base location))
                 {
@@ -162,7 +163,7 @@ namespace GorillaShirts.Behaviours.UI
                 }
             }
 
-            Root.SetActive(false); 
+            Root.SetActive(false);
         }
 
         public void MoveStand(Transform transform) => MoveStand(transform.position, transform.eulerAngles);

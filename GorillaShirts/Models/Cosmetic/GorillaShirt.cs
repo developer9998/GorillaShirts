@@ -147,7 +147,7 @@ namespace GorillaShirts.Models.Cosmetic
                                 Dictionary<(bool LockTranslationX, bool LockTranslationY, bool LockTranslationZ), List<ShirtWobbleRoot>> wobbleDict = [];
 
                                 static BoingBones.Chain.CurveType ToNativeCurveType(ShirtWobbleRoot.CurveType curveType) => (BoingBones.Chain.CurveType)(int)curveType;
-                             
+
                                 foreach (ShirtWobbleRoot wobbleRoot in wobbleList)
                                 {
                                     var tuple = (wobbleRoot.LockTranslationX, wobbleRoot.LockTranslationY, wobbleRoot.LockTranslationZ);

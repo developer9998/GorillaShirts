@@ -15,9 +15,11 @@
             if (HasState)
             {
                 currentState.Exit();
+                currentState.Active = false;
             }
 
             newState.Enter();
+            newState.Active = true;
             currentState = newState;
         }
 

@@ -19,7 +19,7 @@ namespace GorillaShirts.Models.StateMachine
             stand.mainMenuRoot.SetActive(true);
             stand.mainContentRoot.SetActive(false);
             stand.infoContentRoot.SetActive(true);
-            SetSidebarState(false);
+            SetSidebarState(SidebarState.Info);
 
             string build_config = "Unrecognized";
 #if DEBUG

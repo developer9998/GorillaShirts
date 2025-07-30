@@ -34,9 +34,7 @@ namespace GorillaShirts.Models.StateMachine
             stand.mainMenuRoot.SetActive(true);
             stand.navigationRoot.SetActive(false);
 
-            SetSidebarState(false);
-            stand.favouriteButtonObject.SetActive(packs.Contains(Main.Instance.FavouritePack));
-            stand.favouriteButtonSymbol.color = Color.white;
+            SetSidebarState(SidebarState.PackNavigation);
 
             PreviewPack();
         }
@@ -69,6 +67,9 @@ namespace GorillaShirts.Models.StateMachine
             packIndex = packIndex.Wrap(0, packs.Count);
             PackDescriptor pack = packs[packIndex];
             lastPack = pack;
+
+            stand.favouriteButtonObject.SetActive(pack != Main.Instance.FavouritePack);
+            stand.favouriteButtonSymbol.color = Color.white;
 
             stand.headerText.text = pack.Author == null ? pack.PackName.EnforceLength(20) : string.Format(stand.headerFormat, pack.PackName.EnforceLength(20), "Pack", pack.Author.EnforceLength(30));
             stand.shirtStatusText.text = "View";
