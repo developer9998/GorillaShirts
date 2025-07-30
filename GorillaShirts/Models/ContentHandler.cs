@@ -119,7 +119,7 @@ namespace GorillaShirts.Models
 
                         contentLoaded++;
                         LoadStageCallback?.Invoke(contentLoaded, contentCount, errorCount);
-                        
+
                         continue;
                     }
                 }

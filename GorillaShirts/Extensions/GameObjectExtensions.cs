@@ -3,7 +3,9 @@ using GorillaShirts.Behaviours.Cosmetic;
 using GorillaShirts.Tools;
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
@@ -13,11 +15,13 @@ namespace GorillaShirts.Extensions
     {
         private static readonly List<Type> allowedTypeList =
         [
+            typeof(MeshRenderer),
             typeof(Transform),
             typeof(MeshFilter),
             typeof(MeshRenderer),
             typeof(SkinnedMeshRenderer),
             typeof(Light),
+            typeof(UniversalAdditionalLightData),
             typeof(ReflectionProbe),
             typeof(AudioSource),
             typeof(Animator),
@@ -33,7 +37,11 @@ namespace GorillaShirts.Extensions
             typeof(GraphicRaycaster),
             typeof(TrailRenderer),
             typeof(Camera),
+            typeof(UniversalAdditionalCameraData),
             typeof(Text),
+            typeof(TMP_Text),
+            typeof(TextMeshPro),
+            typeof(TextMeshProUGUI),
             typeof(ShirtDescriptor),
             typeof(ShirtCustomColour),
             typeof(ShirtCustomMaterial),
@@ -47,10 +55,7 @@ namespace GorillaShirts.Extensions
             for (int i = 0; i < gameObject.transform.childCount; i++)
             {
                 GameObject child = gameObject.transform.GetChild(i).gameObject;
-                if (child != null && child)
-                {
-                    SanitizeObjectRecursive(child);
-                }
+                SanitizeObjectRecursive(child);
             }
         }
 
@@ -62,10 +67,11 @@ namespace GorillaShirts.Extensions
 
             for (int i = components.Length - 1; i >= 0; i--)
             {
-                if (allowedTypeList.Contains(components[i].GetType())) continue;
-                Logging.Warning("Found disallowed component");
-                Logging.Info(components[i].GetType().Name);
-                Object.DestroyImmediate(components[i]);
+                Type type = components[i].GetType();
+                Logging.Info(type.Name);
+                if (allowedTypeList.Contains(type)) continue;
+                Logging.Warning("Component is not allowed");
+                Object.Destroy(components[i]);
             }
         }
     }

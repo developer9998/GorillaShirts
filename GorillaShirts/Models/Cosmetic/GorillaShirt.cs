@@ -53,7 +53,7 @@ namespace GorillaShirts.Models.Cosmetic
                 if (Template.TryGetComponent(out ShirtDescriptor shirtDescriptor))
                 {
                     Descriptor = shirtDescriptor;
-                    Logging.Message($"Legacy: {shirtDescriptor.ShirtName} ({shirtDescriptor.PackName})");
+                    Logging.Message($"{shirtDescriptor.ShirtName} ({shirtDescriptor.PackName})");
 
                     ShirtId = Encoding.UTF8.GetString(Encoding.Default.GetBytes($"{Descriptor.PackName}/{Descriptor.ShirtName}"));
 
@@ -105,8 +105,9 @@ namespace GorillaShirts.Models.Cosmetic
                                     wobbleList.Add(wobbleRoot);
                                 }
 
-                                if (decendant.TryGetComponent(out MeshRenderer renderer))
+                                if (decendant.TryGetComponent(out Renderer renderer))
                                 {
+                                    Logging.Info($"{decendant.gameObject.name} ({renderer.GetType().Name})");
                                     renderer.materials = [.. renderer.materials.Select(material => new Material(material)).Select(material => material.ResolveUberMaterial())];
 
                                     if (decendant.TryGetComponent(out ShirtCustomColour customColour))
