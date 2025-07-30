@@ -58,7 +58,7 @@ namespace GorillaShirts.Models.StateMachine
                 {
                     shirtsToRotate = pack.Shirts;
                     rotationStack.Clear();
-                    PerformShirtCycle();
+                    Rotate();
                 }
             }
             else
@@ -109,9 +109,28 @@ namespace GorillaShirts.Models.StateMachine
                 if (GetState(info) == 0)
                 {
                     SetState(info, ReleaseState.Processing);
-                    DisplayRelease();
-                    await Main.Instance.Content.InstallRelease(info);
+                    await Main.Instance.Content.InstallRelease(info, (step, progress) =>
+                    {
+                        if (!stand.packBrowserRoot.activeSelf)
+                        {
+                            stand.packBrowserRoot.SetActive(true);
+                            stand.mainContentRoot.SetActive(false);
+                            stand.packBrowserLabel.text = string.Format("Name: {0}<br>Author: {1}<br><color=#FF4C4C>Please refrain from closing Gorilla Tag at this time!", info.Title, info.Author);
+                        }
+                        string stepTitle = step switch
+                        {
+                            0 => "Downloading Pack",
+                            1 => "Installing Pack",
+                            2 => "Loading Shirts",
+                            _ => "huh, stop playing with me"
+                        };
+                        stand.packBrowserStatus.text = string.Format("<size=60%>Step {0}:</size><br>{1}", (step + 1).ToString(), stepTitle);
+                        stand.packBrowserRadial.fillAmount = progress;
+                        stand.packBrowserPercent.text = Mathf.FloorToInt(progress * 100).ToString();
+                    });
                     SetState(info, ReleaseState.HasRelease);
+                    stand.packBrowserRoot.SetActive(false);
+                    stand.mainContentRoot.SetActive(true);
                     DisplayRelease();
                 }
                 return;
@@ -126,10 +145,10 @@ namespace GorillaShirts.Models.StateMachine
             if (!doRotation) return;
 
             rotationTimer += Time.unscaledDeltaTime;
-            if (rotationTimer >= 1f) PerformShirtCycle();
+            if (rotationTimer >= 1f) Rotate();
         }
 
-        public void PerformShirtCycle()
+        public void Rotate()
         {
             rotationTimer = 0f;
 

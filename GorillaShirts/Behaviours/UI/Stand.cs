@@ -63,6 +63,16 @@ namespace GorillaShirts.Behaviours.UI
 
         public GameObject infoContentRoot;
 
+        public GameObject packBrowserRoot;
+
+        public Image packBrowserRadial;
+
+        public TMP_Text packBrowserPercent;
+
+        public TMP_Text packBrowserStatus;
+
+        public TMP_Text packBrowserLabel;
+
         public TMP_Text navigationText;
 
         public TMP_Text headerText;

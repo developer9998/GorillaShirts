@@ -29,8 +29,8 @@ namespace GorillaShirts.Models.StateMachine
 #endif
 
             stand.playerInfoText.text = stand.playerInfoFormat
-                .Replace("[SHIRTCOUNT]", Main.Instance.Packs.Select((a) => a.Shirts.Count).Sum().ToString())
-                .Replace("[PACKCOUNT]", Main.Instance.Packs.Count.ToString())
+                .Replace("[SHIRTCOUNT]", Main.Instance.Packs.Select(pack => pack.Shirts.Count).Sum().ToString())
+                .Replace("[PACKCOUNT]", Main.Instance.Packs.Count(pack => pack != Main.Instance.FavouritePack).ToString())
                 .Replace("[BUILDCONFIG]", build_config)
                 .Replace("[VERSION]", Constants.Version)
                 .Replace("[PLAYERNAME]", NetworkSystem.Instance.GetMyNickName());

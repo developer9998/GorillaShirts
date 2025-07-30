@@ -59,7 +59,10 @@ namespace GorillaShirts.Models
             {
                 if (Main.Instance.Releases is not null && Array.Find(Main.Instance.Releases, info => info.Title == "Default" && info.Rank == 0) is ReleaseInfo defaultRelease)
                 {
-                    await InstallRelease(defaultRelease);
+                    await InstallRelease(defaultRelease, (step, progress) =>
+                    {
+                        Logging.Info($"{step}: {Mathf.FloorToInt(progress * 100f)}%");
+                    });
                     // await LoadContent(directory);
                     return;
                 }
@@ -148,56 +151,76 @@ namespace GorillaShirts.Models
             return shirts;
         }
 
-        public async Task InstallRelease(ReleaseInfo release)
+        public async Task InstallRelease(ReleaseInfo release, Action<int, float> callback)
         {
+            string link = release.Link;
             string archiveDestination = Path.Combine(RootLocation, $"{release.Title}.zip");
             string folderDestination = Path.Combine(RootLocation, release.Title);
-            await InstallArchive(release.Link, archiveDestination, folderDestination);
-            await LoadContent(folderDestination);
-        }
-
-        private async Task InstallArchive(string link, string zipPath, string extractPath)
-        {
-            Logging.Message($"ContentHandler installing archive");
-            Logging.Info(link);
+            callback.Invoke(0, 0);
 
             UnityWebRequest request = new(link)
             {
-                downloadHandler = new DownloadHandlerFile(zipPath)
+                downloadHandler = new DownloadHandlerFile(archiveDestination)
             };
 
             UnityWebRequestAsyncOperation operation = request.SendWebRequest();
-            await operation;
+
+            float donwloadProgress = 0f;
+            while (!operation.isDone)
+            {
+                if (donwloadProgress != request.downloadProgress)
+                {
+                    donwloadProgress = request.downloadProgress;
+                    callback.Invoke(0, Mathf.Clamp01(donwloadProgress));
+                }
+                await Task.Delay(2);
+            }
 
             if (request.result != UnityWebRequest.Result.Success)
             {
                 Logging.Error($"Failed to download zip: {request.error}");
                 return;
             }
+
             request.Dispose();
 
-            Logging.Info($"Extracting zip file to {extractPath}");
+            Logging.Info($"Extracting zip file to {folderDestination}");
 
-            TaskCompletionSource<object> completionSource = new();
-
-            ThreadingHelper.Instance.StartAsyncInvoke(() =>
+            using (ZipArchive archive = ZipFile.OpenRead(archiveDestination))
             {
-                try
+                callback.Invoke(1, 0);
+
+                int totalEntries = archive.Entries.Count;
+                int entriesExtracted = 0;
+
+                foreach (ZipArchiveEntry entry in archive.Entries)
                 {
-                    ZipFile.ExtractToDirectory(zipPath, extractPath);
+                    string path = Path.Combine(folderDestination, entry.FullName);
+                    string directory = Path.GetDirectoryName(path);
+
+                    if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
+
+                    if (!string.IsNullOrEmpty(entry.Name))
+                    {
+                        using Stream stream = entry.Open();
+                        using FileStream fileStream = File.Create(path);
+                        stream.CopyTo(fileStream);
+                    }
+
+                    entriesExtracted++;
+                    callback.Invoke(1, (float)entriesExtracted / totalEntries);
+                    await Task.Delay(2);
                 }
-                catch (Exception)
-                {
-                    return null;
-                }
+            }
 
-                if (File.Exists(zipPath)) File.Delete(zipPath);
-                completionSource.TrySetResult(null);
+            if (File.Exists(archiveDestination)) File.Delete(archiveDestination);
 
-                return null;
-            });
+            LoadStageCallback += (assetsLoaded, assetCount, errorCount) =>
+            {
+                callback?.Invoke(2, (float)assetsLoaded / assetCount);
+            };
 
-            await completionSource.Task;
+            await LoadContent(folderDestination);
         }
     }
 }
