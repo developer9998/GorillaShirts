@@ -37,8 +37,6 @@ namespace GorillaShirts.Models.StateMachine
 
         public void DisplayRelease()
         {
-            if (!Active) return;
-
             releaseIndex = releaseIndex.Wrap(0, releases.Length);
             ReleaseInfo info = CurrentInfo;
 

@@ -1,5 +1,6 @@
 ﻿using GorillaShirts.Behaviours.Appearance;
 using GorillaShirts.Behaviours.Cosmetic;
+using GorillaShirts.Tools;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -36,7 +37,8 @@ namespace GorillaShirts.Extensions
             typeof(ShirtDescriptor),
             typeof(ShirtCustomColour),
             typeof(ShirtCustomMaterial),
-            typeof(ShirtWobbleRoot)
+            typeof(ShirtWobbleRoot),
+            typeof(ShirtBillboard)
         ];
 
         public static void SanitizeObjectRecursive(this GameObject gameObject)
@@ -58,9 +60,11 @@ namespace GorillaShirts.Extensions
 
             Component[] components = gameObject.GetComponents<Component>();
 
-            for (int i = 0; i < components.Length; i++)
+            for (int i = components.Length - 1; i >= 0; i--)
             {
                 if (allowedTypeList.Contains(components[i].GetType())) continue;
+                Logging.Warning("Found disallowed component");
+                Logging.Info(components[i].GetType().Name);
                 Object.DestroyImmediate(components[i]);
             }
         }

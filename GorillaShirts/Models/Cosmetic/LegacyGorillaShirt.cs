@@ -83,8 +83,9 @@ namespace GorillaShirts.Models.Cosmetic
                 Descriptor = Template.AddComponent<ShirtDescriptor>();
 
                 Descriptor.PackName = dataJson.packName;
-
                 Descriptor.ShirtName = dataJson.infoDescriptor.shirtName;
+                Logging.Message($"Legacy: {Descriptor.ShirtName} ({Descriptor.PackName}");
+
                 Descriptor.Author = dataJson.infoDescriptor.shirtAuthor.Trim('"');
                 Descriptor.Description = dataJson.infoDescriptor.shirtDescription;
 

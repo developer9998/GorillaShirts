@@ -2,8 +2,6 @@
 {
     public class State
     {
-        public bool Active;
-
         protected bool initialized;
 
         public virtual void Enter()

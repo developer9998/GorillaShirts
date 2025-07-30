@@ -52,11 +52,13 @@ namespace GorillaShirts.Models.Cosmetic
 
                 if (Template.TryGetComponent(out ShirtDescriptor shirtDescriptor))
                 {
-                    Template.SanitizeObjectRecursive();
-
                     Descriptor = shirtDescriptor;
-                    Template.name = $"{Descriptor.ShirtName} Asset";
+                    Logging.Message($"Legacy: {shirtDescriptor.ShirtName} ({shirtDescriptor.PackName})");
+
                     ShirtId = Encoding.UTF8.GetString(Encoding.Default.GetBytes($"{Descriptor.PackName}/{Descriptor.ShirtName}"));
+
+                    Template.name = $"{Descriptor.ShirtName} Asset";
+                    Template.SanitizeObjectRecursive();
 
                     var objectTypes = Enum.GetValues(typeof(EShirtObject)).Cast<EShirtObject>().ToArray();
                     for (int i = 0; i < objectTypes.Length; i++)

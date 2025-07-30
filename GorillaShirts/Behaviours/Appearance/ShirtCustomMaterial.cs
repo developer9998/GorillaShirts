@@ -2,7 +2,7 @@
 
 namespace GorillaShirts.Behaviours.Appearance
 {
-    [RequireComponent(typeof(MeshRenderer)), DisallowMultipleComponent]
+    [RequireComponent(typeof(Renderer)), DisallowMultipleComponent]
     [AddComponentMenu("GorillaShirts/Appearance/Custom Material")]
     public class ShirtCustomMaterial : MonoBehaviour
     {
