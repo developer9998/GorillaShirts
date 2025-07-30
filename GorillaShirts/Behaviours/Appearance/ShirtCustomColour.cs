@@ -10,7 +10,7 @@ using UnityEngine.Rendering;
 
 namespace GorillaShirts.Behaviours.Appearance
 {
-    [RequireComponent(typeof(MeshRenderer)), DisallowMultipleComponent]
+    [RequireComponent(typeof(Renderer)), DisallowMultipleComponent]
     [AddComponentMenu("GorillaShirts/Appearance/Custom Colour")]
     public class ShirtCustomColour : MonoBehaviour
     {
@@ -39,7 +39,7 @@ namespace GorillaShirts.Behaviours.Appearance
             materials = [];
             colourPropertyNames = [];
 
-            MeshRenderer renderer = GetComponent<MeshRenderer>();
+            Renderer renderer = GetComponent<Renderer>();
             if (renderer.materials != null && renderer.materials.Length > 0)
             {
                 if (MaterialIndexes == null || MaterialIndexes.Length == 0)

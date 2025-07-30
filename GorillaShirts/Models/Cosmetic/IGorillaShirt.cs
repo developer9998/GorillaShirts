@@ -9,6 +9,7 @@ namespace GorillaShirts.Models.Cosmetic
     {
         string ShirtId { get; }
         FileInfo FileInfo { get; }
+        AssetBundle Bundle { get; }
         ShirtDescriptor Descriptor { get; }
         GameObject Template { get; }
         EShirtObject Objects { get; }

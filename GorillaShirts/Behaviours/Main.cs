@@ -27,11 +27,13 @@ namespace GorillaShirts.Behaviours
 
         public Dictionary<EAudioType, AudioClip> Audio = [];
 
-        public ContentHandler Loader;
+        public ContentHandler Content;
 
-        public PackDescriptor FavouritePack;
+        public ReleaseInfo[] Releases;
 
         public List<PackDescriptor> Packs;
+
+        public PackDescriptor FavouritePack;
 
         public Dictionary<string, IGorillaShirt> Shirts = [];
 
@@ -120,8 +122,23 @@ namespace GorillaShirts.Behaviours
             menuState_Load = new Menu_Loading(ShirtStand);
             MenuStateMachine.SwitchState(new Menu_Welcome(ShirtStand));
 
-            if (CosmeticsV2Spawner_Dirty.completed) Initialize();
-            else CosmeticsV2Spawner_Dirty.OnPostInstantiateAllPrefabs += Initialize;
+            using UnityWebRequest request = UnityWebRequest.Get(@"https://raw.githubusercontent.com/developer9998/GorillaShirts/master/Packs/Packs.json");
+            UnityWebRequestAsyncOperation operation = request.SendWebRequest();
+            await operation;
+
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                Releases = request.downloadHandler.text.FromJson<ReleaseInfo[]>();
+                Logging.Info($"Releases include: {string.Join(", ", Releases.OrderBy(info => info.Rank).Select(info => info.Title))}");
+            }
+
+            if (CosmeticsV2Spawner_Dirty.completed)
+            {
+                Initialize();
+                return;
+            }
+
+            CosmeticsV2Spawner_Dirty.OnPostInstantiateAllPrefabs += Initialize;
         }
 
         public async void Initialize()
@@ -129,7 +146,7 @@ namespace GorillaShirts.Behaviours
             if (initialized) return;
             initialized = true;
 
-            UnityWebRequest request = UnityWebRequest.Get(@"https://raw.githubusercontent.com/developer9998/GorillaShirts/main/Version.txt");
+            using UnityWebRequest request = UnityWebRequest.Get(@"https://raw.githubusercontent.com/developer9998/GorillaShirts/main/Version.txt");
             UnityWebRequestAsyncOperation operation = request.SendWebRequest();
             await operation;
 
@@ -138,29 +155,42 @@ namespace GorillaShirts.Behaviours
                 string latestVersionRaw = request.downloadHandler.text.Trim();
                 if (Version.TryParse(latestVersionRaw, out Version latestVersion) && latestVersion > Plugin.Info.Metadata.Version)
                 {
-                    TaskCompletionSource<bool> completionSource = new();
-                    ShirtStand.AudioDevice.PlayOneShot(Audio[EAudioType.Error]);
+                    PlayShirtAudio(EAudioType.Error, 1f);
+                    TaskCompletionSource<object> completionSource = new(TaskCreationOptions.LongRunning);
                     MenuStateMachine.SwitchState(new Menu_WrongVersion(ShirtStand, Constants.Version, latestVersionRaw, completionSource));
                     await completionSource.Task;
                 }
             }
 
-            MenuStateMachine.SwitchState(menuState_Load);
-            Loader = new ContentHandler(Path.GetDirectoryName(Plugin.Info.Location));
-            Loader.LoadStageCallback += menuState_Load.SetLoadAppearance;
+            ShirtStand.Character.gameObject.SetActive(true);
 
-            Packs = [.. (await Loader.LoadContent()).OrderByDescending(pack => pack.Shirts.Max(shirt => shirt.FileInfo.LastWriteTime)).OrderBy(x => x.PackName switch
+            MenuStateMachine.SwitchState(menuState_Load);
+            Content = new ContentHandler(Path.GetDirectoryName(Plugin.Info.Location));
+            Content.LoadStageCallback += menuState_Load.SetLoadAppearance;
+            Content.OnContentLoaded += OnContentLoaded;
+            Content.LoadContent();
+        }
+
+        public void OnContentLoaded(List<PackDescriptor> content)
+        {
+            bool isInitialList = Packs is null;
+
+            if (Packs == null) Packs = content;
+            else Packs.AddRange(content);
+
+            Packs = [.. Packs.OrderByDescending(pack => pack.Shirts.Max(shirt => shirt.FileInfo.LastWriteTime)).OrderBy(x => x.PackName switch
             {
-                "Default" => 0,
-                "Custom" => 1,
-                _ => 99
+                "Favourites" => 0,
+                "Default" => 1,
+                "Custom" => 2,
+                _ => 10
             })];
 
             List<string> wornGorillaShirts = GetShirtNames(Plugin.ShirtPreferences);
 
             List<(IGorillaShirt shirt, PackDescriptor pack)> shirtsToWear = [];
 
-            foreach (PackDescriptor packDescriptor in Packs)
+            foreach (PackDescriptor packDescriptor in content)
             {
                 if (packDescriptor.PackName == "Default") packDescriptor.Shuffle();
                 else packDescriptor.Shirts.Sort((x, y) => x.Descriptor.ShirtName.CompareTo(y.Descriptor.ShirtName));
@@ -185,23 +215,26 @@ namespace GorillaShirts.Behaviours
 
             if (shirtsToWear.Count > 0)
             {
-                var shirts = shirtsToWear.Select(tuple => tuple.shirt).ToList();
+                var shirts = (LocalHumanoid.Shirts ?? []).Concat(shirtsToWear.Select(tuple => tuple.shirt)).ToList();
                 LocalHumanoid.SetShirts(shirts);
                 PlayShirtWearSound(LocalHumanoid.Rig, shirts: [.. shirts]);
                 NetworkShirts(shirts);
             }
-            AdjustTagOffset(Plugin.TagOffsetPreference.Value);
 
-            FavouritePack = ScriptableObject.CreateInstance<PackDescriptor>();
-            FavouritePack.PackName = "Favourites";
-            FavouritePack.Author = null;
-            FavouritePack.Description = "This is a special pack reserved for all of your favourite shirts!<br><br>To add or remove a shirt from your favourites, press the favourite button on the top right when viewing the shirt.";
+            if (isInitialList)
+            {
+                AdjustTagOffset(Plugin.TagOffsetPreference.Value);
 
-            Packs.Insert(0, FavouritePack);
+                FavouritePack = ScriptableObject.CreateInstance<PackDescriptor>();
+                FavouritePack.PackName = "Favourites";
+                FavouritePack.Author = null;
+                FavouritePack.Description = "This is a special pack reserved for all of your favourite shirts!<br><br>To add or remove a shirt from your favourites, press the favourite button on the top right when viewing the shirt.";
 
-            List<string> favouriteShirts = GetShirtNames(Plugin.Favourites);
+                Packs.Insert(0, FavouritePack);
+            }
 
-            foreach (string shirtId in favouriteShirts)
+            FavouritePack.Shirts.Clear();
+            foreach (string shirtId in GetShirtNames(Plugin.Favourites))
             {
                 if (Shirts.TryGetValue(shirtId, out IGorillaShirt shirt))
                 {
@@ -209,10 +242,11 @@ namespace GorillaShirts.Behaviours
                 }
             }
 
-            menuState_PackList = new Menu_PackCollection(ShirtStand, Packs);
-            MenuStateMachine.SwitchState(menuState_PackList);
-
-            ShirtStand.Character.gameObject.SetActive(true);
+            if (isInitialList)
+            {
+                menuState_PackList = new Menu_PackCollection(ShirtStand, Packs);
+                MenuStateMachine.SwitchState(menuState_PackList);
+            }
         }
 
         public void Update()
@@ -224,11 +258,15 @@ namespace GorillaShirts.Behaviours
 
         public void FavouriteShirt(IGorillaShirt shirt)
         {
-            if (IsFavourite(shirt)) FavouritePack.Shirts.Remove(shirt);
+            if (IsFavourite(shirt))
+            {
+                FavouritePack.Shirts.Remove(shirt);
+                PlayShirtAudio(EAudioType.NegativeClick, 0.75f);
+            }
             else
             {
                 FavouritePack.Shirts.Add(shirt);
-                // TODO: play sound
+                PlayShirtAudio(EAudioType.PositiveClick, 0.75f);
             }
 
             SetShirtNames(FavouritePack.Shirts, Plugin.Favourites);
@@ -253,6 +291,9 @@ namespace GorillaShirts.Behaviours
 
         private void NetworkShirts(List<IGorillaShirt> shirts)
         {
+            var fallbacks = shirts.Select(shirt => shirt.Descriptor.Fallback).Select(fallback => (int)fallback).ToArray();
+            NetworkManager.Instance.SetProperty("Fallbacks", fallbacks);
+
             var shirtNames = shirts.Select(shirt => shirt.ShirtId).ToArray();
             NetworkManager.Instance.SetProperty("Shirts", shirtNames);
         }

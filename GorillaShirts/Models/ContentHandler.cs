@@ -1,4 +1,6 @@
-﻿using GorillaShirts.Behaviours.Cosmetic;
+﻿using BepInEx;
+using GorillaShirts.Behaviours;
+using GorillaShirts.Behaviours.Cosmetic;
 using GorillaShirts.Models.Cosmetic;
 using GorillaShirts.Tools;
 using System;
@@ -12,11 +14,13 @@ using UnityEngine.Networking;
 
 namespace GorillaShirts.Models
 {
-    internal class ContentHandler(string directory)
+    internal class ContentHandler(string rootLocation)
     {
+        public readonly string RootLocation = rootLocation;
+
         public event Action<int, int, int> LoadStageCallback;
 
-        private readonly string directory = directory;
+        public event Action<List<PackDescriptor>> OnContentLoaded;
 
         private int contentLoaded, contentCount, errorCount;
 
@@ -30,7 +34,9 @@ namespace GorillaShirts.Models
             }
         };
 
-        public async Task<List<PackDescriptor>> LoadContent()
+        public async void LoadContent() => await LoadContent(RootLocation);
+
+        private async Task LoadContent(string directory)
         {
             DirectoryInfo directoryInfo = new(directory);
             Logging.Message($"LoadShirts: {directoryInfo.FullName}");
@@ -48,6 +54,18 @@ namespace GorillaShirts.Models
             List<IGorillaShirt> shirts = [];
             shirts.AddRange(await LoadShirts<GorillaShirt>(files));
             shirts.AddRange(await LoadShirts<LegacyGorillaShirt>(legacyFiles));
+
+            if (shirts.Count == 0)
+            {
+                if (Main.Instance.Releases is not null && Array.Find(Main.Instance.Releases, info => info.Title == "Default" && info.Rank == 0) is ReleaseInfo defaultRelease)
+                {
+                    await InstallRelease(defaultRelease);
+                    // await LoadContent(directory);
+                    return;
+                }
+
+                return;
+            }
 
             Dictionary<string, PackDescriptor> packs = [];
 
@@ -81,8 +99,7 @@ namespace GorillaShirts.Models
             Logging.Info($"ShirtLoader loaded {contentLoaded} out of {contentCount} shirts");
 
             LoadStageCallback = null;
-
-            return [.. packs.Values];
+            OnContentLoaded?.Invoke([.. packs.Values]);
         }
 
         private async Task<List<T>> LoadShirts<T>(FileInfo[] files) where T : IGorillaShirt
@@ -92,6 +109,20 @@ namespace GorillaShirts.Models
             for (int i = 0; i < files.Length; i++)
             {
                 FileInfo file = files[i];
+
+                if (Main.Instance.Shirts is var shirtDictionary && shirtDictionary.Count != 0)
+                {
+                    string path = file.FullName;
+                    if (Array.Find(shirtDictionary.Values.ToArray(), shirt => shirt.FileInfo.FullName == path) is IGorillaShirt shirt && shirt is T existingAsset)
+                    {
+                        shirts.Add(existingAsset);
+
+                        contentLoaded++;
+                        LoadStageCallback?.Invoke(contentLoaded, contentCount, errorCount);
+
+                        continue;
+                    }
+                }
 
                 T asset = Activator.CreateInstance<T>();
                 await asset.CreateShirt(file);
@@ -117,11 +148,20 @@ namespace GorillaShirts.Models
             return shirts;
         }
 
-        public async Task DownloadZip(string url, string zipPath, string extractPath)
+        public async Task InstallRelease(ReleaseInfo release)
         {
-            Logging.Info($"Downloading zip file at {url}");
+            string archiveDestination = Path.Combine(RootLocation, $"{release.Title}.zip");
+            string folderDestination = Path.Combine(RootLocation, release.Title);
+            await InstallArchive(release.Link, archiveDestination, folderDestination);
+            await LoadContent(folderDestination);
+        }
 
-            UnityWebRequest request = new(url)
+        private async Task InstallArchive(string link, string zipPath, string extractPath)
+        {
+            Logging.Message($"ContentHandler installing archive");
+            Logging.Info(link);
+
+            UnityWebRequest request = new(link)
             {
                 downloadHandler = new DownloadHandlerFile(zipPath)
             };
@@ -138,8 +178,26 @@ namespace GorillaShirts.Models
 
             Logging.Info($"Extracting zip file to {extractPath}");
 
-            ZipFile.ExtractToDirectory(zipPath, extractPath);
-            File.Delete(zipPath);
+            TaskCompletionSource<object> completionSource = new();
+
+            ThreadingHelper.Instance.StartAsyncInvoke(() =>
+            {
+                try
+                {
+                    ZipFile.ExtractToDirectory(zipPath, extractPath);
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+
+                if (File.Exists(zipPath)) File.Delete(zipPath);
+                completionSource.TrySetResult(null);
+
+                return null;
+            });
+
+            await completionSource.Task;
         }
     }
 }

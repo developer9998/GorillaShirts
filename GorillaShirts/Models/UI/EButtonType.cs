@@ -14,6 +14,10 @@
         TagDecrease,
         GeneralUse1,
         GeneralUse2,
-        Favourite
+        Favourite,
+        PackBrowser,
+        Credits,
+        Statistics,
+        Tutorial
     }
 }

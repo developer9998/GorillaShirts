@@ -28,7 +28,7 @@ namespace GorillaShirts.Behaviours.UI
 
         public GameObject welcomeMenuRoot;
 
-        [Header("Shirt Process/Load Menu")]
+        [Header("Load Menu")]
 
         public GameObject loadMenuRoot;
 
@@ -43,8 +43,6 @@ namespace GorillaShirts.Behaviours.UI
         public GameObject greenFlag;
 
         public GameObject redFlag;
-
-        public TMP_Text loadStatusText;
 
         [Header("Version Notice Screen")]
 
@@ -83,6 +81,14 @@ namespace GorillaShirts.Behaviours.UI
 
         public TMP_Text shirtStatusText;
 
+        public GameObject infoButtonObject;
+
+        public GameObject packBrowserButtonObject;
+
+        public GameObject favouriteButtonObject;
+
+        public Image favouriteButtonSymbol;
+
         public GameObject rigButtonObject;
 
         public GameObject sillyHeadObject, steadyHeadObject;
@@ -95,9 +101,15 @@ namespace GorillaShirts.Behaviours.UI
 
         public Text tagOffsetText;
 
-        public GameObject favouriteButtonObject;
+        [Header("Main Menu (under Info tab)")]
 
-        public Image favouriteButtonSymbol;
+        public GameObject tutorialRoot;
+
+        public GameObject[] tutorialTabs;
+
+        public GameObject statisticsRoot;
+
+        public GameObject creditsRoot;
 
 #if PLUGIN
 
@@ -113,11 +125,12 @@ namespace GorillaShirts.Behaviours.UI
 
         public void Start()
         {
-            Type[] typeArray = typeof(Main).Assembly.GetTypes();
+            Type baseType = typeof(Location_Base);
+            Type[] typeArray = baseType.Assembly.GetTypes();
 
-            foreach(Type type in typeArray)
+            foreach (Type type in typeArray)
             {
-                if (type.IsSubclassOf(typeof(Location_Base)))
+                if (type.IsSubclassOf(baseType))
                 {
                     Location_Base location = (Location_Base)Activator.CreateInstance(type);
                     location.Zones.Where(zone => !locationFromZoneDict.ContainsKey(zone)).ForEach(zone => locationFromZoneDict.Add(zone, location));
@@ -127,7 +140,6 @@ namespace GorillaShirts.Behaviours.UI
             renderers = Root.GetComponentsInChildren<Renderer>(true);
 
             materials = renderers.ToDictionary(renderer => renderer, renderer => renderer.materials);
-
             uberMaterials = renderers.ToDictionary(renderer => renderer, renderer => renderer.materials.Select(material => material.CreateUberMaterial()).ToArray());
 
             ZoneManagement.OnZoneChange += OnZoneChange;
@@ -142,7 +154,7 @@ namespace GorillaShirts.Behaviours.UI
 
         public void OnZoneChange(GTZone[] zones)
         {
-            foreach(GTZone zone in zones)
+            foreach (GTZone zone in zones)
             {
                 if (locationFromZoneDict.TryGetValue(zone, out Location_Base location))
                 {
@@ -157,7 +169,7 @@ namespace GorillaShirts.Behaviours.UI
                 }
             }
 
-            Root.SetActive(false); 
+            Root.SetActive(false);
         }
 
         public void MoveStand(Transform transform) => MoveStand(transform.position, transform.eulerAngles);

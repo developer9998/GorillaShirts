@@ -1,0 +1,16 @@
+[
+    {
+        "Title": "Default",
+        "Author": "GorillaShirts",
+        "Description": "Default contains a variety of iconic shirts, such as hoodies, turtlenecks, croptops, and more.",
+        "Link": "https://github.com/developer9998/GorillaShirts/raw/refs/heads/main/Packs/Default.zip",
+        "Rank": 0
+    },
+    {
+        "Title": "Custom",
+        "Author": "GorillaShirts",
+        "Description": "Custom contains plenty of diverse shirts assorted into a singular pack.",
+        "Link": "https://github.com/developer9998/GorillaShirts/raw/refs/heads/main/Packs/Custom.zip",
+        "Rank": 1
+    }
+]

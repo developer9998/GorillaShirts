@@ -13,10 +13,13 @@ namespace GorillaShirts.Models.StateMachine
         {
             base.Enter();
 
+            // TODO: make stump character wear appropriate shirt using plugin exclusive fallbacks
+            // i.e., silly wears her croptop, steady wears his hoodie
+
             stand.mainMenuRoot.SetActive(true);
             stand.mainContentRoot.SetActive(false);
             stand.infoContentRoot.SetActive(true);
-            SetSidebarState(false);
+            SetSidebarState(SidebarState.Info);
 
             string build_config = "Unrecognized";
 #if DEBUG
@@ -39,12 +42,6 @@ namespace GorillaShirts.Models.StateMachine
             stand.mainMenuRoot.SetActive(false);
             stand.mainContentRoot.SetActive(true);
             stand.infoContentRoot.SetActive(false);
-        }
-
-        public override void Update()
-        {
-            base.Update();
-            previousState.Update();
         }
 
         public override void OnButtonPress(EButtonType button)

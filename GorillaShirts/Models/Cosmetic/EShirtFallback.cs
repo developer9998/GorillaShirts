@@ -8,6 +8,10 @@
         TeeShirt,
         Hoodie,
         Overcoat,
-        Croptop
+        Croptop,
+#if PLUGIN
+        SillyCroptop,
+        SteadyHoodie
+#endif
     }
 }

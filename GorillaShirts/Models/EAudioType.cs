@@ -9,6 +9,8 @@
         SteadySpeech,
         DiceRoll,
         Error,
-        CameraShutter
+        CameraShutter,
+        PositiveClick,
+        NegativeClick
     }
 }

@@ -10,8 +10,8 @@ namespace GorillaShirts.Extensions
         private static readonly string[] supportedShaderNames = ["Universal Render Pipeline/Unlit", "Universal Render Pipeline/Lit", "Unlit/Texture", "Custom/UnlitAO"];
 
         private static string[] keywords = null;
-        private static readonly string[] supportedKeywords = ["_USE_TEXTURE", "_WATER_EFFECT", "_HEIGHT_BASED_WATER_EFFECT", "_EMISSION"];
-        private static readonly string[] unsupportedKeywords = ["_GT_BASE_MAP_ATLAS_SLICE_SOURCE__PROPERTY", "_USE_TEX_ARRAY_ATLAS"];
+        private static readonly string[] supportedKeywords = ["_USE_TEXTURE", "_WATER_EFFECT", "_HEIGHT_BASED_WATER_EFFECT"];
+        private static readonly string[] unsupportedKeywords = ["_USE_TEX_ARRAY_ATLAS"];
 
         private static void GetKeywords()
         {
@@ -64,6 +64,8 @@ namespace GorillaShirts.Extensions
                     int nameId = baseMaterial.shader.GetPropertyNameId(i);
                     uberMaterial.color = baseMaterial.GetColor(nameId);
                 }
+
+                if (hasTexture && hasColour) break;
             }
 
             uberMaterial.shaderKeywords = [.. keywords.Concat(baseMaterial.shaderKeywords).Distinct()];
@@ -74,7 +76,7 @@ namespace GorillaShirts.Extensions
 
         public static Material ResolveUberMaterial(this Material baseMaterial)
         {
-            Shader uberShader = UberShader.GetShader();
+            Shader uberShader = UberShader.GetShader(); // The latest UberShader, can be more up to date than what the baseMaterial uses
 
             if (baseMaterial == null || !baseMaterial || baseMaterial.shader.name != uberShader.name) return null;
 
