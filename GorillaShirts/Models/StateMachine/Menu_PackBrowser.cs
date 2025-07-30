@@ -31,6 +31,8 @@ namespace GorillaShirts.Models.StateMachine
             stand.mainMenuRoot.SetActive(true);
             stand.navigationRoot.SetActive(false);
             SetSidebarState(SidebarState.PackBrowser);
+
+            DisplayRelease();
         }
 
         public void DisplayRelease()

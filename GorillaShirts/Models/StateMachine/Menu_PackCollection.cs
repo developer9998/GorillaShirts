@@ -119,6 +119,12 @@ namespace GorillaShirts.Models.StateMachine
                 return;
             }
 
+            if (button == EButtonType.PackBrowser)
+            {
+                Main.Instance.MenuStateMachine.SwitchState(new Menu_PackBrowser(stand, this));
+                return;
+            }
+
             if (button == EButtonType.NavigateSelect)
             {
                 PackDescriptor pack = packs[packIndex];

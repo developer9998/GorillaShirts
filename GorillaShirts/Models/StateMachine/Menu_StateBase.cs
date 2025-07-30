@@ -17,7 +17,7 @@ namespace GorillaShirts.Models.StateMachine
 
         public void SetSidebarState(SidebarState state)
         {
-            stand.infoButtonObject.SetActive(true);
+            stand.infoButtonObject.SetActive(state != SidebarState.PackBrowser);
             stand.packBrowserButtonObject.SetActive(state == SidebarState.PackNavigation || state == SidebarState.PackBrowser);
             stand.rigButtonObject.SetActive(state == SidebarState.ShirtNavigation);
             stand.captureButtonObject.SetActive(state == SidebarState.ShirtNavigation);
