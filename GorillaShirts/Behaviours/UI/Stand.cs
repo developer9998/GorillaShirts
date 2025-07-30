@@ -63,10 +63,6 @@ namespace GorillaShirts.Behaviours.UI
 
         public GameObject infoContentRoot;
 
-        public GameObject[] infoMenuPanels;
-
-        public GameObject creditsRoot;
-
         public TMP_Text navigationText;
 
         public TMP_Text headerText;
@@ -104,6 +100,16 @@ namespace GorillaShirts.Behaviours.UI
         public GameObject tagOffsetControlObject;
 
         public Text tagOffsetText;
+
+        [Header("Main Menu (under Info tab)")]
+
+        public GameObject tutorialRoot;
+
+        public GameObject[] tutorialTabs;
+
+        public GameObject statisticsRoot;
+
+        public GameObject creditsRoot;
 
 #if PLUGIN
 

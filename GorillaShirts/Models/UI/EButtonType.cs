@@ -15,7 +15,9 @@
         GeneralUse1,
         GeneralUse2,
         Favourite,
+        PackBrowser,
         Credits,
-        PackBrowser
+        Statistics,
+        Tutorial
     }
 }
