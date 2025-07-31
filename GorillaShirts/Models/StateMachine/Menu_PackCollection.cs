@@ -70,7 +70,7 @@ namespace GorillaShirts.Models.StateMachine
             PackDescriptor pack = shownPacks[packIndex];
             lastPack = pack;
 
-            Stand.favouriteButtonObject.SetActive(pack != Main.Instance.FavouritePack);
+            Stand.favouriteButtonObject.SetActive(pack != Main.Instance.FavouritePack && shownPacks.Contains(Main.Instance.FavouritePack));
             Stand.favouriteButtonSymbol.color = Color.white;
 
             Stand.headerText.text = pack.Author == null ? pack.PackName.EnforceLength(20) : string.Format(Stand.headerFormat, pack.PackName.EnforceLength(20), "Pack", pack.Author.EnforceLength(30));
