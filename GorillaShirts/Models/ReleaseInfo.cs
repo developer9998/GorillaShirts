@@ -7,12 +7,14 @@
 
         public string[] AlsoKnownAs = null;
 
+        public int Rank = 10;
+
         public string Author;
 
         public string Description;
 
-        public string Link;
+        public string PackArchiveLink;
 
-        public int Rank = 10;
+        public string PackPreviewLink = null;
     }
 }

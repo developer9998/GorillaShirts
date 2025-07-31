@@ -77,6 +77,8 @@ namespace GorillaShirts.Behaviours.UI
 
         public TMP_Text descriptionText;
 
+        public Image previewImage;
+
         public GameObject[] featureObjects;
 
         public TMP_Text shirtStatusText;

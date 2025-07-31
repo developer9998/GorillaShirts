@@ -146,7 +146,7 @@ namespace GorillaShirts.Models
 
         public async Task InstallRelease(ReleaseInfo release, Action<int, float> callback)
         {
-            string link = release.Link;
+            string link = release.PackArchiveLink;
             string archiveDestination = Path.Combine(RootLocation, $"{release.Title}.zip");
             string folderDestination = Path.Combine(RootLocation, release.Title);
             callback.Invoke(0, 0);
@@ -161,12 +161,12 @@ namespace GorillaShirts.Models
             float donwloadProgress = 0f;
             while (!operation.isDone)
             {
+                await Task.Delay(4);
                 if (donwloadProgress != request.downloadProgress)
                 {
                     donwloadProgress = request.downloadProgress;
                     callback.Invoke(0, Mathf.Clamp01(donwloadProgress));
                 }
-                await Task.Delay(4);
             }
 
             if (request.result != UnityWebRequest.Result.Success)
