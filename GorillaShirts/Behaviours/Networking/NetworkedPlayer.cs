@@ -66,7 +66,7 @@ namespace GorillaShirts.Behaviours.Networking
                 {
                     if (properties.TryGetValue("Fallbacks", out object fallbackObject) && fallbackObject is int[] fallbackArray)
                     {
-                        for(int i = 0; i < fallbackArray.Length; i++)
+                        for (int i = 0; i < fallbackArray.Length; i++)
                         {
                             int fallbackIndex = fallbackArray[i];
                             EShirtFallback fallback = Enum.IsDefined(typeof(EShirtFallback), fallbackIndex) ? (EShirtFallback)fallbackIndex : EShirtFallback.None;
@@ -76,7 +76,7 @@ namespace GorillaShirts.Behaviours.Networking
                         }
                     }
                 }
-                catch(Exception)
+                catch (Exception)
                 {
 
                 }

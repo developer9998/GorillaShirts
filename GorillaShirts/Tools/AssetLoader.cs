@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Networking;
 using Object = UnityEngine.Object;
 
 namespace GorillaShirts.Tools
@@ -9,9 +10,12 @@ namespace GorillaShirts.Tools
     internal class AssetLoader
     {
         private static AssetBundle loadedBundle;
+
         private static readonly Dictionary<string, Object> loadedAssets = [];
 
         private static Task bundleLoadTask;
+
+        private static readonly Dictionary<string, TaskCompletionSource<Texture2D>> textureCompletionSources = [];
 
         private static async Task LoadAssetBundle()
         {
@@ -44,6 +48,37 @@ namespace GorillaShirts.Tools
             T result = await completionSource.Task;
             loadedAssets.Add(assetName, result);
             return result;
+        }
+
+        public static async Task<Texture2D> LoadTexture(string url)
+        {
+            if (textureCompletionSources.TryGetValue(url, out TaskCompletionSource<Texture2D> completionSource))
+            {
+                Texture2D completedTex = completionSource.Task.IsCompleted ? completionSource.Task.Result : await completionSource.Task;
+                return completedTex;
+            }
+
+            completionSource = new();
+            textureCompletionSources.Add(url, completionSource);
+
+            using UnityWebRequest request = UnityWebRequestTexture.GetTexture(url);
+            UnityWebRequestAsyncOperation operation = request.SendWebRequest();
+            await operation;
+
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                Texture texture = ((DownloadHandlerTexture)request.downloadHandler).texture;
+
+                Texture2D texture2D = Texture2D.CreateExternalTexture(texture.width, texture.height, TextureFormat.RGB24, false, false, texture.GetNativeTexturePtr());
+
+                texture2D.Compress(true);
+                texture2D.Apply();
+
+                completionSource.TrySetResult(texture2D);
+                return texture2D;
+            }
+
+            return null;
         }
     }
 }

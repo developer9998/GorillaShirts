@@ -135,6 +135,16 @@ namespace GorillaShirts.Behaviours
             {
                 Releases = request.downloadHandler.text.FromJson<ReleaseInfo[]>();
                 Logging.Info($"Releases include: {string.Join(", ", Releases.OrderBy(info => info.Rank).Select(info => info.Title))}");
+
+                foreach (ReleaseInfo info in Releases)
+                {
+                    string previewLink = info.PackPreviewLink;
+                    if (string.IsNullOrEmpty(previewLink)) continue;
+                    Texture2D texture = await AssetLoader.LoadTexture(previewLink);
+                    if (texture is null || !texture) continue;
+                    Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
+                    info.PackPreviewSprite = sprite;
+                }
             }
 
             if (CosmeticsV2Spawner_Dirty.completed)

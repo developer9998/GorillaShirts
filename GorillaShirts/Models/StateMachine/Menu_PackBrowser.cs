@@ -17,7 +17,7 @@ namespace GorillaShirts.Models.StateMachine
 
         private ReleaseInfo[] releases;
         private static int releaseIndex;
-
+        private static readonly Dictionary<Texture2D, Sprite> releaseSpriteFromTex = [];
         private static readonly Dictionary<ReleaseInfo, ReleaseState> releaseStates = [];
         private static readonly Dictionary<ReleaseInfo, PackDescriptor> packReleases = [];
         private bool isProcessing;
@@ -48,7 +48,7 @@ namespace GorillaShirts.Models.StateMachine
                 ReleaseState.None => "Install",
                 ReleaseState.Processing => "Processing",
                 ReleaseState.HasRelease => "<color=green>Installed</color>",
-                _ => "what"
+                _ => "tell me what it is"
             };
 
             StringBuilder str = new();
@@ -58,6 +58,14 @@ namespace GorillaShirts.Models.StateMachine
                 str.AppendLine().Append("<color=#FF4C4C><size=4>AKA: ").Append(string.Join(", ", alternativeNames)).Append("</size></color>");
 
             stand.descriptionText.text = str.ToString();
+
+            Sprite releasePreview = info.PackPreviewSprite;
+            bool hasPreview = releasePreview is not null;
+
+            if (stand.previewImage.gameObject.activeSelf != hasPreview)
+                stand.previewImage.gameObject.SetActive(hasPreview);
+
+            if (hasPreview) stand.previewImage.sprite = releasePreview;
 
             if (packReleases.TryGetValue(info, out PackDescriptor pack))
             {
@@ -141,6 +149,7 @@ namespace GorillaShirts.Models.StateMachine
             if (button == EButtonType.NavigateSelect)
             {
                 ReleaseInfo info = CurrentInfo;
+
                 if (GetState(info) == 0)
                 {
                     SetState(info, ReleaseState.Processing);
@@ -155,22 +164,23 @@ namespace GorillaShirts.Models.StateMachine
                             stand.packBrowserLabel.text = string.Format("Name: {0}<br>Author: {1}<line-height=120%><br><color=#FF4C4C>Please refrain from closing Gorilla Tag at this time!", info.Title, info.Author);
                         }
 
-                        string stepTitle = step switch
+                        stand.packBrowserStatus.text = string.Format("<size=60%>{0} / 3</size><br>{1}", (step + 1).ToString(), step switch
                         {
                             0 => "Downloading Pack",
                             1 => "Installing Pack",
                             2 => "Loading Shirts",
-                            _ => "huh, stop playing with me!"
-                        };
-                        stand.packBrowserStatus.text = string.Format("<size=60%>{0} / 3</size><br>{1}", (step + 1).ToString(), stepTitle);
+                            _ => "huh, stop playing with me"
+                        });
                         stand.packBrowserRadial.fillAmount = progress;
                         stand.packBrowserPercent.text = $"{Mathf.FloorToInt(progress * 100)}%";
                     });
+
                     SetState(info, ReleaseState.HasRelease);
                     stand.packBrowserMenuRoot.SetActive(false);
                     stand.mainMenuRoot.SetActive(true);
                     DisplayRelease();
                 }
+
                 return;
             }
 
