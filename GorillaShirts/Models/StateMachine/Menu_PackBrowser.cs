@@ -6,6 +6,7 @@ using GorillaShirts.Models.Cosmetic;
 using GorillaShirts.Models.UI;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 
 namespace GorillaShirts.Models.StateMachine
@@ -18,11 +19,12 @@ namespace GorillaShirts.Models.StateMachine
         private static int releaseIndex;
 
         private static readonly Dictionary<ReleaseInfo, ReleaseState> releaseStates = [];
+        private static readonly Dictionary<ReleaseInfo, PackDescriptor> packReleases = [];
         private bool isProcessing;
 
         private bool doRotation;
         private float rotationTimer = 0;
-        private List<IGorillaShirt> shirtsToRotate = [];
+        private List<IGorillaShirt> shirtsToRotate = null;
         private readonly Stack<IGorillaShirt> rotationStack = [];
 
         public override void Enter()
@@ -40,7 +42,6 @@ namespace GorillaShirts.Models.StateMachine
             ReleaseInfo info = CurrentInfo;
 
             stand.headerText.text = string.Format(stand.headerFormat, info.Title.EnforceLength(20), "Pack", info.Author.EnforceLength(30));
-            stand.descriptionText.text = info.Description.EnforceLength(256);
 
             stand.shirtStatusText.text = GetState(info) switch
             {
@@ -50,10 +51,19 @@ namespace GorillaShirts.Models.StateMachine
                 _ => "what"
             };
 
+            StringBuilder str = new();
+            str.AppendLine(info.Description.EnforceLength(256));
+
+            if (info.AlsoKnownAs is string[] alternativeNames && alternativeNames.Length > 0)
+                str.AppendLine().Append("<color=#FF4C4C><size=4>AKA: ").Append(string.Join(", ", alternativeNames)).Append("</size></color>");
+
+            stand.descriptionText.text = str.ToString();
+
             if (Main.Instance.Packs.Find(pack => pack.PackName == info.Title) is PackDescriptor pack)
             {
                 doRotation = true;
-                if (shirtsToRotate != pack.Shirts)
+
+                if (shirtsToRotate == null || shirtsToRotate != pack.Shirts)
                 {
                     shirtsToRotate = pack.Shirts;
                     rotationStack.Clear();
@@ -63,9 +73,10 @@ namespace GorillaShirts.Models.StateMachine
             else
             {
                 doRotation = false;
+                shirtsToRotate = null;
                 rotationStack.Clear();
 
-                stand.Character.ClearShirts(); // TODO: make stump character wear suitable shirt
+                stand.Character.WearSignatureShirt();
             }
         }
 
@@ -75,10 +86,21 @@ namespace GorillaShirts.Models.StateMachine
 
             if (releaseStates.ContainsKey(info)) return releaseStates[info];
 
-            if (Main.Instance.Packs is var packs && packs.Exists(pack => pack.PackName == info.Title))
+            if (Main.Instance.Packs is not null)
             {
-                SetState(info, ReleaseState.HasRelease);
-                return ReleaseState.HasRelease;
+                List<string> names = [info.Title];
+                if (info.AlsoKnownAs is not null && info.AlsoKnownAs.Length != 0) names.AddRange(info.AlsoKnownAs);
+
+                foreach (var pack in Main.Instance.Packs)
+                {
+                    if (names.Contains(pack.PackName))
+                    {
+                        if (!packReleases.ContainsKey(info)) packReleases.Add(info, pack);
+
+                        SetState(info, ReleaseState.HasRelease);
+                        return ReleaseState.HasRelease;
+                    }
+                }
             }
 
             return ReleaseState.None;
@@ -108,14 +130,17 @@ namespace GorillaShirts.Models.StateMachine
                 if (GetState(info) == 0)
                 {
                     SetState(info, ReleaseState.Processing);
+
                     await Main.Instance.Content.InstallRelease(info, (step, progress) =>
                     {
-                        if (!stand.packBrowserRoot.activeSelf)
+                        if (!stand.packBrowserMenuRoot.activeSelf)
                         {
-                            stand.packBrowserRoot.SetActive(true);
-                            stand.mainContentRoot.SetActive(false);
-                            stand.packBrowserLabel.text = string.Format("Name: {0}<br>Author: {1}<br><color=#FF4C4C>Please refrain from closing Gorilla Tag at this time!", info.Title, info.Author);
+                            stand.Character.WearSignatureShirt();
+                            stand.packBrowserMenuRoot.SetActive(true);
+                            stand.mainMenuRoot.SetActive(false);
+                            stand.packBrowserLabel.text = string.Format("Name: {0}<br>Author: {1}<line-height=120%><br><color=#FF4C4C>Please refrain from closing Gorilla Tag at this time!", info.Title, info.Author);
                         }
+
                         string stepTitle = step switch
                         {
                             0 => "Downloading Pack",
@@ -123,13 +148,13 @@ namespace GorillaShirts.Models.StateMachine
                             2 => "Loading Shirts",
                             _ => "huh, stop playing with me!"
                         };
-                        stand.packBrowserStatus.text = string.Format("<size=60%>Step {0}:</size><br>{1}", (step + 1).ToString(), stepTitle);
+                        stand.packBrowserStatus.text = string.Format("<size=60%>{0} / 3</size><br>{1}", (step + 1).ToString(), stepTitle);
                         stand.packBrowserRadial.fillAmount = progress;
                         stand.packBrowserPercent.text = Mathf.FloorToInt(progress * 100).ToString();
                     });
                     SetState(info, ReleaseState.HasRelease);
-                    stand.packBrowserRoot.SetActive(false);
-                    stand.mainContentRoot.SetActive(true);
+                    stand.packBrowserMenuRoot.SetActive(false);
+                    stand.mainMenuRoot.SetActive(true);
                     DisplayRelease();
                 }
                 return;
@@ -149,6 +174,12 @@ namespace GorillaShirts.Models.StateMachine
 
         public void Rotate()
         {
+            if (shirtsToRotate == null || shirtsToRotate.Count == 0)
+            {
+                doRotation = false;
+                return;
+            }
+
             rotationTimer = 0f;
 
             IGorillaShirt single;

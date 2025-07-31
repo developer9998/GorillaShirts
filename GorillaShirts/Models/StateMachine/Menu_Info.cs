@@ -13,9 +13,7 @@ namespace GorillaShirts.Models.StateMachine
         {
             base.Enter();
 
-            // TODO: make stump character wear appropriate shirt using plugin exclusive fallbacks
-            // i.e., silly wears her croptop, steady wears his hoodie
-
+            stand.Character.WearSignatureShirt();
             stand.mainMenuRoot.SetActive(true);
             stand.mainContentRoot.SetActive(false);
             stand.infoContentRoot.SetActive(true);
@@ -36,18 +34,18 @@ namespace GorillaShirts.Models.StateMachine
                 .Replace("[PLAYERNAME]", NetworkSystem.Instance.GetMyNickName());
         }
 
+        public override void OnButtonPress(EButtonType button)
+        {
+            if (button != EButtonType.Info) return;
+            Main.Instance.MenuStateMachine.SwitchState(previousState);
+        }
+
         public override void Exit()
         {
             base.Exit();
             stand.mainMenuRoot.SetActive(false);
             stand.mainContentRoot.SetActive(true);
             stand.infoContentRoot.SetActive(false);
-        }
-
-        public override void OnButtonPress(EButtonType button)
-        {
-            if (button != EButtonType.Info) return;
-            Main.Instance.MenuStateMachine.SwitchState(previousState);
         }
     }
 }

@@ -5,12 +5,14 @@
     {
         public string Title;
 
+        public string[] AlsoKnownAs = null;
+
         public string Author;
 
         public string Description;
 
         public string Link;
 
-        public int Rank;
+        public int Rank = 10;
     }
 }

@@ -1,5 +1,4 @@
-﻿using BepInEx;
-using GorillaShirts.Behaviours;
+﻿using GorillaShirts.Behaviours;
 using GorillaShirts.Behaviours.Cosmetic;
 using GorillaShirts.Models.Cosmetic;
 using GorillaShirts.Tools;
@@ -61,9 +60,8 @@ namespace GorillaShirts.Models
                 {
                     await InstallRelease(defaultRelease, (step, progress) =>
                     {
-                        Logging.Info($"{step}: {Mathf.FloorToInt(progress * 100f)}%");
+                        Logging.Info($"Default Pack Installation: {Mathf.FloorToInt(progress * 100f)}%");
                     });
-                    // await LoadContent(directory);
                     return;
                 }
 
@@ -113,40 +111,35 @@ namespace GorillaShirts.Models
             {
                 FileInfo file = files[i];
 
-                if (Main.Instance.Shirts is var shirtDictionary && shirtDictionary.Count != 0)
+                if (Main.Instance.Shirts is var shirtDictionary && shirtDictionary.Count != 0 && Array.Find(shirtDictionary.Values.ToArray(), shirt => shirt.FileInfo.FullName == file.FullName) is IGorillaShirt shirt && shirt is T existingAsset)
                 {
-                    string path = file.FullName;
-                    if (Array.Find(shirtDictionary.Values.ToArray(), shirt => shirt.FileInfo.FullName == path) is IGorillaShirt shirt && shirt is T existingAsset)
-                    {
-                        shirts.Add(existingAsset);
+                    shirts.Add(existingAsset);
+                    Main.Instance.ShirtStand.Character.SetShirt(existingAsset);
 
-                        contentLoaded++;
-                        LoadStageCallback?.Invoke(contentLoaded, contentCount, errorCount);
+                    contentLoaded++;
+                    LoadStageCallback?.Invoke(contentLoaded, contentCount, errorCount);
 
-                        continue;
-                    }
+                    continue;
                 }
 
                 T asset = Activator.CreateInstance<T>();
                 await asset.CreateShirt(file);
 
-                contentLoaded++;
-
-                if (asset.Descriptor == null)
+                if (asset.Descriptor is null)
                 {
                     Logging.Warning($"Shirt {file.Name}: broken");
                     File.Move(file.FullName, string.Concat(file, ".broken"));
-
                     errorCount++;
-                    LoadStageCallback?.Invoke(contentLoaded, contentCount, errorCount);
-                    continue;
+                }
+                else
+                {
+                    shirts.Add(asset);
+                    Main.Instance.ShirtStand.Character.SetShirt(asset);
                 }
 
+                contentLoaded++;
                 LoadStageCallback?.Invoke(contentLoaded, contentCount, errorCount);
-                shirts.Add(asset);
             }
-
-            LoadStageCallback?.Invoke(contentLoaded, contentCount, errorCount);
 
             return shirts;
         }
@@ -173,7 +166,7 @@ namespace GorillaShirts.Models
                     donwloadProgress = request.downloadProgress;
                     callback.Invoke(0, Mathf.Clamp01(donwloadProgress));
                 }
-                await Task.Delay(2);
+                await Task.Delay(200);
             }
 
             if (request.result != UnityWebRequest.Result.Success)
@@ -209,7 +202,7 @@ namespace GorillaShirts.Models
 
                     entriesExtracted++;
                     callback.Invoke(1, (float)entriesExtracted / totalEntries);
-                    await Task.Delay(2);
+                    await Task.Delay(100);
                 }
             }
 

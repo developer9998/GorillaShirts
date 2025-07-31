@@ -63,16 +63,6 @@ namespace GorillaShirts.Behaviours.UI
 
         public GameObject infoContentRoot;
 
-        public GameObject packBrowserRoot;
-
-        public Image packBrowserRadial;
-
-        public TMP_Text packBrowserPercent;
-
-        public TMP_Text packBrowserStatus;
-
-        public TMP_Text packBrowserLabel;
-
         public TMP_Text navigationText;
 
         public TMP_Text headerText;
@@ -111,7 +101,19 @@ namespace GorillaShirts.Behaviours.UI
 
         public Text tagOffsetText;
 
-        [Header("Main Menu (under Info tab)")]
+        [Header("Pack Browser Load Menu")]
+
+        public GameObject packBrowserMenuRoot;
+
+        public Image packBrowserRadial;
+
+        public TMP_Text packBrowserPercent;
+
+        public TMP_Text packBrowserStatus;
+
+        public TMP_Text packBrowserLabel;
+
+        [Header("UNUSED FOR NOW")] // [Header("Main Menu (under Info tab)")]
 
         public GameObject tutorialRoot;
 

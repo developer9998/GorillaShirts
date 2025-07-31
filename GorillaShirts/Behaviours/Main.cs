@@ -8,6 +8,7 @@ using GorillaShirts.Models.StateMachine;
 using GorillaShirts.Models.UI;
 using GorillaShirts.Tools;
 using Newtonsoft.Json;
+using Photon.Realtime;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -65,8 +66,9 @@ namespace GorillaShirts.Behaviours
             ShirtStand.loadMenuRoot.SetActive(false);
             ShirtStand.versionMenuRoot.SetActive(false);
             ShirtStand.mainMenuRoot.SetActive(false);
+            ShirtStand.packBrowserMenuRoot.SetActive(false);
+
             ShirtStand.mainContentRoot.SetActive(true);
-            ShirtStand.packBrowserRoot.SetActive(false);
             ShirtStand.infoContentRoot.SetActive(false);
 
             ShirtStand.Character.SetAppearence(Plugin.StandCharacter.Value);
@@ -250,11 +252,42 @@ namespace GorillaShirts.Behaviours
                 menuState_PackList = new Menu_PackCollection(ShirtStand, Packs);
                 MenuStateMachine.SwitchState(menuState_PackList);
             }
+
+            if (NetworkSystem.Instance.InRoom && GorillaParent.instance is GorillaParent gorillaParent)
+            {
+                foreach (VRRig rig in gorillaParent.vrrigs)
+                {
+                    if (rig.TryGetComponent(out NetworkedPlayer component) && component.Creator is PunNetPlayer punPlayer && punPlayer.PlayerRef is Player playerRef)
+                    {
+                        NetworkManager.Instance.OnPlayerPropertiesUpdate(playerRef, playerRef.CustomProperties);
+                    }
+                }
+            }
         }
 
         public void Update()
         {
             MenuStateMachine?.Update();
+        }
+
+        public IGorillaShirt GetShirtFromFallback(EShirtFallback fallback)
+        {
+            if (fallback == EShirtFallback.None) return null;
+
+            string shirtId = fallback switch
+            {
+                EShirtFallback.LongsleeveShirt => "Default/Longsleeve Shirt",
+                EShirtFallback.Turtleneck => "Default/Turtleneck",
+                EShirtFallback.TeeShirt => "Default/Tee Shirt",
+                EShirtFallback.Hoodie => "Default/Hoodie",
+                EShirtFallback.Overcoat => "Default/Overcoat",
+                EShirtFallback.Croptop => "Default/Croptop",
+                EShirtFallback.SillyCroptop => "Default/Silly's Croptop",
+                EShirtFallback.SteadyHoodie => "Default/Steady's Hoodie",
+                _ => null
+            };
+
+            return (!string.IsNullOrEmpty(shirtId) && Shirts.TryGetValue(shirtId, out IGorillaShirt shirt)) ? shirt : null;
         }
 
         public bool IsFavourite(IGorillaShirt shirt) => FavouritePack.Shirts.Contains(shirt);

@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using GorillaShirts.Models.Cosmetic;
+
 
 #if PLUGIN
 using System;
@@ -31,6 +33,13 @@ namespace GorillaShirts.Behaviours.Appearance
 
         public event Action<ECharacterPreference> OnPreferenceSet;
 
+        public EShirtFallback PreferredFallback => Preference switch
+        {
+            ECharacterPreference.Masculine => EShirtFallback.SteadyHoodie,
+            ECharacterPreference.Feminine => EShirtFallback.SillyCroptop,
+            _ => EShirtFallback.None
+        };
+
         public void SetAppearence(ECharacterPreference preference)
         {
             Preference = preference;
@@ -61,6 +70,17 @@ namespace GorillaShirts.Behaviours.Appearance
             }
 
             OnPreferenceSet?.Invoke(preference);
+        }
+
+        public void WearSignatureShirt()
+        {
+            if (Main.Instance.GetShirtFromFallback(PreferredFallback) is IGorillaShirt shirt)
+            {
+                SetShirt(shirt);
+                return;
+            }
+
+            ClearShirts();
         }
 
         public override void MoveNameTag()

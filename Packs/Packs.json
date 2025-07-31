@@ -15,16 +15,15 @@
     },
     {
         "Title": "Expressions",
+        "AlsoKnownAs": ["ExpressionPack"],
         "Author": "cresmondo",
         "Description": "a pack i made for content creators to use for their videos!! features a wide array of expressions, credit isnt required but would be nice!!",
-        "Link": "https://github.com/developer9998/GorillaShirts/raw/refs/heads/main/Packs/Expressions.zip",
-        "Rank": 10
+        "Link": "https://github.com/developer9998/GorillaShirts/raw/refs/heads/main/Packs/Expressions.zip"
     },
     {
         "Title": "Pride Hoodies",
         "Author": "cresmondo",
         "Description": "a pack that comes with 14 pride-flag themed hoodies!",
-        "Link": "https://github.com/developer9998/GorillaShirts/raw/refs/heads/main/Packs/Pride Hoodies.zip",
-        "Rank": 10
+        "Link": "https://github.com/developer9998/GorillaShirts/raw/refs/heads/main/Packs/Pride Hoodies.zip"
     }
 ]

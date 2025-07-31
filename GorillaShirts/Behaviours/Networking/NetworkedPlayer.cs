@@ -18,13 +18,15 @@ namespace GorillaShirts.Behaviours.Networking
 
         public NetPlayer Creator;
 
-        private HumanoidContainer humanoid;
+        private HumanoidContainer playerHumanoid;
+
+        private readonly List<EShirtFallback> playerFallbacks = [];
 
         public void Start()
         {
             NetworkManager.Instance.OnPlayerPropertyChanged += OnPlayerPropertyChanged;
 
-            humanoid = gameObject.GetOrAddComponent<HumanoidContainer>();
+            playerHumanoid = gameObject.GetOrAddComponent<HumanoidContainer>();
 
             if (!HasGorillaShirts && Creator is PunNetPlayer punPlayer && punPlayer.PlayerRef is Player playerRef)
                 NetworkManager.Instance.OnPlayerPropertiesUpdate(playerRef, playerRef.CustomProperties);
@@ -36,7 +38,7 @@ namespace GorillaShirts.Behaviours.Networking
         {
             NetworkManager.Instance.OnPlayerPropertyChanged -= OnPlayerPropertyChanged;
 
-            if (humanoid != null && humanoid) Destroy(humanoid);
+            if (playerHumanoid != null && playerHumanoid) Destroy(playerHumanoid);
         }
 
         public void OnPlayerPropertyChanged(NetPlayer player, Dictionary<string, object> properties)
@@ -52,7 +54,7 @@ namespace GorillaShirts.Behaviours.Networking
                     {
                         Logging.Info($"Tag Offset: {tagOffset}");
 
-                        humanoid.OffsetNameTag(tagOffset);
+                        playerHumanoid.OffsetNameTag(tagOffset);
                     }
                 }
                 catch (Exception ex)
@@ -62,12 +64,32 @@ namespace GorillaShirts.Behaviours.Networking
 
                 try
                 {
+                    if (properties.TryGetValue("Fallbacks", out object fallbackObject) && fallbackObject is int[] fallbackArray)
+                    {
+                        for(int i = 0; i < fallbackArray.Length; i++)
+                        {
+                            int fallbackIndex = fallbackArray[i];
+                            EShirtFallback fallback = Enum.IsDefined(typeof(EShirtFallback), fallbackIndex) ? (EShirtFallback)fallbackIndex : EShirtFallback.None;
+
+                            if ((i + 1) > playerFallbacks.Count) playerFallbacks.Insert(i, fallback);
+                            else playerFallbacks[i] = fallback;
+                        }
+                    }
+                }
+                catch(Exception)
+                {
+
+                }
+
+                try
+                {
                     if (properties.TryGetValue("Shirts", out object shirtsObject) && shirtsObject is string[] shirtPreferences)
                     {
                         Logging.Info($"Shirts: {string.Join(", ", shirtPreferences)}");
 
                         List<IGorillaShirt> shirtsToRemove = [];
-                        List<IGorillaShirt> currentShirts = [.. humanoid.Shirts];
+                        List<IGorillaShirt> currentShirts = [.. playerHumanoid.Shirts];
+
                         foreach (IGorillaShirt shirt in currentShirts)
                         {
                             if (shirtPreferences.Length > 0 && shirtPreferences.Contains(shirt.ShirtId)) continue;
@@ -75,21 +97,27 @@ namespace GorillaShirts.Behaviours.Networking
                         }
 
                         List<IGorillaShirt> shirtsToWear = [];
-                        foreach (string preference in shirtPreferences)
+                        for (int i = 0; i < shirtPreferences.Length; i++)
                         {
-                            if (humanoid.Shirts.Any(shirt => shirt.ShirtId == preference) || !Main.Instance.Shirts.TryGetValue(preference, out IGorillaShirt shirt)) continue;
-                            shirtsToWear.Add(shirt);
+                            var preference = shirtPreferences[i];
+                            if (playerHumanoid.Shirts.Any(shirt => shirt.ShirtId == preference)) continue;
+
+                            IGorillaShirt shirt = null;
+                            if (Main.Instance.Shirts.ContainsKey(preference)) shirt = Main.Instance.Shirts[preference];
+                            else if (playerFallbacks[i] != EShirtFallback.None && Main.Instance.GetShirtFromFallback(playerFallbacks[i]) is IGorillaShirt fallbackShirt) shirt = fallbackShirt;
+
+                            if (shirt is not null) shirtsToWear.Add(shirt);
                         }
 
                         if (shirtsToWear.Count > 0)
                         {
-                            shirtsToWear.ForEach(humanoid.UnionShirt);
-                            Main.Instance.PlayShirtWearSound(humanoid.Rig, shirts: [.. shirtsToWear]);
+                            shirtsToWear.ForEach(playerHumanoid.UnionShirt);
+                            Main.Instance.PlayShirtWearSound(playerHumanoid.Rig, shirts: [.. shirtsToWear]);
                         }
                         else if (shirtsToRemove.Count > 0)
                         {
-                            shirtsToRemove.ForEach(humanoid.NegateShirt);
-                            Main.Instance.PlayShirtRemoveSound(humanoid.Rig, shirts: [.. shirtsToRemove]);
+                            shirtsToRemove.ForEach(playerHumanoid.NegateShirt);
+                            Main.Instance.PlayShirtRemoveSound(playerHumanoid.Rig, shirts: [.. shirtsToRemove]);
                         }
                     }
                 }

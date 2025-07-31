@@ -46,7 +46,7 @@ namespace GorillaShirts.Behaviours.Appearance
 
         public int NameTagOffset;
 
-        public void SetShirt(IGorillaShirt shirt) => SetShirts(shirt == null ? [] : [shirt]);
+        public void SetShirt(IGorillaShirt shirt) => SetShirts(shirt is not null ? [shirt] : []);
 
         public void ClearShirts() => SetShirts([]);
 
@@ -71,11 +71,11 @@ namespace GorillaShirts.Behaviours.Appearance
             }
         }
 
-        public void UnionShirt(IGorillaShirt myShirt)
+        public void UnionShirt(IGorillaShirt shirt)
         {
-            if (Shirts.Contains(myShirt)) return;
+            if (Shirts.Contains(shirt)) return;
 
-            if (Objects.TryGetValue(myShirt, out var shirtComponentObjects))
+            if (Objects.TryGetValue(shirt, out var shirtComponentObjects))
             {
                 shirtComponentObjects.ForEach(gameObject =>
                 {
@@ -90,11 +90,11 @@ namespace GorillaShirts.Behaviours.Appearance
                 goto ApplyCheck;
             }
 
-            var newObjects = new List<GameObject>();
+            var shirtObjects = new List<GameObject>();
 
             foreach (EShirtObject type in Enum.GetValues(typeof(EShirtObject)).Cast<EShirtObject>())
             {
-                if (myShirt.Objects.HasFlag(type) && myShirt.Template.transform.Find(type.ToString()) is Transform child)
+                if (shirt.Objects.HasFlag(type) && shirt.Template.transform.Find(type.ToString()) is Transform child)
                 {
                     var parentObject = type switch
                     {
@@ -112,12 +112,12 @@ namespace GorillaShirts.Behaviours.Appearance
                     if (!parentObject) continue;
 
                     var newSectorObject = Instantiate(child.gameObject);
-                    newSectorObject.name = $"{myShirt.Descriptor.ShirtName}: {child.gameObject.name}";
+                    newSectorObject.name = $"{shirt.Descriptor.ShirtName}: {child.gameObject.name}";
                     newSectorObject.transform.SetParent(parentObject, false);
                     newSectorObject.transform.localPosition = child.localPosition;
                     newSectorObject.transform.localEulerAngles = child.localEulerAngles;
                     newSectorObject.transform.localScale = child.localScale;
-                    newObjects.Add(newSectorObject);
+                    shirtObjects.Add(newSectorObject);
                     newSectorObject.SetActive(!InvisibleToLocalPlayer);
 
                     if (newSectorObject.TryGetComponent(out ShirtColourProfile profile))
@@ -136,31 +136,31 @@ namespace GorillaShirts.Behaviours.Appearance
                 }
             }
 
-            Objects.Add(myShirt, newObjects);
+            Objects.Add(shirt, shirtObjects);
 
-            foreach(EShirtAnchor anchor in Enum.GetValues(typeof(EShirtAnchor)).Cast<EShirtAnchor>())
+            foreach (EShirtAnchor anchor in Enum.GetValues(typeof(EShirtAnchor)).Cast<EShirtAnchor>())
             {
-                if (myShirt.Anchors.HasFlag(anchor) && myShirt.Template.transform.Find(anchor.GetName()) is Transform child)
+                if (shirt.Anchors.HasFlag(anchor) && shirt.Template.transform.Find(anchor.GetName()) is Transform child)
                 {
                     Transform anchorParent = Body;
                     if (anchorParent is null || !anchorParent) continue;
 
                     GameObject anchorGameObject = Instantiate(child.gameObject);
-                    anchorGameObject.name = $"{myShirt.Descriptor.ShirtName}: {child.gameObject.name}";
+                    anchorGameObject.name = $"{shirt.Descriptor.ShirtName}: {child.gameObject.name}";
                     anchorGameObject.transform.SetParent(anchorParent, false);
                     anchorGameObject.transform.localPosition = child.localPosition;
                     anchorGameObject.transform.localEulerAngles = child.localEulerAngles;
                     anchorGameObject.transform.localScale = child.localScale;
 
-                    if (!Anchors.ContainsKey(myShirt)) Anchors.Add(myShirt, []);
+                    if (!Anchors.ContainsKey(shirt)) Anchors.Add(shirt, []);
 
-                    if (!Anchors[myShirt].ContainsKey(anchor)) Anchors[myShirt].Add(anchor, anchorGameObject.transform);
+                    if (!Anchors[shirt].ContainsKey(anchor)) Anchors[shirt].Add(anchor, anchorGameObject.transform);
                 }
             }
 
         ApplyCheck:
 
-            var finalShirts = myShirt.Concat(Shirts);
+            var finalShirts = shirt.Concat(Shirts);
             var currentShirtList = new List<IGorillaShirt>(Shirts);
             for (int i = 0; i < currentShirtList.Count; i++)
             {
@@ -171,7 +171,7 @@ namespace GorillaShirts.Behaviours.Appearance
                 }
             }
 
-            if (!Shirts.Contains(myShirt)) Shirts.Add(myShirt);
+            if (!Shirts.Contains(shirt)) Shirts.Add(shirt);
 
             CheckShirts();
 
@@ -222,23 +222,11 @@ namespace GorillaShirts.Behaviours.Appearance
             SlingshotAnchor = null;
 
             var anchors = Anchors.Where(pair => Shirts.Contains(pair.Key)).Select(pair => pair.Value).ToArray();
-            foreach(var dictionary in anchors)
+            foreach (var dictionary in anchors)
             {
                 CheckForAnchor(dictionary, EShirtAnchor.NameTagAnchor, ref NameTagAnchor);
                 CheckForAnchor(dictionary, EShirtAnchor.BadgeAnchor, ref BadgeAnchor);
                 CheckForAnchor(dictionary, EShirtAnchor.SlingshotAnchor, ref SlingshotAnchor);
-
-                /*
-                if (dictionary.TryGetValue(EShirtAnchor.NameTagAnchor, out Transform nameTagAnchor) && (NameTagAnchor == null || nameTagAnchor.localPosition.z > NameTagAnchor.transform.localPosition.z))
-                {
-                    NameTagAnchor = nameTagAnchor.gameObject;
-                }
-
-                if (dictionary.TryGetValue(EShirtAnchor.BadgeAnchor, out Transform badgeAnchor) && (BadgeAnchor == null || badgeAnchor.localPosition.z > BadgeAnchor.transform.localPosition.z))
-                {
-                    BadgeAnchor = badgeAnchor.gameObject;
-                }
-                */
             }
 
             MoveNameTag();
