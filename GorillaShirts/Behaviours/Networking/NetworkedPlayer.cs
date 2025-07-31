@@ -104,7 +104,7 @@ namespace GorillaShirts.Behaviours.Networking
 
                             IGorillaShirt shirt = null;
                             if (Main.Instance.Shirts.ContainsKey(preference)) shirt = Main.Instance.Shirts[preference];
-                            else if (playerFallbacks[i] != EShirtFallback.None && Main.Instance.GetShirtFromFallback(playerFallbacks[i]) is IGorillaShirt fallbackShirt) shirt = fallbackShirt;
+                            else if (playerFallbacks.Count > i && playerFallbacks.ElementAtOrDefault(i) != EShirtFallback.None && Main.Instance.GetShirtFromFallback(playerFallbacks[i]) is IGorillaShirt fallbackShirt) shirt = fallbackShirt;
 
                             if (shirt is not null) shirtsToWear.Add(shirt);
                         }

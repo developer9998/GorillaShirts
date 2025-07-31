@@ -252,6 +252,7 @@ namespace GorillaShirts.Behaviours
                 menuState_PackList = new Menu_PackCollection(ShirtStand, Packs);
                 MenuStateMachine.SwitchState(menuState_PackList);
             }
+            else menuState_PackList.Packs = Packs;
 
             if (NetworkSystem.Instance.InRoom && GorillaParent.instance is GorillaParent gorillaParent)
             {

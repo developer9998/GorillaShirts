@@ -59,7 +59,7 @@ namespace GorillaShirts.Models.StateMachine
 
             stand.descriptionText.text = str.ToString();
 
-            if (Main.Instance.Packs.Find(pack => pack.PackName == info.Title) is PackDescriptor pack)
+            if (packReleases.TryGetValue(info, out PackDescriptor pack))
             {
                 doRotation = true;
 
@@ -86,6 +86,19 @@ namespace GorillaShirts.Models.StateMachine
 
             if (releaseStates.ContainsKey(info)) return releaseStates[info];
 
+            if (GetPackFromRelease(info) is PackDescriptor pack && pack)
+            {
+                SetState(info, ReleaseState.HasRelease);
+                return ReleaseState.HasRelease;
+            }
+
+            return ReleaseState.None;
+        }
+
+        private static PackDescriptor GetPackFromRelease(ReleaseInfo info)
+        {
+            if (packReleases.ContainsKey(info)) return packReleases[info];
+
             if (Main.Instance.Packs is not null)
             {
                 List<string> names = [info.Title];
@@ -96,20 +109,21 @@ namespace GorillaShirts.Models.StateMachine
                     if (names.Contains(pack.PackName))
                     {
                         if (!packReleases.ContainsKey(info)) packReleases.Add(info, pack);
-
-                        SetState(info, ReleaseState.HasRelease);
-                        return ReleaseState.HasRelease;
+                        return pack;
                     }
                 }
             }
 
-            return ReleaseState.None;
+            return null;
         }
 
         public void SetState(ReleaseInfo info, ReleaseState state)
         {
             if (releaseStates.ContainsKey(info)) releaseStates[info] = state;
             else releaseStates.Add(info, state);
+
+            if (state == ReleaseState.HasRelease && !packReleases.ContainsKey(info))
+                GetPackFromRelease(info);
 
             isProcessing = releaseStates.Values.Any(value => value == ReleaseState.Processing);
         }
@@ -150,7 +164,7 @@ namespace GorillaShirts.Models.StateMachine
                         };
                         stand.packBrowserStatus.text = string.Format("<size=60%>{0} / 3</size><br>{1}", (step + 1).ToString(), stepTitle);
                         stand.packBrowserRadial.fillAmount = progress;
-                        stand.packBrowserPercent.text = Mathf.FloorToInt(progress * 100).ToString();
+                        stand.packBrowserPercent.text = $"{Mathf.FloorToInt(progress * 100)}%";
                     });
                     SetState(info, ReleaseState.HasRelease);
                     stand.packBrowserMenuRoot.SetActive(false);

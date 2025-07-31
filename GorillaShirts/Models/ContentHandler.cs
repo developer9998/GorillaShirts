@@ -166,7 +166,7 @@ namespace GorillaShirts.Models
                     donwloadProgress = request.downloadProgress;
                     callback.Invoke(0, Mathf.Clamp01(donwloadProgress));
                 }
-                await Task.Delay(200);
+                await Task.Delay(4);
             }
 
             if (request.result != UnityWebRequest.Result.Success)
@@ -202,7 +202,7 @@ namespace GorillaShirts.Models
 
                     entriesExtracted++;
                     callback.Invoke(1, (float)entriesExtracted / totalEntries);
-                    await Task.Delay(100);
+                    await Task.Delay(8);
                 }
             }
 
