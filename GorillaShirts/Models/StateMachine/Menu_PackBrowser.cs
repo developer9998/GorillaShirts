@@ -225,6 +225,9 @@ namespace GorillaShirts.Models.StateMachine
         public override void Exit()
         {
             Stand.mainMenuRoot.SetActive(false);
+
+            if (Stand.previewImage.gameObject.activeSelf != false)
+                Stand.previewImage.gameObject.SetActive(false);
         }
 
         internal enum ReleaseState
