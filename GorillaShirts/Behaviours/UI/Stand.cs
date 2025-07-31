@@ -86,6 +86,7 @@ namespace GorillaShirts.Behaviours.UI
         public GameObject infoButtonObject;
 
         public GameObject packBrowserButtonObject;
+        public GameObject packBrowserNewLabel;
 
         public GameObject favouriteButtonObject;
 

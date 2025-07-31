@@ -4,10 +4,13 @@ using GorillaShirts.Behaviours.UI;
 using GorillaShirts.Extensions;
 using GorillaShirts.Models.Cosmetic;
 using GorillaShirts.Models.UI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using static OVRPlugin;
+using static Unity.IO.LowLevel.Unsafe.AsyncReadManagerMetrics;
 
 namespace GorillaShirts.Models.StateMachine
 {
@@ -17,10 +20,11 @@ namespace GorillaShirts.Models.StateMachine
 
         private ReleaseInfo[] releases;
         private static int releaseIndex;
-        private static readonly Dictionary<Texture2D, Sprite> releaseSpriteFromTex = [];
+
         private static readonly Dictionary<ReleaseInfo, ReleaseState> releaseStates = [];
-        private static readonly Dictionary<ReleaseInfo, PackDescriptor> packReleases = [];
+
         private bool isProcessing;
+        private ReleaseFlags flags;
 
         private bool doRotation;
         private float rotationTimer = 0;
@@ -41,13 +45,15 @@ namespace GorillaShirts.Models.StateMachine
             releaseIndex = releaseIndex.Wrap(0, releases.Length);
             ReleaseInfo info = CurrentInfo;
 
+            flags = (info.Title == "Default" && info.Rank == 0) || (info.Version > info.GetInstalledVersion() && info.GetInstalledVersion() != -1) ? ReleaseFlags.RequireInstall : ReleaseFlags.None;
+
             Stand.headerText.text = string.Format(Stand.headerFormat, info.Title.EnforceLength(20), "Pack", info.Author.EnforceLength(30));
 
             Stand.shirtStatusText.text = GetState(info) switch
             {
-                ReleaseState.None => "Install",
+                ReleaseState.None => flags.HasFlag(ReleaseFlags.RequireInstall) ? "Install Update" : "Install Pack",
                 ReleaseState.Processing => "Processing",
-                ReleaseState.HasRelease => "<color=green>Installed</color>",
+                ReleaseState.HasRelease => flags.HasFlag(ReleaseFlags.RequireInstall) ? "Reinstall Pack" : "Remove Pack",
                 _ => "tell me what it is"
             };
 
@@ -67,8 +73,9 @@ namespace GorillaShirts.Models.StateMachine
 
             if (hasPreview) Stand.previewImage.sprite = releasePreview;
 
-            if (packReleases.TryGetValue(info, out PackDescriptor pack))
+            if (info.Pack is not null)
             {
+                PackDescriptor pack = info.Pack;
                 doRotation = true;
 
                 if (shirtsToRotate == null || shirtsToRotate != pack.Shirts)
@@ -92,9 +99,17 @@ namespace GorillaShirts.Models.StateMachine
         {
             if (info is null) return ReleaseState.None;
 
-            if (releaseStates.ContainsKey(info)) return releaseStates[info];
+            if (releaseStates.ContainsKey(info))
+            {
+                if (releaseStates[info] == ReleaseState.HasRelease && info.Pack is null)
+                {
+                    SetState(info, ReleaseState.None);
+                    return ReleaseState.None;
+                }
+                return releaseStates[info];
+            }
 
-            if (GetPackFromRelease(info) is PackDescriptor pack && pack)
+            if (info.Pack is not null)
             {
                 SetState(info, ReleaseState.HasRelease);
                 return ReleaseState.HasRelease;
@@ -103,35 +118,10 @@ namespace GorillaShirts.Models.StateMachine
             return ReleaseState.None;
         }
 
-        private static PackDescriptor GetPackFromRelease(ReleaseInfo info)
-        {
-            if (packReleases.ContainsKey(info)) return packReleases[info];
-
-            if (Main.Instance.Packs is not null)
-            {
-                List<string> names = [info.Title];
-                if (info.AlsoKnownAs is not null && info.AlsoKnownAs.Length != 0) names.AddRange(info.AlsoKnownAs);
-
-                foreach (var pack in Main.Instance.Packs)
-                {
-                    if (names.Contains(pack.PackName))
-                    {
-                        if (!packReleases.ContainsKey(info)) packReleases.Add(info, pack);
-                        return pack;
-                    }
-                }
-            }
-
-            return null;
-        }
-
         public void SetState(ReleaseInfo info, ReleaseState state)
         {
             if (releaseStates.ContainsKey(info)) releaseStates[info] = state;
             else releaseStates.Add(info, state);
-
-            if (state == ReleaseState.HasRelease && !packReleases.ContainsKey(info))
-                GetPackFromRelease(info);
 
             isProcessing = releaseStates.Values.Any(value => value == ReleaseState.Processing);
         }
@@ -150,34 +140,57 @@ namespace GorillaShirts.Models.StateMachine
             {
                 ReleaseInfo info = CurrentInfo;
 
-                if (GetState(info) == ReleaseState.None)
+                ReleaseState initialState = GetState(info);
+                if (initialState != ReleaseState.Processing)
                 {
                     SetState(info, ReleaseState.Processing);
 
-                    await Main.Instance.Content.InstallRelease(info, (step, progress) =>
+                    Stand.Character.WearSignatureShirt();
+                    Stand.packBrowserMenuRoot.SetActive(true);
+                    Stand.mainMenuRoot.SetActive(false);
+
+                    bool uninstallRelease = initialState == ReleaseState.HasRelease;
+                    bool installRelease = initialState == ReleaseState.None || flags.HasFlag(ReleaseFlags.RequireInstall);
+
+                    int stepOffset = uninstallRelease ? 1 : 0;
+                    int stepCount = new int[] { installRelease ? 3 : 0, stepOffset }.Sum();
+
+                    if (uninstallRelease)
                     {
-                        if (!Stand.packBrowserMenuRoot.activeSelf)
+                        await Main.Instance.Content.UninstallRelease(info, (progress) =>
                         {
-                            Stand.Character.WearSignatureShirt();
-                            Stand.packBrowserMenuRoot.SetActive(true);
-                            Stand.mainMenuRoot.SetActive(false);
-                            Stand.packBrowserLabel.text = string.Format("Name: {0}<br>Author: {1}<line-height=120%><br><color=#FF4C4C>Please refrain from closing Gorilla Tag at this time!", info.Title, info.Author);
-                        }
-
-                        Stand.packBrowserStatus.text = string.Format("<size=60%>{0} / 3</size><br>{1}", (step + 1).ToString(), step switch
-                        {
-                            0 => "Downloading Pack",
-                            1 => "Installing Pack",
-                            2 => "Loading Shirts",
-                            _ => "huh, stop playing with me"
+                            Stand.packBrowserStatus.text = string.Format("<size=60%>{0} / {1}</size><br>{2}", "1", stepCount.ToString(), "Removing Pack");
+                            Stand.packBrowserRadial.fillAmount = progress;
+                            Stand.packBrowserPercent.text = $"{Mathf.FloorToInt(progress * 100)}%";
                         });
-                        Stand.packBrowserRadial.fillAmount = progress;
-                        Stand.packBrowserPercent.text = $"{Mathf.FloorToInt(progress * 100)}%";
-                    });
 
-                    SetState(info, ReleaseState.HasRelease);
+                        SetState(info, ReleaseState.None);
+                    }
+
+                    if (installRelease)
+                    {
+                        Stand.packBrowserLabel.text = string.Format("Name: {0}<br>Version: {1}<line-height=120%><br><color=#FF4C4C>Please refrain from closing Gorilla Tag at this time!", info.Title, info.Version);
+
+                        await Main.Instance.Content.InstallRelease(info, (step, progress) =>
+                        {
+                            Stand.packBrowserStatus.text = string.Format("<size=60%>{0} / {1}</size><br>{2}", (step + 1 + stepOffset).ToString(), stepCount.ToString(), step switch
+                            {
+                                0 => "Downloading Pack",
+                                1 => "Installing Pack",
+                                2 => "Loading Shirts",
+                                _ => "huh, stop playing with me"
+                            });
+                            Stand.packBrowserRadial.fillAmount = progress;
+                            Stand.packBrowserPercent.text = $"{Mathf.FloorToInt(progress * 100)}%";
+                        });
+
+                        info.UpdateInstalledVersion();
+                        SetState(info, ReleaseState.HasRelease);
+                    }
+
                     Stand.packBrowserMenuRoot.SetActive(false);
                     Stand.mainMenuRoot.SetActive(true);
+                    SetSidebarState(SidebarState.PackBrowser);
                     DisplayRelease();
                     return;
                 }
@@ -216,7 +229,7 @@ namespace GorillaShirts.Models.StateMachine
                 single = Stand.Character.SingleShirt;
                 if (single != null && shirtsToRotate.Contains(single)) rotationStack.Push(single);
 
-                shirtsToRotate.Where(shirt => !rotationStack.Contains(shirt)).OrderBy(shirt => Random.value).ForEach(rotationStack.Push);
+                shirtsToRotate.Where(shirt => !rotationStack.Contains(shirt)).OrderBy(shirt => UnityEngine.Random.value).ForEach(rotationStack.Push);
             }
 
             if (rotationStack.TryPop(out single)) Stand.Character.SetShirt(single);
@@ -235,6 +248,13 @@ namespace GorillaShirts.Models.StateMachine
             None,
             Processing,
             HasRelease
+        }
+
+        [Flags]
+        internal enum ReleaseFlags
+        {
+            None = 1 << 0,
+            RequireInstall = 1 << 1
         }
     }
 }

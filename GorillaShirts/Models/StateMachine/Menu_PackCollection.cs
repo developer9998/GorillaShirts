@@ -38,6 +38,19 @@ namespace GorillaShirts.Models.StateMachine
 
             SetSidebarState(SidebarState.PackNavigation);
 
+            bool hasUnreadRelease = false;
+
+            foreach(ReleaseInfo info in Main.Instance.Releases)
+            {
+                if (info.GetInstalledVersion() == -1 || info.Version > info.GetInstalledVersion())
+                {
+                    hasUnreadRelease = true;
+                    break;
+                }
+            }
+
+            if (Stand.packBrowserNewLabel.activeSelf != hasUnreadRelease) Stand.packBrowserNewLabel.SetActive(hasUnreadRelease);
+
             PreviewPack();
         }
 

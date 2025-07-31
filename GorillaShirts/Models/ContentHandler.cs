@@ -1,4 +1,5 @@
-﻿using GorillaShirts.Behaviours;
+﻿using BepInEx;
+using GorillaShirts.Behaviours;
 using GorillaShirts.Behaviours.Cosmetic;
 using GorillaShirts.Models.Cosmetic;
 using GorillaShirts.Tools;
@@ -17,21 +18,15 @@ namespace GorillaShirts.Models
     {
         public readonly string RootLocation = rootLocation;
 
-        public event Action<int, int, int> LoadStageCallback;
+        public event Action<int, int, int> ContentProcessCallback;
 
-        public event Action<List<PackDescriptor>> OnContentLoaded;
+        public event Action<List<PackDescriptor>> OnPacksLoaded;
 
-        private int contentLoaded, contentCount, errorCount;
+        public event Action<IGorillaShirt> OnShirtUnloaded;
 
-        private readonly Dictionary<string, string> hardcodedDescriptions = new()
-        {
-            {
-                "Default", "Default contains a variety of iconic shirts, such as hoodies, turtlenecks, croptops, and more."
-            },
-            {
-                "Custom", "Custom contains plenty of diverse shirts assorted into a singular pack."
-            }
-        };
+        public event Action<PackDescriptor> OnPackUnloaded;
+
+        private int contentProcessed, contentCount, errorCount;
 
         public async void LoadContent() => await LoadContent(RootLocation);
 
@@ -45,10 +40,10 @@ namespace GorillaShirts.Models
             FileInfo[] legacyFiles = directoryInfo.GetFiles("*.shirt", SearchOption.AllDirectories);
             Logging.Info($"{legacyFiles.Length} legacy files: {string.Join(", ", legacyFiles.Select(file => file.Name))}");
 
-            contentLoaded = 0;
+            contentProcessed = 0;
             contentCount = files.Length + legacyFiles.Length;
             errorCount = 0;
-            LoadStageCallback?.Invoke(contentLoaded, contentCount, errorCount);
+            ContentProcessCallback?.Invoke(contentProcessed, contentCount, errorCount);
 
             List<IGorillaShirt> shirts = [];
             shirts.AddRange(await LoadShirts<GorillaShirt>(files));
@@ -56,15 +51,7 @@ namespace GorillaShirts.Models
 
             if (shirts.Count == 0)
             {
-                if (Main.Instance.Releases is not null && Array.Find(Main.Instance.Releases, info => info.Title == "Default" && info.Rank == 0) is ReleaseInfo defaultRelease)
-                {
-                    await InstallRelease(defaultRelease, (step, progress) =>
-                    {
-                        Logging.Info($"Default Pack Installation: {Mathf.FloorToInt(progress * 100f)}%");
-                    });
-                    return;
-                }
-
+                await LoadDefaultContent(false);
                 return;
             }
 
@@ -76,12 +63,28 @@ namespace GorillaShirts.Models
 
                 if (!packs.TryGetValue(packName, out PackDescriptor pack))
                 {
+                    Logging.Info($"Created PackDescriptor: {packName}");
                     pack = ScriptableObject.CreateInstance<PackDescriptor>();
                     pack.PackName = packName;
                     pack.Shirts = [];
                     packs.Add(packName, pack);
+
+                    foreach(ReleaseInfo info in Main.Instance.Releases)
+                    {
+                        List<string> names = [info.Title];
+                        if (info.AlsoKnownAs is not null && info.AlsoKnownAs.Length != 0) names.AddRange(info.AlsoKnownAs);
+
+                        if (names.Contains(pack.PackName))
+                        {
+                            pack.Release = info;
+                            info.Pack = pack;
+                            Logging.Info($"{pack.PackName} has release: {info.Title} by {info.Author} at {info.PackArchiveLink}");
+                            break;
+                        }
+                    }
                 }
 
+                Logging.Info($"Added to {packName}: {shirt.Descriptor.ShirtName}");
                 pack.Shirts.Add(shirt);
             }
 
@@ -89,7 +92,7 @@ namespace GorillaShirts.Models
             {
                 pack.Author = string.Join(", ", pack.Shirts.Select(shirt => shirt.Descriptor.Author).Distinct().OrderBy(author => author, StringComparer.CurrentCultureIgnoreCase));
 
-                if (hardcodedDescriptions.TryGetValue(pack.PackName, out string description)) pack.Description = description;
+                if (pack.Release is not null) pack.Description = pack.Release.Description;
                 else pack.Description = $"{pack.PackName} is a pack containing {pack.Shirts.Count} shirts by {pack.Author}";
 
                 int legacyShirtCount = pack.Shirts.Count(shirt => shirt is LegacyGorillaShirt);
@@ -97,10 +100,23 @@ namespace GorillaShirts.Models
                 else if (legacyShirtCount > 0) pack.AdditionalNote = "Some shirts in pack were made in an earlier editor version";
             }
 
-            Logging.Info($"ShirtLoader loaded {contentLoaded} out of {contentCount} shirts");
+            Logging.Info($"ShirtLoader loaded {contentProcessed} out of {contentCount} shirts");
 
-            LoadStageCallback = null;
-            OnContentLoaded?.Invoke([.. packs.Values]);
+            OnPacksLoaded?.Invoke([.. packs.Values]);
+            ContentProcessCallback = null;
+
+            await LoadDefaultContent(true);
+        }
+
+        public async Task LoadDefaultContent(bool notInstalledExclusive)
+        {
+            if (Main.Instance.Releases is not null && Array.Find(Main.Instance.Releases, info => info.Title == "Default" && info.Rank == 0) is ReleaseInfo defaultRelease && (!notInstalledExclusive || defaultRelease.Pack == null))
+            {
+                await InstallRelease(defaultRelease, (step, progress) =>
+                {
+                    Logging.Info($"Default Pack Installation: {Mathf.FloorToInt(progress * 100f)}%");
+                });
+            }
         }
 
         private async Task<List<T>> LoadShirts<T>(FileInfo[] files) where T : IGorillaShirt
@@ -113,13 +129,7 @@ namespace GorillaShirts.Models
 
                 if (Main.Instance.Shirts is var shirtDictionary && shirtDictionary.Count != 0 && Array.Find(shirtDictionary.Values.ToArray(), shirt => shirt.FileInfo.FullName == file.FullName) is IGorillaShirt shirt && shirt is T existingAsset)
                 {
-                    shirts.Add(existingAsset);
-                    Main.Instance.ShirtStand.Character.SetShirt(existingAsset);
-
-                    contentLoaded++;
-                    LoadStageCallback?.Invoke(contentLoaded, contentCount, errorCount);
-
-                    continue;
+                    await UnloadShirt(existingAsset);
                 }
 
                 T asset = Activator.CreateInstance<T>();
@@ -139,18 +149,95 @@ namespace GorillaShirts.Models
                     Main.Instance.ShirtStand.Character.SetShirt(asset);
                 }
 
-                contentLoaded++;
-                LoadStageCallback?.Invoke(contentLoaded, contentCount, errorCount);
+                contentProcessed++;
+                ContentProcessCallback?.Invoke(contentProcessed, contentCount, errorCount);
             }
-
             return shirts;
         }
 
-        public async Task InstallRelease(ReleaseInfo release, Action<int, float> callback)
+        public async Task UnloadContent(PackDescriptor content)
         {
-            string link = release.PackArchiveLink;
-            string archiveDestination = Path.Combine(RootLocation, $"{release.Title}.zip");
-            string folderDestination = Path.Combine(RootLocation, release.Title);
+            if (content is null) throw new ArgumentNullException(nameof(content));
+
+            contentProcessed = 0;
+            contentCount = content.Shirts.Count;
+            errorCount = 0;
+
+            foreach (IGorillaShirt shirt in new List<IGorillaShirt>(content.Shirts))
+            {
+                try
+                {
+                    await UnloadShirt(shirt);
+                }
+                catch
+                {
+                    errorCount++;
+                }
+
+                contentProcessed++;
+                ContentProcessCallback?.Invoke(contentProcessed, contentCount, errorCount);
+            }
+
+            OnPackUnloaded?.Invoke(content);
+        }
+
+        public async Task UnloadShirt(IGorillaShirt shirt)
+        {
+            if (shirt is null) throw new ArgumentNullException(nameof(shirt));
+            if (shirt.Bundle is not AssetBundle bundle || !shirt.Bundle) return;
+
+            string directory = Path.GetDirectoryName(shirt.FileInfo.FullName);
+
+            TaskCompletionSource<object> completionSource = new();
+            AssetBundleUnloadOperation unloadOperation = bundle.UnloadAsync(true);
+            unloadOperation.completed += _ => completionSource.TrySetResult(null);
+            await completionSource.Task;
+
+            Logging.Info($"Unloaded shirt bundle: {shirt.ShirtId}"); // descriptor is no more
+            UnityEngine.Object.Destroy(shirt.Bundle);
+            OnShirtUnloaded?.Invoke(shirt);
+
+            ThreadingHelper.Instance.StartAsyncInvoke(() =>
+            {
+                try
+                {
+                    File.Delete(shirt.FileInfo.FullName);
+                    if (!Directory.EnumerateFileSystemEntries(directory).Any())
+                    {
+                        Directory.Delete(directory, false);
+                    }
+                }
+                catch (UnauthorizedAccessException)
+                {
+
+                }
+                catch (DirectoryNotFoundException)
+                {
+
+                }
+                return null;
+            });
+        }
+
+        public async Task UninstallRelease(ReleaseInfo info, Action<float> callback)
+        {
+            callback.Invoke(0);
+
+            if (info.Pack is not PackDescriptor pack || !pack) return;
+
+            ContentProcessCallback += (assetsLoaded, assetCount, errorCount) =>
+            {
+                callback.Invoke((float)assetsLoaded / assetCount);
+            };
+
+            await UnloadContent(pack);
+        }
+
+        public async Task InstallRelease(ReleaseInfo info, Action<int, float> callback, bool loadContent = true)
+        {
+            string link = info.PackArchiveLink;
+            string archiveDestination = Path.Combine(RootLocation, $"{info.Title}.zip");
+            string folderDestination = Path.Combine(RootLocation, info.Title);
             callback.Invoke(0, 0);
 
             UnityWebRequest request = new(link)
@@ -210,12 +297,30 @@ namespace GorillaShirts.Models
 
             if (File.Exists(archiveDestination)) File.Delete(archiveDestination);
 
-            LoadStageCallback += (assetsLoaded, assetCount, errorCount) =>
+            if (!loadContent) return;
+
+            ContentProcessCallback += (assetsLoaded, assetCount, errorCount) =>
             {
                 callback.Invoke(2, (float)assetsLoaded / assetCount);
             };
 
             await LoadContent(folderDestination);
+
+            List<string> names = [info.Title];
+            if (info.AlsoKnownAs is not null && info.AlsoKnownAs.Length != 0) names.AddRange(info.AlsoKnownAs);
+
+            foreach (PackDescriptor pack in Enumerable.Reverse(Main.Instance.Packs))
+            {
+                if (pack.Release is not null) continue;
+
+                if (names.Contains(pack.PackName))
+                {
+                    pack.Release = info;
+                    info.Pack = pack;
+                    Logging.Info($"{pack.PackName} has release: {info.Title} by {info.Author} at {info.PackArchiveLink}");
+                    break;
+                }
+            }
         }
     }
 }

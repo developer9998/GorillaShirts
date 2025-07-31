@@ -1,4 +1,5 @@
-﻿using BepInEx.Configuration;
+﻿using BepInEx;
+using BepInEx.Configuration;
 using GorillaShirts.Behaviours.Cosmetic;
 using GorillaShirts.Behaviours.Networking;
 using GorillaShirts.Behaviours.UI;
@@ -180,19 +181,23 @@ namespace GorillaShirts.Behaviours
 
             MenuStateMachine.SwitchState(menuState_Load);
             Content = new ContentHandler(Path.GetDirectoryName(Plugin.Info.Location));
-            Content.LoadStageCallback += menuState_Load.SetLoadAppearance;
-            Content.OnContentLoaded += OnContentLoaded;
+            Content.ContentProcessCallback += menuState_Load.SetLoadAppearance;
+            Content.OnPacksLoaded += OnPacksLoaded;
+            Content.OnPackUnloaded += OnPackUnloaded;
+            Content.OnShirtUnloaded += OnShirtUnloaded;
             Content.LoadContent();
         }
 
-        public void OnContentLoaded(List<PackDescriptor> content)
+        public void OnPacksLoaded(List<PackDescriptor> content)
         {
-            bool isInitialList = Packs is null;
+            Logging.Message($"Loaded {content.Count} packs");
+            content.ForEach(pack => Logging.Info($"{pack.PackName}: {pack.Shirts.Count} shirts"));
 
-            if (Packs == null) Packs = content;
+            bool isInitialList = Packs is null;
+            if (isInitialList) Packs = content;
             else Packs.AddRange(content);
 
-            Packs = [.. Packs.OrderByDescending(pack => pack.Shirts.Max(shirt => shirt.FileInfo.LastWriteTime)).OrderBy(x => x.PackName switch
+            Packs = [.. Packs.Where(pack => pack.Shirts.Count != 0).OrderByDescending(pack => pack.Shirts.Max(shirt => shirt.FileInfo.LastWriteTime)).OrderBy(x => x.PackName switch
             {
                 "Favourites" => 0,
                 "Default" => 1,
@@ -200,7 +205,7 @@ namespace GorillaShirts.Behaviours
                 _ => 10
             })];
 
-            List<string> wornGorillaShirts = GetShirtNames(Plugin.ShirtPreferences);
+            string[] wornGorillaShirts = DataManager.Instance.GetItem<string[]>("ShirtPreferences", []);
 
             List<(IGorillaShirt shirt, PackDescriptor pack)> shirtsToWear = [];
 
@@ -237,15 +242,15 @@ namespace GorillaShirts.Behaviours
 
             if (isInitialList)
             {
-                AdjustTagOffset(Plugin.TagOffsetPreference.Value);
+                AdjustTagOffset(DataManager.Instance.GetItem("TagOffset", 0));
 
                 FavouritePack = ScriptableObject.CreateInstance<PackDescriptor>();
                 FavouritePack.PackName = "Favourites";
                 FavouritePack.Author = null;
                 FavouritePack.Description = "This is a special pack reserved for all of your favourite shirts!<br><br>To add or remove a shirt from your favourites, press the favourite button on the top right when viewing the shirt.";
-
-                Packs.Insert(0, FavouritePack);
             }
+
+            if (isInitialList || !Packs.Contains(FavouritePack)) Packs.Insert(0, FavouritePack);
 
             FavouritePack.Shirts.Clear();
             foreach (string shirtId in GetShirtNames(Plugin.Favourites))
@@ -263,6 +268,69 @@ namespace GorillaShirts.Behaviours
             }
             else menuState_PackList.Packs = Packs;
 
+            CheckPlayersInRoom();
+        }
+
+        public void OnShirtUnloaded(IGorillaShirt unloadedShirt)
+        {
+            if (!Shirts.ContainsKey(unloadedShirt.ShirtId)) return;
+
+            Shirts.Remove(unloadedShirt.ShirtId);
+
+            var shirtsToRemove = LocalHumanoid.Shirts.Where(wornShirt => wornShirt == unloadedShirt).ToList();
+            if (shirtsToRemove.Count > 0)
+            {
+                var shirts = LocalHumanoid.Shirts.Except(shirtsToRemove).ToList();
+                LocalHumanoid.SetShirts(shirts);
+                // PlayShirtRemoveSound(LocalHumanoid.Rig, shirts: [.. shirts]);
+                NetworkShirts(shirts);
+            }
+
+            if (Packs.Find(pack => pack.Shirts.Contains(unloadedShirt)) is PackDescriptor pack)
+            {
+                pack.Shirts.Remove(unloadedShirt);
+            }
+
+            CheckPlayersInRoom();
+        }
+
+        public void OnPackUnloaded(PackDescriptor content)
+        {
+            if (!Packs.Contains(content)) return;
+
+            Packs.Remove(content);
+            content.Shirts.Where(Shirts.ContainsValue).ForEach(async shirt => await Content.UnloadShirt(shirt));
+
+            CheckPlayersInRoom();
+
+            if (content.Release is not null)
+            {
+                content.Release.Pack = null;
+                content.Release = null;
+            }
+
+            Destroy(content);
+
+            if (Packs.Count == 0)
+            {
+                ThreadingHelper.Instance.StartSyncInvoke(async () =>
+                {
+                    await Content.LoadDefaultContent(false);
+                });
+                return;
+            }
+
+            menuState_PackList.Packs = Packs;
+            menuState_PackList.PreviewPack();
+        }
+
+        public void Update()
+        {
+            MenuStateMachine?.Update();
+        }
+
+        public void CheckPlayersInRoom()
+        {
             if (NetworkSystem.Instance.InRoom && GorillaParent.instance is GorillaParent gorillaParent)
             {
                 foreach (VRRig rig in gorillaParent.vrrigs)
@@ -273,11 +341,6 @@ namespace GorillaShirts.Behaviours
                     }
                 }
             }
-        }
-
-        public void Update()
-        {
-            MenuStateMachine?.Update();
         }
 
         public IGorillaShirt GetShirtFromFallback(EShirtFallback fallback)
@@ -331,7 +394,8 @@ namespace GorillaShirts.Behaviours
                 PlayShirtWearSound(LocalHumanoid.Rig, shirt);
             }
 
-            SetShirtNames(LocalHumanoid.Shirts, Plugin.ShirtPreferences);
+            var shirtNames = LocalHumanoid.Shirts == null ? Enumerable.Empty<string>().ToArray() : [.. LocalHumanoid.Shirts.Select(shirt => shirt.ShirtId)];
+            DataManager.Instance.SetItem("ShirtPreferences", shirtNames);
             NetworkShirts(LocalHumanoid.Shirts);
         }
 
@@ -348,7 +412,7 @@ namespace GorillaShirts.Behaviours
         {
             LocalHumanoid.OffsetNameTag(tagOffset);
             ShirtStand.Character.OffsetNameTag(tagOffset);
-            Plugin.TagOffsetPreference.Value = tagOffset;
+            DataManager.Instance.SetItem("TagOffset", tagOffset);
             NetworkTagOffset(tagOffset);
         }
 

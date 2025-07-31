@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using GorillaShirts.Models;
+
 
 #if PLUGIN
 using GorillaShirts.Models.Cosmetic;
@@ -26,6 +28,8 @@ namespace GorillaShirts.Behaviours.Cosmetic
 
         public string AdditionalNote;
 
+        public ReleaseInfo Release;
+
         public void Shuffle()
         {
             Random random = new();
@@ -38,6 +42,9 @@ namespace GorillaShirts.Behaviours.Cosmetic
                 (Shirts[shirtsToShuffle], Shirts[index]) = (Shirts[index], Shirts[shirtsToShuffle]);
             }
         }
+
+
+
 #endif
     }
 }
