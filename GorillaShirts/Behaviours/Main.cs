@@ -77,7 +77,7 @@ namespace GorillaShirts.Behaviours
             {
                 ShirtStand.sillyHeadObject.SetActive(preference == ECharacterPreference.Feminine);
                 ShirtStand.steadyHeadObject.SetActive(preference == ECharacterPreference.Masculine);
-                PlayShirtAudio(preference switch
+                PlayAudio(preference switch
                 {
                     ECharacterPreference.Masculine => EAudioType.SteadySpeech,
                     ECharacterPreference.Feminine => EAudioType.SillySpeech,
@@ -121,13 +121,12 @@ namespace GorillaShirts.Behaviours
 
             RigContainer localRig = VRRigCache.Instance.localRig;
             LocalHumanoid = localRig.gameObject.AddComponent<HumanoidContainer>();
-            // LocalHumanoid.Rig = localRig.Rig;
 
             MenuStateMachine = new StateMachine<Menu_StateBase>();
             menuState_Load = new Menu_Loading(ShirtStand);
             MenuStateMachine.SwitchState(new Menu_Welcome(ShirtStand));
 
-            using UnityWebRequest request = UnityWebRequest.Get(@"https://raw.githubusercontent.com/developer9998/GorillaShirts/master/Packs/Packs.json");
+            using UnityWebRequest request = UnityWebRequest.Get(@"https://raw.githubusercontent.com/developer9998/GorillaShirts/main/Packs/Packs.json");
             UnityWebRequestAsyncOperation operation = request.SendWebRequest();
             await operation;
 
@@ -170,7 +169,7 @@ namespace GorillaShirts.Behaviours
                 string latestVersionRaw = request.downloadHandler.text.Trim();
                 if (Version.TryParse(latestVersionRaw, out Version latestVersion) && latestVersion > Plugin.Info.Metadata.Version)
                 {
-                    PlayShirtAudio(EAudioType.Error, 1f);
+                    PlayAudio(EAudioType.Error, 1f);
                     TaskCompletionSource<object> completionSource = new(TaskCreationOptions.LongRunning);
                     MenuStateMachine.SwitchState(new Menu_WrongVersion(ShirtStand, Constants.Version, latestVersionRaw, completionSource));
                     await completionSource.Task;
@@ -308,12 +307,12 @@ namespace GorillaShirts.Behaviours
             if (IsFavourite(shirt))
             {
                 FavouritePack.Shirts.Remove(shirt);
-                PlayShirtAudio(EAudioType.NegativeClick, 0.75f);
+                PlayAudio(EAudioType.NegativeClick, 0.75f);
             }
             else
             {
                 FavouritePack.Shirts.Add(shirt);
-                PlayShirtAudio(EAudioType.PositiveClick, 0.75f);
+                PlayAudio(EAudioType.PositiveClick, 0.75f);
             }
 
             SetShirtNames(FavouritePack.Shirts, Plugin.Favourites);
@@ -407,13 +406,19 @@ namespace GorillaShirts.Behaviours
             playerRig.tagSound.GTPlayOneShot(clip, volume);
         }
 
-        public void PlayShirtAudio(EAudioType audio, float volume)
+        public void PlayOhNoAudio(float volume = 1f)
         {
-            if (!Audio.TryGetValue(audio, out AudioClip audioClip)) return;
-            PlayCustomAudio(audioClip, volume);
+            var enums = Enum.GetValues(typeof(EAudioType)).Cast<EAudioType>().Where(audioType => audioType.GetName().StartsWith("OhNo")).ToArray();
+            PlayAudio(enums[UnityEngine.Random.Range(0, enums.Length)], volume);
         }
 
-        public void PlayCustomAudio(AudioClip clip, float volume)
+        public void PlayAudio(EAudioType audio, float volume = 1f)
+        {
+            if (!Audio.TryGetValue(audio, out AudioClip audioClip)) return;
+            PlayAudio(audioClip, volume);
+        }
+
+        public void PlayAudio(AudioClip clip, float volume = 1f)
         {
             ShirtStand.AudioDevice.GTPlayOneShot(clip, volume);
         }

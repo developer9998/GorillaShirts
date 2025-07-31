@@ -33,8 +33,8 @@ namespace GorillaShirts.Models.StateMachine
 
             base.Enter();
 
-            stand.mainMenuRoot.SetActive(true);
-            stand.navigationRoot.SetActive(false);
+            Stand.mainMenuRoot.SetActive(true);
+            Stand.navigationRoot.SetActive(false);
 
             SetSidebarState(SidebarState.PackNavigation);
 
@@ -54,7 +54,7 @@ namespace GorillaShirts.Models.StateMachine
         public override void Exit()
         {
             base.Exit();
-            stand.mainMenuRoot.SetActive(false);
+            Stand.mainMenuRoot.SetActive(false);
         }
 
         public override void Update()
@@ -70,11 +70,11 @@ namespace GorillaShirts.Models.StateMachine
             PackDescriptor pack = shownPacks[packIndex];
             lastPack = pack;
 
-            stand.favouriteButtonObject.SetActive(pack != Main.Instance.FavouritePack);
-            stand.favouriteButtonSymbol.color = Color.white;
+            Stand.favouriteButtonObject.SetActive(pack != Main.Instance.FavouritePack);
+            Stand.favouriteButtonSymbol.color = Color.white;
 
-            stand.headerText.text = pack.Author == null ? pack.PackName.EnforceLength(20) : string.Format(stand.headerFormat, pack.PackName.EnforceLength(20), "Pack", pack.Author.EnforceLength(30));
-            stand.shirtStatusText.text = "View";
+            Stand.headerText.text = pack.Author == null ? pack.PackName.EnforceLength(20) : string.Format(Stand.headerFormat, pack.PackName.EnforceLength(20), "Pack", pack.Author.EnforceLength(30));
+            Stand.shirtStatusText.text = "View";
 
             StringBuilder str = new();
             str.AppendLine(pack.Description.EnforceLength(256));
@@ -82,11 +82,11 @@ namespace GorillaShirts.Models.StateMachine
             if (!string.IsNullOrEmpty(pack.AdditionalNote))
                 str.AppendLine().Append("<color=#FF4C4C><size=4>NOTE: ").Append(pack.AdditionalNote).Append("</size></color>");
 
-            stand.descriptionText.text = str.ToString();
+            Stand.descriptionText.text = str.ToString();
 
-            for (int i = 0; i < stand.featureObjects.Length; i++)
+            for (int i = 0; i < Stand.featureObjects.Length; i++)
             {
-                if (stand.featureObjects.ElementAtOrDefault(i) is GameObject featureObject && featureObject.activeSelf)
+                if (Stand.featureObjects.ElementAtOrDefault(i) is GameObject featureObject && featureObject.activeSelf)
                     featureObject.SetActive(false);
             }
 
@@ -104,33 +104,33 @@ namespace GorillaShirts.Models.StateMachine
             {
                 PackDescriptor pack = shownPacks[packIndex];
 
-                single = stand.Character.SingleShirt;
+                single = Stand.Character.SingleShirt;
                 if (single != null && pack.Shirts.Contains(single)) shirtStack.Push(single);
 
                 pack.Shirts.Where(shirt => !shirtStack.Contains(shirt)).OrderBy(shirt => Random.value).ForEach(shirtStack.Push);
             }
 
-            if (shirtStack.TryPop(out single)) stand.Character.SetShirt(single);
+            if (shirtStack.TryPop(out single)) Stand.Character.SetShirt(single);
         }
 
         public override void OnButtonPress(EButtonType button)
         {
             if (button == EButtonType.Info)
             {
-                Main.Instance.MenuStateMachine.SwitchState(new Menu_Info(stand, this));
+                Main.Instance.MenuStateMachine.SwitchState(new Menu_Info(Stand, this));
                 return;
             }
 
             if (button == EButtonType.PackBrowser)
             {
-                Main.Instance.MenuStateMachine.SwitchState(new Menu_PackBrowser(stand, this));
+                Main.Instance.MenuStateMachine.SwitchState(new Menu_PackBrowser(Stand, this));
                 return;
             }
 
             if (button == EButtonType.NavigateSelect)
             {
                 PackDescriptor pack = shownPacks[packIndex];
-                if (!menuPerPack.ContainsKey(pack)) menuPerPack.Add(pack, new Menu_ShirtCollection(stand, this, pack));
+                if (!menuPerPack.ContainsKey(pack)) menuPerPack.Add(pack, new Menu_ShirtCollection(Stand, this, pack));
                 Main.Instance.MenuStateMachine.SwitchState(menuPerPack[pack]);
                 return;
             }

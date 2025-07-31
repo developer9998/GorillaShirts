@@ -27,29 +27,29 @@ namespace GorillaShirts.Models.StateMachine
         public override void Enter()
         {
             base.Enter();
-            stand.loadMenuRoot.SetActive(true);
+            Stand.loadMenuRoot.SetActive(true);
 
-            stand.didYouKnowText.text = messages[Random.Range(0, messages.Length)];
-        }
-
-        public override void Exit()
-        {
-            base.Exit();
-            stand.loadMenuRoot.SetActive(false);
+            Stand.didYouKnowText.text = messages[Random.Range(0, messages.Length)];
         }
 
         public void SetLoadAppearance(int assetsLoaded, int assetCount, int errorCount)
         {
             float loadAmount = Mathf.Approximately(assetsLoaded, 0) ? 0 : Mathf.Clamp01(assetsLoaded / (float)assetCount);
-            stand.loadRadial.fillAmount = loadAmount;
-            stand.loadPercent.text = $"{Mathf.RoundToInt(loadAmount * 100f)}%";
+            Stand.loadRadial.fillAmount = loadAmount;
+            Stand.loadPercent.text = $"{Mathf.RoundToInt(loadAmount * 100f)}%";
 
-            if (errorCount != 0 && stand.greenFlag.activeSelf)
+            if (errorCount != 0 && Stand.greenFlag.activeSelf)
             {
-                stand.greenFlag.SetActive(false);
-                stand.redFlag.SetActive(true);
+                Stand.greenFlag.SetActive(false);
+                Stand.redFlag.SetActive(true);
             }
-            stand.flagText.text = errorCount.ToString();
+            Stand.flagText.text = errorCount.ToString();
+        }
+
+        public override void Exit()
+        {
+            base.Exit();
+            Stand.loadMenuRoot.SetActive(false);
         }
     }
 }

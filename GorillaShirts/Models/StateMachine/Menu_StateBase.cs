@@ -6,9 +6,7 @@ namespace GorillaShirts.Models.StateMachine
 {
     internal class Menu_StateBase(Stand stand) : State
     {
-        public Stand Stand => stand;
-
-        protected Stand stand = stand ?? throw new ArgumentNullException(nameof(stand));
+        protected Stand Stand = stand ?? throw new ArgumentNullException(nameof(stand));
 
         public virtual void OnButtonPress(EButtonType button)
         {
@@ -17,13 +15,13 @@ namespace GorillaShirts.Models.StateMachine
 
         public void SetSidebarState(SidebarState state)
         {
-            stand.infoButtonObject.SetActive(state != SidebarState.PackBrowser);
-            stand.packBrowserButtonObject.SetActive(state == SidebarState.PackNavigation || state == SidebarState.PackBrowser);
-            stand.rigButtonObject.SetActive(state == SidebarState.ShirtNavigation);
-            stand.captureButtonObject.SetActive(state == SidebarState.ShirtNavigation);
-            stand.shuffleButtonObject.SetActive(state == SidebarState.ShirtNavigation);
-            stand.tagOffsetControlObject.SetActive(state == SidebarState.ShirtNavigation);
-            stand.favouriteButtonObject.SetActive(state == SidebarState.ShirtNavigation);
+            Stand.infoButtonObject.SetActive(state != SidebarState.PackBrowser);
+            Stand.packBrowserButtonObject.SetActive(state == SidebarState.PackNavigation || state == SidebarState.PackBrowser);
+            Stand.rigButtonObject.SetActive(state == SidebarState.ShirtNavigation);
+            Stand.captureButtonObject.SetActive(state == SidebarState.ShirtNavigation);
+            Stand.shuffleButtonObject.SetActive(state == SidebarState.ShirtNavigation);
+            Stand.tagOffsetControlObject.SetActive(state == SidebarState.ShirtNavigation);
+            Stand.favouriteButtonObject.SetActive(state == SidebarState.ShirtNavigation);
         }
 
         public enum SidebarState

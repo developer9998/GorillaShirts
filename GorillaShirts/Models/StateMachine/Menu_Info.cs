@@ -5,18 +5,16 @@ using System.Linq;
 
 namespace GorillaShirts.Models.StateMachine
 {
-    internal class Menu_Info(Stand stand, Menu_StateBase previousState) : Menu_StateBase(stand)
+    internal class Menu_Info(Stand stand, Menu_StateBase previousState) : Menu_SubState(stand, previousState)
     {
-        protected Menu_StateBase previousState = previousState;
-
         public override void Enter()
         {
             base.Enter();
 
-            stand.Character.WearSignatureShirt();
-            stand.mainMenuRoot.SetActive(true);
-            stand.mainContentRoot.SetActive(false);
-            stand.infoContentRoot.SetActive(true);
+            Stand.Character.WearSignatureShirt();
+            Stand.mainMenuRoot.SetActive(true);
+            Stand.mainContentRoot.SetActive(false);
+            Stand.infoContentRoot.SetActive(true);
             SetSidebarState(SidebarState.Info);
 
             string build_config = "Unrecognized";
@@ -26,7 +24,7 @@ namespace GorillaShirts.Models.StateMachine
             build_config = "Release";
 #endif
 
-            stand.playerInfoText.text = stand.playerInfoFormat
+            Stand.playerInfoText.text = Stand.playerInfoFormat
                 .Replace("[SHIRTCOUNT]", Main.Instance.Packs.Select(pack => pack.Shirts.Count).Sum().ToString())
                 .Replace("[PACKCOUNT]", Main.Instance.Packs.Count(pack => pack != Main.Instance.FavouritePack).ToString())
                 .Replace("[BUILDCONFIG]", build_config)
@@ -37,15 +35,15 @@ namespace GorillaShirts.Models.StateMachine
         public override void OnButtonPress(EButtonType button)
         {
             if (button != EButtonType.Info) return;
-            Main.Instance.MenuStateMachine.SwitchState(previousState);
+            Main.Instance.MenuStateMachine.SwitchState(PreviousState);
         }
 
         public override void Exit()
         {
             base.Exit();
-            stand.mainMenuRoot.SetActive(false);
-            stand.mainContentRoot.SetActive(true);
-            stand.infoContentRoot.SetActive(false);
+            Stand.mainMenuRoot.SetActive(false);
+            Stand.mainContentRoot.SetActive(true);
+            Stand.infoContentRoot.SetActive(false);
         }
     }
 }

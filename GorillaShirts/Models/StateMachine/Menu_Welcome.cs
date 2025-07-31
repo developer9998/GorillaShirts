@@ -7,13 +7,13 @@ namespace GorillaShirts.Models.StateMachine
         public override void Enter()
         {
             base.Enter();
-            stand.welcomeMenuRoot.SetActive(true);
+            Stand.welcomeMenuRoot.SetActive(true);
         }
 
         public override void Exit()
         {
             base.Exit();
-            stand.welcomeMenuRoot.SetActive(false);
+            Stand.welcomeMenuRoot.SetActive(false);
         }
     }
 }

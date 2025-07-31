@@ -129,7 +129,9 @@ namespace GorillaShirts.Models
                 {
                     Logging.Warning($"Shirt {file.Name}: broken");
                     File.Move(file.FullName, string.Concat(file, ".broken"));
+
                     errorCount++;
+                    Main.Instance.PlayOhNoAudio();
                 }
                 else
                 {

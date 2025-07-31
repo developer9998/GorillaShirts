@@ -17,14 +17,14 @@ namespace GorillaShirts.Models.StateMachine
         public override void Enter()
         {
             base.Enter();
-            stand.versionMenuRoot.SetActive(true);
-            stand.versionDiffText.text = string.Format(stand.versionDiffFormat, installed, latest);
+            Stand.versionMenuRoot.SetActive(true);
+            Stand.versionDiffText.text = string.Format(Stand.versionDiffFormat, installed, latest);
         }
 
         public override void Exit()
         {
             base.Exit();
-            stand.versionMenuRoot.SetActive(false);
+            Stand.versionMenuRoot.SetActive(false);
         }
 
         public override void OnButtonPress(EButtonType button)

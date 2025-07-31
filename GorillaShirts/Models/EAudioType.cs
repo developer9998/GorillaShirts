@@ -11,6 +11,12 @@
         Error,
         CameraShutter,
         PositiveClick,
-        NegativeClick
+        NegativeClick,
+        OhNo1,
+        OhNo2,
+        OhNo3,
+        OhNo4,
+        OhNo5,
+        OhNo6
     }
 }

@@ -22,9 +22,9 @@ namespace GorillaShirts.Models.StateMachine
         public override void Enter()
         {
             base.Enter();
-            stand.mainMenuRoot.SetActive(true);
-            stand.navigationRoot.SetActive(true);
-            stand.navigationText.text = pack.PackName;
+            Stand.mainMenuRoot.SetActive(true);
+            Stand.navigationRoot.SetActive(true);
+            Stand.navigationText.text = pack.PackName;
             SetSidebarState(SidebarState.ShirtNavigation);
 
             ViewShirt();
@@ -34,25 +34,25 @@ namespace GorillaShirts.Models.StateMachine
         public override void Exit()
         {
             base.Exit();
-            stand.mainMenuRoot.SetActive(false);
+            Stand.mainMenuRoot.SetActive(false);
         }
 
         public void ViewShirt()
         {
             if (pack.Shirts.Count == 0)
             {
-                Main.Instance.MenuStateMachine.SwitchState(previousState);
+                Main.Instance.MenuStateMachine.SwitchState(PreviousState);
                 return;
             }
 
             pack.Selection = pack.Selection.Wrap(0, pack.Shirts.Count);
             IGorillaShirt shirt = pack.Shirts[pack.Selection];
 
-            stand.headerText.text = string.Format(stand.headerFormat, shirt.Descriptor.ShirtName.EnforceLength(50), "Shirt", shirt.Descriptor.Author.EnforceLength(30));
+            Stand.headerText.text = string.Format(Stand.headerFormat, shirt.Descriptor.ShirtName.EnforceLength(50), "Shirt", shirt.Descriptor.Author.EnforceLength(30));
 
             List<IGorillaShirt> wornShirts = HumanoidContainer.LocalHumanoid.Shirts;
-            if (wornShirts.Contains(shirt)) stand.shirtStatusText.text = "Remove";
-            else stand.shirtStatusText.text = wornShirts
+            if (wornShirts.Contains(shirt)) Stand.shirtStatusText.text = "Remove";
+            else Stand.shirtStatusText.text = wornShirts
                     .All(wornShirt => Enum.GetValues(typeof(EShirtObject)).Cast<EShirtObject>()
                     .Where(shirtObject => wornShirt.Objects.HasFlag(shirtObject))
                     .All(shirtObject => !shirt.Objects.HasFlag(shirtObject))) ? "Wear" : "Swap";
@@ -63,31 +63,31 @@ namespace GorillaShirts.Models.StateMachine
             if (shirt is LegacyGorillaShirt)
                 str.AppendLine().Append("<color=#FF4C4C><size=4>NOTE: ").Append("This shirt was made for an earlier version of GorillaShirts, and may not have the latest features.").Append("</size></color>");
 
-            stand.descriptionText.text = str.ToString();
+            Stand.descriptionText.text = str.ToString();
 
             var features = Enum.GetValues(typeof(EShirtFeature)).Cast<EShirtFeature>().ToList();
 
             for (int i = 0; i < features.Count; i++)
             {
-                if (stand.featureObjects.ElementAtOrDefault(i) is GameObject featureObject)
+                if (Stand.featureObjects.ElementAtOrDefault(i) is GameObject featureObject)
                     featureObject.SetActive(shirt.Features.HasFlag(features[i]));
             }
 
-            stand.Character.SetShirts(shirt.Concat(HumanoidContainer.LocalHumanoid.Shirts));
+            Stand.Character.SetShirts(shirt.Concat(HumanoidContainer.LocalHumanoid.Shirts));
 
             ConfigureSidebar();
         }
 
         public void ConfigureSidebar()
         {
-            stand.sillyHeadObject.SetActive(stand.Character.Preference == ECharacterPreference.Feminine);
-            stand.steadyHeadObject.SetActive(stand.Character.Preference == ECharacterPreference.Masculine);
-            stand.tagOffsetText.text = HumanoidContainer.LocalHumanoid.NameTagOffset.ToString();
+            Stand.sillyHeadObject.SetActive(Stand.Character.Preference == ECharacterPreference.Feminine);
+            Stand.steadyHeadObject.SetActive(Stand.Character.Preference == ECharacterPreference.Masculine);
+            Stand.tagOffsetText.text = HumanoidContainer.LocalHumanoid.NameTagOffset.ToString();
 
             if (pack.Shirts.Count != 0)
             {
                 IGorillaShirt shirt = pack.Shirts[pack.Selection];
-                stand.favouriteButtonSymbol.color = Main.Instance.IsFavourite(shirt) ? Color.yellow : Color.white;
+                Stand.favouriteButtonSymbol.color = Main.Instance.IsFavourite(shirt) ? Color.yellow : Color.white;
             }
         }
 
@@ -97,10 +97,10 @@ namespace GorillaShirts.Models.StateMachine
             switch (button)
             {
                 case EButtonType.Info:
-                    Main.Instance.MenuStateMachine.SwitchState(new Menu_Info(stand, this));
+                    Main.Instance.MenuStateMachine.SwitchState(new Menu_Info(Stand, this));
                     return;
                 case EButtonType.Return:
-                    Main.Instance.MenuStateMachine.SwitchState(previousState);
+                    Main.Instance.MenuStateMachine.SwitchState(PreviousState);
                     return;
             }
 
@@ -108,11 +108,11 @@ namespace GorillaShirts.Models.StateMachine
             switch (button)
             {
                 case EButtonType.RigToggle:
-                    stand.Character.SetAppearence(stand.Character.Preference switch
+                    Stand.Character.SetAppearence(Stand.Character.Preference switch
                     {
                         ECharacterPreference.Masculine => ECharacterPreference.Feminine,
                         ECharacterPreference.Feminine => ECharacterPreference.Masculine,
-                        _ => stand.Character.Preference
+                        _ => Stand.Character.Preference
                     });
                     ConfigureSidebar();
                     return;
@@ -120,10 +120,10 @@ namespace GorillaShirts.Models.StateMachine
                     if (isWritingPhoto) return;
                     isWritingPhoto = true;
 
-                    Texture2D texture = await stand.Camera.GetTexture();
+                    Texture2D texture = await Stand.Camera.GetTexture();
                     if (texture is not null)
                     {
-                        Main.Instance.PlayShirtAudio(EAudioType.CameraShutter, 1f);
+                        Main.Instance.PlayAudio(EAudioType.CameraShutter, 1f);
 
                         string nativePicturesDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
                         string shirtsDirectoryName = "GorillaShirts";
@@ -144,7 +144,7 @@ namespace GorillaShirts.Models.StateMachine
                     isWritingPhoto = false;
                     return;
                 case EButtonType.Randomize:
-                    Main.Instance.PlayShirtAudio(EAudioType.DiceRoll, 1f);
+                    Main.Instance.PlayAudio(EAudioType.DiceRoll, 1f);
                     pack.Shuffle();
                     ViewShirt();
                     return;

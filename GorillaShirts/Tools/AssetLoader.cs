@@ -71,7 +71,7 @@ namespace GorillaShirts.Tools
 
                 Texture2D texture2D = Texture2D.CreateExternalTexture(texture.width, texture.height, TextureFormat.RGB24, false, false, texture.GetNativeTexturePtr());
 
-                texture2D.Compress(true);
+                texture2D.Compress(false);
                 texture2D.Apply();
 
                 completionSource.TrySetResult(texture2D);

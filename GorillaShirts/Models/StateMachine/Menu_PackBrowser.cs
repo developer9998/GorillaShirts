@@ -30,8 +30,8 @@ namespace GorillaShirts.Models.StateMachine
         public override void Enter()
         {
             releases = [.. Main.Instance.Releases.OrderBy(info => info.Rank)];
-            stand.mainMenuRoot.SetActive(true);
-            stand.navigationRoot.SetActive(false);
+            Stand.mainMenuRoot.SetActive(true);
+            Stand.navigationRoot.SetActive(false);
             SetSidebarState(SidebarState.PackBrowser);
             DisplayRelease();
         }
@@ -41,9 +41,9 @@ namespace GorillaShirts.Models.StateMachine
             releaseIndex = releaseIndex.Wrap(0, releases.Length);
             ReleaseInfo info = CurrentInfo;
 
-            stand.headerText.text = string.Format(stand.headerFormat, info.Title.EnforceLength(20), "Pack", info.Author.EnforceLength(30));
+            Stand.headerText.text = string.Format(Stand.headerFormat, info.Title.EnforceLength(20), "Pack", info.Author.EnforceLength(30));
 
-            stand.shirtStatusText.text = GetState(info) switch
+            Stand.shirtStatusText.text = GetState(info) switch
             {
                 ReleaseState.None => "Install",
                 ReleaseState.Processing => "Processing",
@@ -57,15 +57,15 @@ namespace GorillaShirts.Models.StateMachine
             if (info.AlsoKnownAs is string[] alternativeNames && alternativeNames.Length > 0)
                 str.AppendLine().Append("<color=#FF4C4C><size=4>AKA: ").Append(string.Join(", ", alternativeNames)).Append("</size></color>");
 
-            stand.descriptionText.text = str.ToString();
+            Stand.descriptionText.text = str.ToString();
 
             Sprite releasePreview = info.PackPreviewSprite;
             bool hasPreview = releasePreview is not null;
 
-            if (stand.previewImage.gameObject.activeSelf != hasPreview)
-                stand.previewImage.gameObject.SetActive(hasPreview);
+            if (Stand.previewImage.gameObject.activeSelf != hasPreview)
+                Stand.previewImage.gameObject.SetActive(hasPreview);
 
-            if (hasPreview) stand.previewImage.sprite = releasePreview;
+            if (hasPreview) Stand.previewImage.sprite = releasePreview;
 
             if (packReleases.TryGetValue(info, out PackDescriptor pack))
             {
@@ -84,7 +84,7 @@ namespace GorillaShirts.Models.StateMachine
                 shirtsToRotate = null;
                 rotationStack.Clear();
 
-                stand.Character.WearSignatureShirt();
+                Stand.Character.WearSignatureShirt();
             }
         }
 
@@ -142,7 +142,7 @@ namespace GorillaShirts.Models.StateMachine
 
             if (button == EButtonType.PackBrowser)
             {
-                Main.Instance.MenuStateMachine.SwitchState(previousState);
+                Main.Instance.MenuStateMachine.SwitchState(PreviousState);
                 return;
             }
 
@@ -150,36 +150,39 @@ namespace GorillaShirts.Models.StateMachine
             {
                 ReleaseInfo info = CurrentInfo;
 
-                if (GetState(info) == 0)
+                if (GetState(info) == ReleaseState.None)
                 {
                     SetState(info, ReleaseState.Processing);
 
                     await Main.Instance.Content.InstallRelease(info, (step, progress) =>
                     {
-                        if (!stand.packBrowserMenuRoot.activeSelf)
+                        if (!Stand.packBrowserMenuRoot.activeSelf)
                         {
-                            stand.Character.WearSignatureShirt();
-                            stand.packBrowserMenuRoot.SetActive(true);
-                            stand.mainMenuRoot.SetActive(false);
-                            stand.packBrowserLabel.text = string.Format("Name: {0}<br>Author: {1}<line-height=120%><br><color=#FF4C4C>Please refrain from closing Gorilla Tag at this time!", info.Title, info.Author);
+                            Stand.Character.WearSignatureShirt();
+                            Stand.packBrowserMenuRoot.SetActive(true);
+                            Stand.mainMenuRoot.SetActive(false);
+                            Stand.packBrowserLabel.text = string.Format("Name: {0}<br>Author: {1}<line-height=120%><br><color=#FF4C4C>Please refrain from closing Gorilla Tag at this time!", info.Title, info.Author);
                         }
 
-                        stand.packBrowserStatus.text = string.Format("<size=60%>{0} / 3</size><br>{1}", (step + 1).ToString(), step switch
+                        Stand.packBrowserStatus.text = string.Format("<size=60%>{0} / 3</size><br>{1}", (step + 1).ToString(), step switch
                         {
                             0 => "Downloading Pack",
                             1 => "Installing Pack",
                             2 => "Loading Shirts",
                             _ => "huh, stop playing with me"
                         });
-                        stand.packBrowserRadial.fillAmount = progress;
-                        stand.packBrowserPercent.text = $"{Mathf.FloorToInt(progress * 100)}%";
+                        Stand.packBrowserRadial.fillAmount = progress;
+                        Stand.packBrowserPercent.text = $"{Mathf.FloorToInt(progress * 100)}%";
                     });
 
                     SetState(info, ReleaseState.HasRelease);
-                    stand.packBrowserMenuRoot.SetActive(false);
-                    stand.mainMenuRoot.SetActive(true);
+                    Stand.packBrowserMenuRoot.SetActive(false);
+                    Stand.mainMenuRoot.SetActive(true);
                     DisplayRelease();
+                    return;
                 }
+
+                Main.Instance.PlayOhNoAudio();
 
                 return;
             }
@@ -210,18 +213,18 @@ namespace GorillaShirts.Models.StateMachine
 
             if (rotationStack.Count == 0)
             {
-                single = stand.Character.SingleShirt;
+                single = Stand.Character.SingleShirt;
                 if (single != null && shirtsToRotate.Contains(single)) rotationStack.Push(single);
 
                 shirtsToRotate.Where(shirt => !rotationStack.Contains(shirt)).OrderBy(shirt => Random.value).ForEach(rotationStack.Push);
             }
 
-            if (rotationStack.TryPop(out single)) stand.Character.SetShirt(single);
+            if (rotationStack.TryPop(out single)) Stand.Character.SetShirt(single);
         }
 
         public override void Exit()
         {
-            stand.mainMenuRoot.SetActive(false);
+            Stand.mainMenuRoot.SetActive(false);
         }
 
         internal enum ReleaseState
