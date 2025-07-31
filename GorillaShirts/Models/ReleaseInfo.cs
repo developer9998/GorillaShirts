@@ -30,16 +30,18 @@ namespace GorillaShirts.Models
         [NonSerialized]
         public PackDescriptor Pack;
 
-        public int GetInstalledVersion()
+        public string GetVersionKey(EReleaseVersion versionType) => $"{Title}_{versionType.GetName()}{Version}";
+
+        public int GetVersion(EReleaseVersion versionType)
         {
             if (DataManager.Instance is null) return -1;
-            return DataManager.Instance.GetItem($"{Title}_Version", -1);
+            return DataManager.Instance.GetItem(GetVersionKey(versionType), -1);
         }
 
-        public void UpdateInstalledVersion()
+        public void UpdateVersion(EReleaseVersion versionType)
         {
             if (DataManager.Instance is null) return;
-            DataManager.Instance.SetItem($"{Title}_Version", Version);
+            DataManager.Instance.SetItem(GetVersionKey(versionType), Version);
         }
     }
 }

@@ -36,6 +36,7 @@ namespace GorillaShirts.Models.StateMachine
             releases = [.. Main.Instance.Releases.OrderBy(info => info.Rank)];
             Stand.mainMenuRoot.SetActive(true);
             Stand.navigationRoot.SetActive(false);
+            Stand.packBrowserButtonNewSymbol.SetActive(false);
             SetSidebarState(SidebarState.PackBrowser);
             DisplayRelease();
         }
@@ -45,7 +46,10 @@ namespace GorillaShirts.Models.StateMachine
             releaseIndex = releaseIndex.Wrap(0, releases.Length);
             ReleaseInfo info = CurrentInfo;
 
-            flags = (info.Title == "Default" && info.Rank == 0) || (info.Version > info.GetInstalledVersion() && info.GetInstalledVersion() != -1) ? ReleaseFlags.RequireInstall : ReleaseFlags.None;
+            Stand.packBrowserNewSymbol.SetActive(info.Version > info.GetVersion(EReleaseVersion.Viewed) || info.GetVersion(EReleaseVersion.Viewed) == -1);
+            info.UpdateVersion(EReleaseVersion.Viewed);
+
+            flags = (info.Title == "Default" && info.Rank == 0) || (info.Version > info.GetVersion(EReleaseVersion.Installed) && info.GetVersion(EReleaseVersion.Installed) != -1) ? ReleaseFlags.RequireInstall : ReleaseFlags.None;
 
             Stand.headerText.text = string.Format(Stand.headerFormat, info.Title.EnforceLength(20), "Pack", info.Author.EnforceLength(30));
 
@@ -184,7 +188,7 @@ namespace GorillaShirts.Models.StateMachine
                             Stand.packBrowserPercent.text = $"{Mathf.FloorToInt(progress * 100)}%";
                         });
 
-                        info.UpdateInstalledVersion();
+                        info.UpdateVersion(EReleaseVersion.Installed);
                         SetState(info, ReleaseState.HasRelease);
                     }
 

@@ -65,6 +65,8 @@ namespace GorillaShirts.Behaviours.UI
 
         public TMP_Text navigationText;
 
+        public GameObject packBrowserNewSymbol;
+
         public TMP_Text headerText;
 
         [TextArea(2, 8)]
@@ -86,7 +88,8 @@ namespace GorillaShirts.Behaviours.UI
         public GameObject infoButtonObject;
 
         public GameObject packBrowserButtonObject;
-        public GameObject packBrowserNewLabel;
+
+        public GameObject packBrowserButtonNewSymbol;
 
         public GameObject favouriteButtonObject;
 

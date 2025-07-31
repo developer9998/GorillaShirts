@@ -42,14 +42,14 @@ namespace GorillaShirts.Models.StateMachine
 
             foreach(ReleaseInfo info in Main.Instance.Releases)
             {
-                if (info.GetInstalledVersion() == -1 || info.Version > info.GetInstalledVersion())
+                if (info.GetVersion(EReleaseVersion.Viewed) == -1 || info.Version > info.GetVersion(EReleaseVersion.Viewed))
                 {
                     hasUnreadRelease = true;
                     break;
                 }
             }
 
-            if (Stand.packBrowserNewLabel.activeSelf != hasUnreadRelease) Stand.packBrowserNewLabel.SetActive(hasUnreadRelease);
+            if (Stand.packBrowserButtonNewSymbol.activeSelf != hasUnreadRelease) Stand.packBrowserButtonNewSymbol.SetActive(hasUnreadRelease);
 
             PreviewPack();
         }

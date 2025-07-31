@@ -4,6 +4,7 @@
         "Rank": 0,
         "Author": "GorillaShirts",
         "Description": "Default contains a variety of iconic shirts, such as hoodies, turtlenecks, croptops, and more.",
+        "Version": 1,
         "PackArchiveLink": "https://github.com/developer9998/GorillaShirts/raw/main/Packs/Default.zip"
     },
     {
@@ -11,6 +12,7 @@
         "Rank": 1,
         "Author": "GorillaShirts",
         "Description": "Custom contains plenty of diverse and random shirts assorted into one singular pack.",
+        "Version": 1,
         "PackArchiveLink": "https://github.com/developer9998/GorillaShirts/raw/main/Packs/Custom.zip"
     },
     {
@@ -18,6 +20,7 @@
         "AlsoKnownAs": ["ExpressionPack"],
         "Author": "cresmondo",
         "Description": "a pack i made for content creators to use for their videos!! features a wide array of expressions, credit isnt required but would be nice!!",
+        "Version": 1,
         "PackArchiveLink": "https://github.com/developer9998/GorillaShirts/raw/main/Packs/Expressions.zip",
         "PackPreviewLink": "https://raw.githubusercontent.com/developer9998/GorillaShirts/main/Packs/PreviewAssets/Preview_ExpressionPack.png"
     },
@@ -25,6 +28,7 @@
         "Title": "Pride Hoodies",
         "Author": "cresmondo",
         "Description": "a pack that comes with 14 pride-flag themed hoodies!",
+        "Version": 1,
         "PackArchiveLink": "https://github.com/developer9998/GorillaShirts/raw/main/Packs/Pride Hoodies.zip",
         "PackPreviewLink": "https://raw.githubusercontent.com/developer9998/GorillaShirts/main/Packs/PreviewAssets/Preview_PrideHoodies.png"
     }
