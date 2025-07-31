@@ -82,10 +82,9 @@ namespace GorillaShirts.Behaviours.Networking
             {
                 propertiesObject = changedProps[Constants.NetworkPropertyKey];
             }
-            else if (changedProps.ContainsKey("GorillaShirts"))
+            else if (changedProps.ContainsKey("ShirtProperties"))
             {
-                // NOTE: "GorillaShirts" property is currently obsolete, though I'd like to adopt it once more updates come out that use this codebase
-                propertiesObject = changedProps["GorillaShirts"];
+                propertiesObject = changedProps["ShirtProperties"];
             }
 
             if (propertiesObject != null && propertiesObject is Dictionary<string, object> properties)
