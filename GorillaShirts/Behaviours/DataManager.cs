@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -71,9 +72,29 @@ namespace GorillaShirts.Behaviours
 
         public T GetItem<T>(string key, T defaultValue = default)
         {
-            if (data.TryGetValue(key, out object value) && value is T item)
+            if (data.TryGetValue(key, out object value))
             {
-                return item;
+                if (value is T item) return item;
+
+                TypeCode typeCode = Type.GetTypeCode(typeof(T));
+                if (typeCode != TypeCode.Int64 && value is long newtonsoftQuirk2000)
+                {
+                    switch(typeCode)
+                    {
+                        case TypeCode.Int32:
+                            int int32 = Convert.ToInt32(newtonsoftQuirk2000);
+                            data[key] = int32;
+                            return (T)(object)int32;
+                        case TypeCode.Int16:
+                            int int16 = Convert.ToInt16(newtonsoftQuirk2000);
+                            data[key] = int16;
+                            return (T)(object)int16;
+                        case TypeCode.Single:
+                            float single = Convert.ToSingle(newtonsoftQuirk2000);
+                            data[key] = single;
+                            return (T)(object)single;
+                    }
+                }
             }
 
             //SetItem(key, defaultValue);

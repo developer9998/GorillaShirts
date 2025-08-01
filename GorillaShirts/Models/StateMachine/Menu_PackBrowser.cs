@@ -49,15 +49,15 @@ namespace GorillaShirts.Models.StateMachine
             Stand.packBrowserNewSymbol.SetActive(info.Version > info.GetVersion(EReleaseVersion.Viewed) || info.GetVersion(EReleaseVersion.Viewed) == -1);
             info.UpdateVersion(EReleaseVersion.Viewed);
 
-            flags = (info.Title == "Default" && info.Rank == 0) || (info.Version > info.GetVersion(EReleaseVersion.Installed) && (info.Pack is not null || info.GetVersion(EReleaseVersion.Installed) != -1)) ? ReleaseFlags.RequireInstall : ReleaseFlags.None;
+            flags = (info.Title == "Default" && info.Rank == 0) ? ReleaseFlags.Reinstall : ((info.Version > info.GetVersion(EReleaseVersion.Installed) && info.Pack is not null) ? ReleaseFlags.Update : ReleaseFlags.None);
 
             Stand.headerText.text = string.Format(Stand.headerFormat, info.Title.EnforceLength(20), "Pack", info.Author.EnforceLength(30));
 
             Stand.shirtStatusText.text = GetState(info) switch
             {
-                ReleaseState.None => flags.HasFlag(ReleaseFlags.RequireInstall) ? "Install Update" : "Install Pack",
+                ReleaseState.None => flags.HasFlag(ReleaseFlags.Update) ? "Update" : "Install",
                 ReleaseState.Processing => "Processing",
-                ReleaseState.HasRelease => flags.HasFlag(ReleaseFlags.RequireInstall) ? "Reinstall Pack" : "Remove Pack",
+                ReleaseState.HasRelease => flags.HasFlag(ReleaseFlags.Reinstall) ? "Reinstall" : (flags.HasFlag(ReleaseFlags.Update) ? "Update" : "Remove"),
                 _ => "tell me what it is"
             };
 
@@ -149,15 +149,24 @@ namespace GorillaShirts.Models.StateMachine
                 {
                     SetState(info, ReleaseState.Processing);
 
+                    doRotation = false;
+                    shirtsToRotate = null;
+                    rotationStack.Clear();
                     Stand.Character.WearSignatureShirt();
                     Stand.packBrowserMenuRoot.SetActive(true);
                     Stand.mainMenuRoot.SetActive(false);
 
-                    bool uninstallRelease = initialState == ReleaseState.HasRelease;
-                    bool installRelease = initialState == ReleaseState.None || flags.HasFlag(ReleaseFlags.RequireInstall);
+                    bool uninstallRelease = initialState == ReleaseState.HasRelease && !flags.HasFlag(ReleaseFlags.Update);
+                    bool installRelease = initialState == ReleaseState.None || flags.HasFlag(ReleaseFlags.Update) || flags.HasFlag(ReleaseFlags.Reinstall);
 
                     int stepOffset = uninstallRelease ? 1 : 0;
                     int stepCount = new int[] { installRelease ? 3 : 0, stepOffset }.Sum();
+
+                    if (initialState == ReleaseState.HasRelease && flags.HasFlag(ReleaseFlags.Update) && info.Pack is not null)
+                    {
+                        // bandaid fix to duplicate packs after update with existing install
+                        Main.Instance.Packs.Remove(info.Pack);
+                    }
 
                     if (uninstallRelease)
                     {
@@ -196,6 +205,7 @@ namespace GorillaShirts.Models.StateMachine
                     Stand.mainMenuRoot.SetActive(true);
                     SetSidebarState(SidebarState.PackBrowser);
                     DisplayRelease();
+                    Main.Instance.CheckRigsForProperties();
                     return;
                 }
 
@@ -245,6 +255,9 @@ namespace GorillaShirts.Models.StateMachine
 
             if (Stand.previewImage.gameObject.activeSelf != false)
                 Stand.previewImage.gameObject.SetActive(false);
+
+            if (Stand.packBrowserNewSymbol.activeSelf != false)
+                Stand.packBrowserNewSymbol.SetActive(false);
         }
 
         internal enum ReleaseState
@@ -258,7 +271,8 @@ namespace GorillaShirts.Models.StateMachine
         internal enum ReleaseFlags
         {
             None = 1 << 0,
-            RequireInstall = 1 << 1
+            Reinstall = 1 << 1,
+            Update = 1 << 2
         }
     }
 }

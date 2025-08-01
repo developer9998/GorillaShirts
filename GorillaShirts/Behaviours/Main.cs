@@ -268,7 +268,7 @@ namespace GorillaShirts.Behaviours
             }
             else menuState_PackList.Packs = Packs;
 
-            CheckPlayersInRoom();
+            CheckRigsForProperties();
         }
 
         public void OnShirtUnloaded(IGorillaShirt unloadedShirt)
@@ -291,7 +291,7 @@ namespace GorillaShirts.Behaviours
                 pack.Shirts.Remove(unloadedShirt);
             }
 
-            CheckPlayersInRoom();
+            CheckRigsForProperties();
         }
 
         public void OnPackUnloaded(PackDescriptor content)
@@ -301,7 +301,7 @@ namespace GorillaShirts.Behaviours
             Packs.Remove(content);
             content.Shirts.Where(Shirts.ContainsValue).ForEach(async shirt => await Content.UnloadShirt(shirt));
 
-            CheckPlayersInRoom();
+            CheckRigsForProperties();
 
             if (content.Release is not null)
             {
@@ -329,7 +329,7 @@ namespace GorillaShirts.Behaviours
             MenuStateMachine?.Update();
         }
 
-        public void CheckPlayersInRoom()
+        public void CheckRigsForProperties()
         {
             if (NetworkSystem.Instance.InRoom && GorillaParent.instance is GorillaParent gorillaParent)
             {

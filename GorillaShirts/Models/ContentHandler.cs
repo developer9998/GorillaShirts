@@ -129,7 +129,7 @@ namespace GorillaShirts.Models
 
                 if (Main.Instance.Shirts is var shirtDictionary && shirtDictionary.Count != 0 && Array.Find(shirtDictionary.Values.ToArray(), shirt => shirt.FileInfo.FullName == file.FullName) is IGorillaShirt shirt && shirt is T existingAsset)
                 {
-                    await UnloadShirt(existingAsset);
+                    await UnloadShirt(existingAsset, false);
                 }
 
                 T asset = Activator.CreateInstance<T>();
@@ -181,7 +181,7 @@ namespace GorillaShirts.Models
             OnPackUnloaded?.Invoke(content);
         }
 
-        public async Task UnloadShirt(IGorillaShirt shirt)
+        public async Task UnloadShirt(IGorillaShirt shirt, bool removeFile = true)
         {
             if (shirt is null) throw new ArgumentNullException(nameof(shirt));
             if (shirt.Bundle is not AssetBundle bundle || !shirt.Bundle) return;
@@ -197,26 +197,30 @@ namespace GorillaShirts.Models
             UnityEngine.Object.Destroy(shirt.Bundle);
             OnShirtUnloaded?.Invoke(shirt);
 
-            ThreadingHelper.Instance.StartAsyncInvoke(() =>
+            if (removeFile)
             {
-                try
+                ThreadingHelper.Instance.StartAsyncInvoke(() =>
                 {
-                    File.Delete(shirt.FileInfo.FullName);
-                    if (!Directory.EnumerateFileSystemEntries(directory).Any())
+                    try
                     {
-                        Directory.Delete(directory, false);
+                        File.Delete(shirt.FileInfo.FullName);
+                        if (!Directory.EnumerateFileSystemEntries(directory).Any())
+                        {
+                            Directory.Delete(directory, false);
+                        }
                     }
-                }
-                catch (UnauthorizedAccessException)
-                {
+                    catch (UnauthorizedAccessException)
+                    {
 
-                }
-                catch (DirectoryNotFoundException)
-                {
+                    }
+                    catch (DirectoryNotFoundException)
+                    {
 
-                }
-                return null;
-            });
+                    }
+                    return null;
+                });
+            }
+            
         }
 
         public async Task UninstallRelease(ReleaseInfo info, Action<float> callback)
