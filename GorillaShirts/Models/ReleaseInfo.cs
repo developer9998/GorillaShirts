@@ -30,7 +30,7 @@ namespace GorillaShirts.Models
         [NonSerialized]
         public PackDescriptor Pack;
 
-        public string GetVersionKey(EReleaseVersion versionType) => $"{Title}_{versionType.GetName()}{Version}";
+        public string GetVersionKey(EReleaseVersion versionType) => $"{Title}_{versionType.GetName()}Version";
 
         public int GetVersion(EReleaseVersion versionType)
         {

@@ -49,7 +49,7 @@ namespace GorillaShirts.Models.StateMachine
             Stand.packBrowserNewSymbol.SetActive(info.Version > info.GetVersion(EReleaseVersion.Viewed) || info.GetVersion(EReleaseVersion.Viewed) == -1);
             info.UpdateVersion(EReleaseVersion.Viewed);
 
-            flags = (info.Title == "Default" && info.Rank == 0) || (info.Version > info.GetVersion(EReleaseVersion.Installed) && info.GetVersion(EReleaseVersion.Installed) != -1) ? ReleaseFlags.RequireInstall : ReleaseFlags.None;
+            flags = (info.Title == "Default" && info.Rank == 0) || (info.Version > info.GetVersion(EReleaseVersion.Installed) && (info.Pack is not null || info.GetVersion(EReleaseVersion.Installed) != -1)) ? ReleaseFlags.RequireInstall : ReleaseFlags.None;
 
             Stand.headerText.text = string.Format(Stand.headerFormat, info.Title.EnforceLength(20), "Pack", info.Author.EnforceLength(30));
 

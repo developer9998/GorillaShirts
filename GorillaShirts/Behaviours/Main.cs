@@ -171,7 +171,7 @@ namespace GorillaShirts.Behaviours
                 if (Version.TryParse(latestVersionRaw, out Version latestVersion) && latestVersion > Plugin.Info.Metadata.Version)
                 {
                     PlayAudio(EAudioType.Error, 1f);
-                    TaskCompletionSource<object> completionSource = new(TaskCreationOptions.LongRunning);
+                    TaskCompletionSource<object> completionSource = new();
                     MenuStateMachine.SwitchState(new Menu_WrongVersion(ShirtStand, Constants.Version, latestVersionRaw, completionSource));
                     await completionSource.Task;
                 }
