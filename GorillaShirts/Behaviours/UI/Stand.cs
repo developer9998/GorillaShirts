@@ -61,8 +61,6 @@ namespace GorillaShirts.Behaviours.UI
 
         public GameObject mainContentRoot;
 
-        public GameObject infoContentRoot;
-
         public TMP_Text navigationText;
 
         public GameObject packBrowserNewSymbol;
@@ -71,11 +69,6 @@ namespace GorillaShirts.Behaviours.UI
 
         [TextArea(2, 8)]
         public string headerFormat;
-
-        public Text playerInfoText;
-
-        [TextArea(4, 6), FormerlySerializedAs("personalDataFormat")]
-        public string playerInfoFormat;
 
         public TMP_Text descriptionText;
 
@@ -106,6 +99,15 @@ namespace GorillaShirts.Behaviours.UI
         public GameObject tagOffsetControlObject;
 
         public Text tagOffsetText;
+
+        [Header("Main Menu (info)")]
+
+        public GameObject infoContentRoot;
+
+        public TMP_Text playerInfoText;
+
+        [TextArea(4, 6), FormerlySerializedAs("personalDataFormat")]
+        public string playerInfoFormat;
 
         [Header("Pack Browser Load Menu")]
 

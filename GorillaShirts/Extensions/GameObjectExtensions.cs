@@ -25,6 +25,7 @@ namespace GorillaShirts.Extensions
             typeof(ReflectionProbe),
             typeof(AudioSource),
             typeof(Animator),
+            typeof(Animation),
             typeof(TextMesh),
             typeof(ParticleSystem),
             typeof(ParticleSystemRenderer),
@@ -68,9 +69,36 @@ namespace GorillaShirts.Extensions
             for (int i = components.Length - 1; i >= 0; i--)
             {
                 Type type = components[i].GetType();
-                // Logging.Info(type.Name);
+                if (type == typeof(LODGroup))
+                {
+                    bool allowLOD = true;
+
+                    LODGroup lodGroup = (LODGroup)components[i];
+                    var lodArray = lodGroup.GetLODs();
+
+                    for (int j = 0; j < lodArray.Length; j++)
+                    {
+                        var lod = lodArray[j];
+                        if (lod.renderers.Length == 0)
+                        {
+                            allowLOD = false;
+                            break;
+                        }
+                    }
+
+                    if (allowLOD)
+                    {
+                        Logging.Info($"LODGroup for {gameObject.name} allowed");
+                        continue;
+                    }
+
+                    Logging.Warning($"LODGroup for {gameObject.name} not allowed (used for first person)");
+                    Object.Destroy(lodGroup);
+                    continue;
+                }
+
                 if (allowedTypeList.Contains(type)) continue;
-                Logging.Warning($"Component not allowed: {type.Name}");
+                Logging.Warning($"Component {gameObject.name} not allowed: {type.Name}");
                 Object.Destroy(components[i]);
             }
         }

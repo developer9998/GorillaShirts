@@ -97,10 +97,11 @@ namespace GorillaShirts.Models.Cosmetic
                     Features |= EShirtFeature.Invisibility;
                     Descriptor.BodyType = EShirtBodyType.Invisible;
                 }
-                // else Descriptor.BodyType = EShirtBodyType.Default;
+
+                ShirtId = Encoding.UTF8.GetString(Encoding.Default.GetBytes($"{Descriptor.PackName}/{Descriptor.ShirtName}"));
 
                 Template.name = $"{Descriptor.ShirtName} Legacy Asset";
-                ShirtId = Encoding.UTF8.GetString(Encoding.Default.GetBytes($"{Descriptor.PackName}/{Descriptor.ShirtName}"));
+                Template.SanitizeObjectRecursive();
 
                 foreach (Transform child in Template.transform)
                 {
@@ -130,7 +131,7 @@ namespace GorillaShirts.Models.Cosmetic
                             return;
                         }
 
-                        Logging.Info($"{Descriptor.ShirtName} (legacy) has {sectorType}");
+                        Logging.Info($"{Descriptor.ShirtName} (Legacy) has {sectorType}");
 
                         Objects |= sectorType;
                         body_part.name = sectorType.ToString();

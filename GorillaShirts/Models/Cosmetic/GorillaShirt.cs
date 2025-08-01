@@ -120,7 +120,13 @@ namespace GorillaShirts.Models.Cosmetic
                                 if (decendant.TryGetComponent(out Renderer renderer))
                                 {
                                     Logging.Info($"{decendant.gameObject.name} ({renderer.GetType().Name})");
-                                    renderer.materials = [.. renderer.materials.Select(material => new Material(material))/*.Select(material => material.ResolveUberMaterial())*/];
+                                    renderer.materials = [.. renderer.materials.Select(material =>
+                                    {
+                                        Material independentMat = Object.Instantiate(material);
+                                        independentMat.shaderKeywords = material.shaderKeywords;
+                                        independentMat.enabledKeywords = material.enabledKeywords;
+                                        return independentMat;
+                                    })/*.Select(material => material.ResolveUberMaterial())*/];
 
                                     if (decendant.TryGetComponent(out ShirtCustomColour customColour))
                                     {

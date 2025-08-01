@@ -56,6 +56,9 @@
 		<Compile Include="..\GorillaShirts\Behaviours\UI\Punch.cs">
 			<Link>Behaviours\UI\Punch.cs</Link>
 		</Compile>
+		<Compile Include="..\GorillaShirts\Behaviours\UI\ScrollableMenuController.cs">
+			<Link>Behaviours\UI\ScrollableMenuController.cs</Link>
+		</Compile>
 	</ItemGroup>
 
 	<ItemGroup>

@@ -27,9 +27,10 @@ namespace GorillaShirts.Models.StateMachine
             Stand.playerInfoText.text = Stand.playerInfoFormat
                 .Replace("[SHIRTCOUNT]", Main.Instance.Packs.Select(pack => pack.Shirts.Count).Sum().ToString())
                 .Replace("[PACKCOUNT]", Main.Instance.Packs.Count(pack => pack != Main.Instance.FavouritePack).ToString())
+                .Replace("[RELEASECOUNT]", Main.Instance.Packs.Count(pack => pack.Release is not null).ToString())
                 .Replace("[BUILDCONFIG]", build_config)
                 .Replace("[VERSION]", Constants.Version)
-                .Replace("[PLAYERNAME]", NetworkSystem.Instance.GetMyNickName());
+                .Replace("[PLAYERNAME]", GorillaTagger.Instance.offlineVRRig.NormalizeName(true, NetworkSystem.Instance.GetMyNickName()));
         }
 
         public override void OnButtonPress(EButtonType button)

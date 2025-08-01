@@ -12,12 +12,20 @@
         Randomize,
         TagIncrease,
         TagDecrease,
-        GeneralUse1,
-        GeneralUse2,
+        Button1,
+        Button2,
         Favourite,
         PackBrowser,
         Credits,
         Statistics,
-        Tutorial
+        Tutorial,
+        Button3,
+        Button4,
+        Button5,
+        Button6,
+        Button7,
+        Button8,
+        Button9,
+        Button10
     }
 }

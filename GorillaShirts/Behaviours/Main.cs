@@ -299,7 +299,12 @@ namespace GorillaShirts.Behaviours
             if (!Packs.Contains(content)) return;
 
             Packs.Remove(content);
-            content.Shirts.Where(Shirts.ContainsValue).ForEach(async shirt => await Content.UnloadShirt(shirt));
+
+            content.Shirts.Where(Shirts.ContainsValue).ForEach(async shirt =>
+            {
+                Shirts.Remove(shirt.ShirtId);
+                await Content.UnloadShirt(shirt);
+            });
 
             CheckRigsForProperties();
 
@@ -331,11 +336,11 @@ namespace GorillaShirts.Behaviours
 
         public void CheckRigsForProperties()
         {
-            if (NetworkSystem.Instance.InRoom && GorillaParent.instance is GorillaParent gorillaParent)
+            if (NetworkSystem.Instance.InRoom && VRRigCache.isInitialized)
             {
-                foreach (VRRig rig in gorillaParent.vrrigs)
+                foreach (RigContainer playerRig in VRRigCache.rigsInUse.Values)
                 {
-                    if (rig.TryGetComponent(out NetworkedPlayer component) && component.Creator is PunNetPlayer punPlayer && punPlayer.PlayerRef is Player playerRef)
+                    if (playerRig.TryGetComponent(out NetworkedPlayer component) && component.Creator is PunNetPlayer punPlayer && punPlayer.PlayerRef is Player playerRef)
                     {
                         NetworkManager.Instance.OnPlayerPropertiesUpdate(playerRef, playerRef.CustomProperties);
                     }

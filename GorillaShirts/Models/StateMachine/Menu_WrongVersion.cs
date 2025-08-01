@@ -29,13 +29,13 @@ namespace GorillaShirts.Models.StateMachine
 
         public override void OnButtonPress(EButtonType button)
         {
-            if (button == EButtonType.GeneralUse1)
+            if (button == EButtonType.Button1)
             {
                 completionSource.TrySetResult(null);
                 return;
             }
 
-            if (button == EButtonType.GeneralUse2)
+            if (button == EButtonType.Button2)
             {
                 string url = @"https://github.com/developer9998/GorillaShirts/releases/latest";
                 try
