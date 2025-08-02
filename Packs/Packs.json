@@ -5,7 +5,8 @@
         "Author": "GorillaShirts",
         "Description": "Default contains a variety of iconic shirts, such as hoodies, turtlenecks, croptops, and more.",
         "Version": 1,
-        "PackArchiveLink": "https://github.com/developer9998/GorillaShirts/raw/main/Packs/Default.zip"
+        "PackArchiveLink": "https://github.com/developer9998/GorillaShirts/raw/main/Packs/Default.zip",
+        "PackPreviewLink": "https://raw.githubusercontent.com/developer9998/GorillaShirts/main/Packs/PreviewAssets/Preview_Default.png"
     },
     {
         "Title": "Custom",
