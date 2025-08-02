@@ -59,6 +59,9 @@
 		<Compile Include="..\GorillaShirts\Behaviours\UI\ScrollableMenuController.cs">
 			<Link>Behaviours\UI\ScrollableMenuController.cs</Link>
 		</Compile>
+		<Compile Include="..\GorillaShirts\Behaviours\UI\Sidebar.cs">
+			<Link>Behaviours\UI\Sidebar.cs</Link>
+		</Compile>
 	</ItemGroup>
 
 	<ItemGroup>

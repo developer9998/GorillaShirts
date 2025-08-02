@@ -78,27 +78,9 @@ namespace GorillaShirts.Behaviours.UI
 
         public TMP_Text shirtStatusText;
 
+        public Sidebar mainSideBar;
+
         public GameObject infoButtonObject;
-
-        public GameObject packBrowserButtonObject;
-
-        public GameObject packBrowserButtonNewSymbol;
-
-        public GameObject favouriteButtonObject;
-
-        public Image favouriteButtonSymbol;
-
-        public GameObject rigButtonObject;
-
-        public GameObject sillyHeadObject, steadyHeadObject;
-
-        public GameObject captureButtonObject;
-
-        public GameObject shuffleButtonObject;
-
-        public GameObject tagOffsetControlObject;
-
-        public Text tagOffsetText;
 
         [Header("Main Menu (info)")]
 

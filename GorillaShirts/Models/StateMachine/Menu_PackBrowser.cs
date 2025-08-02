@@ -9,8 +9,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using static OVRPlugin;
-using static Unity.IO.LowLevel.Unsafe.AsyncReadManagerMetrics;
 
 namespace GorillaShirts.Models.StateMachine
 {
@@ -34,10 +32,17 @@ namespace GorillaShirts.Models.StateMachine
         public override void Enter()
         {
             releases = [.. Main.Instance.Releases.OrderBy(info => info.Rank)];
+
             Stand.mainMenuRoot.SetActive(true);
             Stand.navigationRoot.SetActive(false);
-            Stand.packBrowserButtonNewSymbol.SetActive(false);
-            SetSidebarState(SidebarState.PackBrowser);
+
+            Stand.navigationRoot.SetActive(true);
+            Stand.navigationText.text = "Return to Main Menu";
+
+            Stand.mainSideBar.packBrowserButtonNewSymbol.SetActive(false);
+            Stand.mainSideBar.SetSidebarState(Sidebar.SidebarState.ReleaseView);
+            Stand.mainSideBar.UpdateSidebar();
+
             DisplayRelease();
         }
 
@@ -134,10 +139,31 @@ namespace GorillaShirts.Models.StateMachine
         {
             if (isProcessing) return;
 
-            if (button == EButtonType.PackBrowser)
+            if (button == EButtonType.Return)
             {
                 Main.Instance.MenuStateMachine.SwitchState(PreviousState);
                 return;
+            }
+
+            switch (button)
+            {
+                case EButtonType.RigToggle:
+                    Stand.Character.SetAppearence(Stand.Character.Preference switch
+                    {
+                        ECharacterPreference.Masculine => ECharacterPreference.Feminine,
+                        ECharacterPreference.Feminine => ECharacterPreference.Masculine,
+                        _ => Stand.Character.Preference
+                    });
+                    Stand.mainSideBar.UpdateSidebar();
+                    return;
+                case EButtonType.TagIncrease:
+                    Main.Instance.AdjustTagOffset(Mathf.Min(HumanoidContainer.LocalHumanoid.NameTagOffset + 1, 8));
+                    Stand.mainSideBar.UpdateSidebar();
+                    return;
+                case EButtonType.TagDecrease:
+                    Main.Instance.AdjustTagOffset(Mathf.Max(HumanoidContainer.LocalHumanoid.NameTagOffset - 1, 0));
+                    Stand.mainSideBar.UpdateSidebar();
+                    return;
             }
 
             if (button == EButtonType.NavigateSelect)
@@ -203,7 +229,7 @@ namespace GorillaShirts.Models.StateMachine
 
                     Stand.packBrowserMenuRoot.SetActive(false);
                     Stand.mainMenuRoot.SetActive(true);
-                    SetSidebarState(SidebarState.PackBrowser);
+                    Stand.mainSideBar.SetSidebarState(Sidebar.SidebarState.ReleaseView);
                     DisplayRelease();
                     Main.Instance.CheckRigsForProperties();
                     return;
@@ -252,6 +278,7 @@ namespace GorillaShirts.Models.StateMachine
         public override void Exit()
         {
             Stand.mainMenuRoot.SetActive(false);
+            Stand.navigationRoot.SetActive(false);
 
             if (Stand.previewImage.gameObject.activeSelf != false)
                 Stand.previewImage.gameObject.SetActive(false);
@@ -272,7 +299,8 @@ namespace GorillaShirts.Models.StateMachine
         {
             None = 1 << 0,
             Reinstall = 1 << 1,
-            Update = 1 << 2
+            Update = 1 << 2,
+            OutdatedVersion = 1 << 3
         }
     }
 }

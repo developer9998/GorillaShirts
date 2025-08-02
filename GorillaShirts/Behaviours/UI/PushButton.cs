@@ -3,8 +3,10 @@ using UnityEngine;
 
 namespace GorillaShirts.Behaviours.UI
 {
-    internal class PushButton : MonoBehaviour
+    public class PushButton : MonoBehaviour
     {
+        public GameObject Root;
+
         public MeshRenderer Renderer;
 
         public EButtonType Type;

@@ -35,21 +35,10 @@ namespace GorillaShirts.Models.StateMachine
 
             Stand.mainMenuRoot.SetActive(true);
             Stand.navigationRoot.SetActive(false);
+            Stand.mainSideBar.SetSidebarState(Sidebar.SidebarState.MainMenu);
 
-            SetSidebarState(SidebarState.PackNavigation);
-
-            bool hasUnreadRelease = false;
-
-            foreach(ReleaseInfo info in Main.Instance.Releases)
-            {
-                if (info.GetVersion(EReleaseVersion.Viewed) == -1 || info.Version > info.GetVersion(EReleaseVersion.Viewed))
-                {
-                    hasUnreadRelease = true;
-                    break;
-                }
-            }
-
-            if (Stand.packBrowserButtonNewSymbol.activeSelf != hasUnreadRelease) Stand.packBrowserButtonNewSymbol.SetActive(hasUnreadRelease);
+            bool hasUnreadRelease = Main.Instance.Releases.Any(info => info.GetVersion(EReleaseVersion.Viewed) == -1 || info.Version > info.GetVersion(EReleaseVersion.Viewed));
+            if (Stand.mainSideBar.packBrowserButtonNewSymbol.activeSelf != hasUnreadRelease) Stand.mainSideBar.packBrowserButtonNewSymbol.SetActive(hasUnreadRelease);
 
             PreviewPack();
         }
@@ -83,8 +72,8 @@ namespace GorillaShirts.Models.StateMachine
             PackDescriptor pack = shownPacks[packIndex];
             lastPack = pack;
 
-            Stand.favouriteButtonObject.SetActive(pack != Main.Instance.FavouritePack && shownPacks.Contains(Main.Instance.FavouritePack));
-            Stand.favouriteButtonSymbol.color = Color.white;
+            Stand.mainSideBar.SetButtonActive(EButtonType.Favourite, pack != Main.Instance.FavouritePack && shownPacks.Contains(Main.Instance.FavouritePack));
+            Stand.mainSideBar.favouriteButtonSymbol.color = Color.white;
 
             Stand.headerText.text = pack.Author == null ? pack.PackName.EnforceLength(20) : string.Format(Stand.headerFormat, pack.PackName.EnforceLength(20), "Pack", pack.Author.EnforceLength(30));
             Stand.shirtStatusText.text = "View";

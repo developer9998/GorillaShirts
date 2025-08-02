@@ -15,7 +15,7 @@ namespace GorillaShirts.Models.StateMachine
             Stand.mainMenuRoot.SetActive(true);
             Stand.mainContentRoot.SetActive(false);
             Stand.infoContentRoot.SetActive(true);
-            SetSidebarState(SidebarState.Info);
+            Stand.mainSideBar.SetSidebarActive(false);
 
             string build_config = "Unrecognized";
 #if DEBUG
@@ -35,7 +35,7 @@ namespace GorillaShirts.Models.StateMachine
 
         public override void OnButtonPress(EButtonType button)
         {
-            if (button != EButtonType.Info) return;
+            if (button != EButtonType.Return) return;
             Main.Instance.MenuStateMachine.SwitchState(PreviousState);
         }
 
@@ -45,6 +45,7 @@ namespace GorillaShirts.Models.StateMachine
             Stand.mainMenuRoot.SetActive(false);
             Stand.mainContentRoot.SetActive(true);
             Stand.infoContentRoot.SetActive(false);
+            Stand.mainSideBar.SetSidebarActive(true);
         }
     }
 }

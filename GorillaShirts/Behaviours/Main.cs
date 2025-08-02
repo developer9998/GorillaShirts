@@ -76,8 +76,8 @@ namespace GorillaShirts.Behaviours
 
             ShirtStand.Character.OnPreferenceSet += delegate (ECharacterPreference preference)
             {
-                ShirtStand.sillyHeadObject.SetActive(preference == ECharacterPreference.Feminine);
-                ShirtStand.steadyHeadObject.SetActive(preference == ECharacterPreference.Masculine);
+                ShirtStand.mainSideBar.sillyHeadObject.SetActive(preference == ECharacterPreference.Feminine);
+                ShirtStand.mainSideBar.steadyHeadObject.SetActive(preference == ECharacterPreference.Masculine);
                 PlayAudio(preference switch
                 {
                     ECharacterPreference.Masculine => EAudioType.SteadySpeech,
@@ -282,7 +282,7 @@ namespace GorillaShirts.Behaviours
             {
                 var shirts = LocalHumanoid.Shirts.Except(shirtsToRemove).ToList();
                 LocalHumanoid.SetShirts(shirts);
-                // PlayShirtRemoveSound(LocalHumanoid.Rig, shirts: [.. shirts]);
+                PlayShirtRemoveSound(LocalHumanoid.Rig, shirts: [.. shirts]);
                 NetworkShirts(shirts);
             }
 
@@ -435,7 +435,7 @@ namespace GorillaShirts.Behaviours
 
             foreach (IGorillaShirt shirt in shirts)
             {
-                if (shirt.Descriptor.WearSound is not null)
+                if (shirt.Bundle && shirt.Descriptor && shirt.Descriptor.WearSound is not null)
                 {
                     PlayCustomAudio(playerRig, shirt.Descriptor.WearSound, 0.5f * volume);
                     continue;
@@ -453,7 +453,7 @@ namespace GorillaShirts.Behaviours
 
             foreach (IGorillaShirt shirt in shirts)
             {
-                if (shirt.Descriptor.RemoveSound is not null)
+                if (shirt.Bundle && shirt.Descriptor && shirt.Descriptor.RemoveSound is not null)
                 {
                     PlayCustomAudio(playerRig, shirt.Descriptor.RemoveSound, 0.5f * volume);
                     continue;

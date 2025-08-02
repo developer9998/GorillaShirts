@@ -12,24 +12,5 @@ namespace GorillaShirts.Models.StateMachine
         {
 
         }
-
-        public void SetSidebarState(SidebarState state)
-        {
-            Stand.infoButtonObject.SetActive(state != SidebarState.PackBrowser);
-            Stand.packBrowserButtonObject.SetActive(state == SidebarState.PackNavigation || state == SidebarState.PackBrowser);
-            Stand.rigButtonObject.SetActive(state == SidebarState.ShirtNavigation);
-            Stand.captureButtonObject.SetActive(state == SidebarState.ShirtNavigation);
-            Stand.shuffleButtonObject.SetActive(state == SidebarState.ShirtNavigation);
-            Stand.tagOffsetControlObject.SetActive(state == SidebarState.ShirtNavigation);
-            Stand.favouriteButtonObject.SetActive(state == SidebarState.ShirtNavigation);
-        }
-
-        public enum SidebarState
-        {
-            Info,
-            PackNavigation,
-            PackBrowser,
-            ShirtNavigation
-        }
     }
 }

@@ -79,7 +79,7 @@ namespace GorillaShirts.Behaviours
                 TypeCode typeCode = Type.GetTypeCode(typeof(T));
                 if (typeCode != TypeCode.Int64 && value is long newtonsoftQuirk2000)
                 {
-                    switch(typeCode)
+                    switch (typeCode)
                     {
                         case TypeCode.Int32:
                             int int32 = Convert.ToInt32(newtonsoftQuirk2000);

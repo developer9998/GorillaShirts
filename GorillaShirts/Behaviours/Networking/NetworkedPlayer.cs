@@ -92,9 +92,11 @@ namespace GorillaShirts.Behaviours.Networking
 
                         foreach (IGorillaShirt shirt in currentShirts)
                         {
-                            if (shirtPreferences.Length > 0 && shirtPreferences.Contains(shirt.ShirtId)) continue;
+                            if (shirt.Bundle && Main.Instance.Shirts.ContainsValue(shirt) && shirtPreferences.Contains(shirt.ShirtId)) continue;
                             shirtsToRemove.Add(shirt);
                         }
+
+                        if (shirtsToRemove.Count != 0) Logging.Info($"Removing: {string.Join(", ", shirtsToRemove.Select(shirt => shirt.ShirtId))}");
 
                         List<IGorillaShirt> shirtsToWear = [];
                         for (int i = 0; i < shirtPreferences.Length; i++)
@@ -103,11 +105,21 @@ namespace GorillaShirts.Behaviours.Networking
                             if (playerHumanoid.Shirts.Any(shirt => shirt.ShirtId == preference)) continue;
 
                             IGorillaShirt shirt = null;
-                            if (Main.Instance.Shirts.ContainsKey(preference)) shirt = Main.Instance.Shirts[preference];
-                            else if (playerFallbacks.Count > i && playerFallbacks.ElementAtOrDefault(i) != EShirtFallback.None && Main.Instance.GetShirtFromFallback(playerFallbacks[i]) is IGorillaShirt fallbackShirt) shirt = fallbackShirt;
+                            if (Main.Instance.Shirts.ContainsKey(preference))
+                            {
+                                shirt = Main.Instance.Shirts[preference];
+                                Logging.Info($"{shirt.Descriptor?.ShirtName ?? shirt.ShirtId}");
+                            }
+                            else if (playerFallbacks.Count > i && playerFallbacks.ElementAtOrDefault(i) != EShirtFallback.None && Main.Instance.GetShirtFromFallback(playerFallbacks[i]) is IGorillaShirt fallbackShirt)
+                            {
+                                shirt = fallbackShirt;
+                                Logging.Info($"{fallbackShirt.Descriptor?.ShirtName ?? fallbackShirt.ShirtId} (fallback)");
+                            }
 
                             if (shirt is not null) shirtsToWear.Add(shirt);
                         }
+
+                        if (shirtsToWear.Count != 0) Logging.Info($"Wearing: {string.Join(", ", shirtsToWear.Select(shirt => shirt.ShirtId))}");
 
                         if (shirtsToWear.Count > 0)
                         {

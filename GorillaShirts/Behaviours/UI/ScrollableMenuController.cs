@@ -53,13 +53,21 @@ namespace GorillaShirts.Behaviours.UI
 
         public void OnTriggerExit(Collider other)
         {
-            if (other.TryGetComponent(out GorillaTriggerColliderHandIndicator component) && Current == component)
+            if (other.TryGetComponent(out HandIndicator component) && Current == component)
             {
                 Current = null;
                 UpdateContainer();
             }
         }
 
+        public void OnDisable()
+        {
+            if (Current is not null)
+            {
+                Current = null;
+                UpdateContainer();
+            }
+        }
 
         public void UpdateContainer()
         {

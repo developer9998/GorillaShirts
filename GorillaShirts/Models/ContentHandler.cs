@@ -69,7 +69,7 @@ namespace GorillaShirts.Models
                     pack.Shirts = [];
                     packs.Add(packName, pack);
 
-                    foreach(ReleaseInfo info in Main.Instance.Releases)
+                    foreach (ReleaseInfo info in Main.Instance.Releases)
                     {
                         List<string> names = [info.Title];
                         if (info.AlsoKnownAs is not null && info.AlsoKnownAs.Length != 0) names.AddRange(info.AlsoKnownAs);
@@ -220,7 +220,7 @@ namespace GorillaShirts.Models
                     return null;
                 });
             }
-            
+
         }
 
         public async Task UninstallRelease(ReleaseInfo info, Action<float> callback)

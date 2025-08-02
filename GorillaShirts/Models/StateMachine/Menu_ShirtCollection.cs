@@ -22,19 +22,16 @@ namespace GorillaShirts.Models.StateMachine
         public override void Enter()
         {
             base.Enter();
+
             Stand.mainMenuRoot.SetActive(true);
+
             Stand.navigationRoot.SetActive(true);
             Stand.navigationText.text = pack.PackName;
-            SetSidebarState(SidebarState.ShirtNavigation);
+
+            Stand.mainSideBar.SetSidebarState(Sidebar.SidebarState.ShirtView);
+            UpdateSidebar();
 
             ViewShirt();
-            ConfigureSidebar();
-        }
-
-        public override void Exit()
-        {
-            base.Exit();
-            Stand.mainMenuRoot.SetActive(false);
         }
 
         public void ViewShirt()
@@ -75,19 +72,17 @@ namespace GorillaShirts.Models.StateMachine
 
             Stand.Character.SetShirts(shirt.Concat(HumanoidContainer.LocalHumanoid.Shirts));
 
-            ConfigureSidebar();
+            UpdateSidebar();
         }
 
-        public void ConfigureSidebar()
+        public void UpdateSidebar()
         {
-            Stand.sillyHeadObject.SetActive(Stand.Character.Preference == ECharacterPreference.Feminine);
-            Stand.steadyHeadObject.SetActive(Stand.Character.Preference == ECharacterPreference.Masculine);
-            Stand.tagOffsetText.text = HumanoidContainer.LocalHumanoid.NameTagOffset.ToString();
+            Stand.mainSideBar.UpdateSidebar();
 
             if (pack.Shirts.Count != 0)
             {
                 IGorillaShirt shirt = pack.Shirts[pack.Selection];
-                Stand.favouriteButtonSymbol.color = Main.Instance.IsFavourite(shirt) ? Color.yellow : Color.white;
+                Stand.mainSideBar.favouriteButtonSymbol.color = Main.Instance.IsFavourite(shirt) ? Color.yellow : Color.white;
             }
         }
 
@@ -114,7 +109,7 @@ namespace GorillaShirts.Models.StateMachine
                         ECharacterPreference.Feminine => ECharacterPreference.Masculine,
                         _ => Stand.Character.Preference
                     });
-                    ConfigureSidebar();
+                    UpdateSidebar();
                     return;
                 case EButtonType.Capture:
                     if (isWritingPhoto) return;
@@ -150,11 +145,11 @@ namespace GorillaShirts.Models.StateMachine
                     return;
                 case EButtonType.TagIncrease:
                     Main.Instance.AdjustTagOffset(Mathf.Min(HumanoidContainer.LocalHumanoid.NameTagOffset + 1, 8));
-                    ConfigureSidebar();
+                    UpdateSidebar();
                     return;
                 case EButtonType.TagDecrease:
                     Main.Instance.AdjustTagOffset(Mathf.Max(HumanoidContainer.LocalHumanoid.NameTagOffset - 1, 0));
-                    ConfigureSidebar();
+                    UpdateSidebar();
                     return;
                 case EButtonType.Favourite:
                     Main.Instance.FavouriteShirt(pack.Shirts[pack.Selection]);
@@ -179,6 +174,13 @@ namespace GorillaShirts.Models.StateMachine
             }
 
             ViewShirt();
+        }
+
+        public override void Exit()
+        {
+            base.Exit();
+            Stand.mainMenuRoot.SetActive(false);
+            Stand.navigationRoot.SetActive(false);
         }
     }
 }
