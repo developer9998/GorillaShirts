@@ -136,8 +136,13 @@ namespace GorillaShirts.Behaviours
                 Releases = request.downloadHandler.text.FromJson<ReleaseInfo[]>();
                 Logging.Info($"Releases include: {string.Join(", ", Releases.OrderBy(info => info.Rank).Select(info => info.Title))}");
 
+                Version pluginVersion = Plugin.Info.Metadata.Version;
+
                 foreach (ReleaseInfo info in Releases)
                 {
+                    Version minimumVersion = info.MinimumPluginVersion is not null ? info.MinimumPluginVersion : pluginVersion;
+                    info.IsOutdated = minimumVersion > pluginVersion;
+
                     string previewLink = info.PackPreviewLink;
                     if (string.IsNullOrEmpty(previewLink)) continue;
                     Texture2D texture = await AssetLoader.LoadTexture(previewLink);

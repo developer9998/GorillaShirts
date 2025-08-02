@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,7 +28,8 @@ namespace GorillaShirts.Behaviours
 
             Instance = this;
 
-            var converter = new Vector3Converter();
+            var vector3Converter = new Vector3Converter();
+            var versionConverter = new VersionConverter();
 
             serializeSettings = new JsonSerializerSettings
             {
@@ -35,13 +37,15 @@ namespace GorillaShirts.Behaviours
                 CheckAdditionalContent = true,
                 Formatting = Formatting.Indented
             };
-            serializeSettings.Converters.Add(converter);
+            serializeSettings.Converters.Add(vector3Converter);
+            serializeSettings.Converters.Add(versionConverter);
 
             deserializeSettings = new JsonSerializerSettings
             {
                 TypeNameHandling = TypeNameHandling.All
             };
-            deserializeSettings.Converters.Add(converter);
+            deserializeSettings.Converters.Add(vector3Converter);
+            deserializeSettings.Converters.Add(versionConverter);
 
             dataLocation = Path.Combine(Application.persistentDataPath, $"{Constants.Name}.json");
 

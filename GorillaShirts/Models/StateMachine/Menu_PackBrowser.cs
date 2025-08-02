@@ -55,10 +55,11 @@ namespace GorillaShirts.Models.StateMachine
             info.UpdateVersion(EReleaseVersion.Viewed);
 
             flags = (info.Title == "Default" && info.Rank == 0) ? ReleaseFlags.Reinstall : ((info.Version > info.GetVersion(EReleaseVersion.Installed) && info.Pack is not null) ? ReleaseFlags.Update : ReleaseFlags.None);
+            if (info.IsOutdated) flags |= ReleaseFlags.Outdated;
 
             Stand.headerText.text = string.Format(Stand.headerFormat, info.Title.EnforceLength(20), "Pack", info.Author.EnforceLength(30));
 
-            Stand.shirtStatusText.text = GetState(info) switch
+            Stand.shirtStatusText.text = flags.HasFlag(ReleaseFlags.Outdated) ? "<color=red>GorillaShirts update required</color>" : GetState(info) switch
             {
                 ReleaseState.None => flags.HasFlag(ReleaseFlags.Update) ? "Update" : "Install",
                 ReleaseState.Processing => "Processing",
@@ -168,6 +169,12 @@ namespace GorillaShirts.Models.StateMachine
 
             if (button == EButtonType.NavigateSelect)
             {
+                if (flags.HasFlag(ReleaseFlags.Outdated))
+                {
+                    Main.Instance.PlayOhNoAudio();
+                    return;
+                }
+
                 ReleaseInfo info = CurrentInfo;
 
                 ReleaseState initialState = GetState(info);
@@ -300,7 +307,7 @@ namespace GorillaShirts.Models.StateMachine
             None = 1 << 0,
             Reinstall = 1 << 1,
             Update = 1 << 2,
-            OutdatedVersion = 1 << 3
+            Outdated = 1 << 3
         }
     }
 }

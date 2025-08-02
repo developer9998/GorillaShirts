@@ -20,6 +20,8 @@ namespace GorillaShirts.Models
 
         public int Version;
 
+        public Version MinimumPluginVersion = null;
+
         public string PackArchiveLink;
 
         public string PackPreviewLink = null;
@@ -29,6 +31,9 @@ namespace GorillaShirts.Models
 
         [NonSerialized]
         public PackDescriptor Pack;
+
+        [NonSerialized]
+        public bool IsOutdated = false;
 
         public string GetVersionKey(EReleaseVersion versionType) => $"{Title}_{versionType.GetName()}Version";
 
