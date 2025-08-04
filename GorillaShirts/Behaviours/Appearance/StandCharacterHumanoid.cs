@@ -1,12 +1,11 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using GorillaShirts.Models.Cosmetic;
-
 
 #if PLUGIN
 using System;
 using System.Linq;
 using GorillaShirts.Models.UI;
+using GorillaShirts.Models.Cosmetic;
 #endif
 
 namespace GorillaShirts.Behaviours.Appearance
@@ -27,11 +26,19 @@ namespace GorillaShirts.Behaviours.Appearance
         public MeshRenderer femAccessory;
         public string femIdentity = "SILLY";
 
+        public GameObject[] fallbackShirtObjects = new GameObject[6];
+
+        public Transform[] fallbackNameAnchors = new Transform[2];
+
 #if PLUGIN
 
         public ECharacterPreference Preference;
 
         public event Action<ECharacterPreference> OnPreferenceSet;
+
+        private Transform fallbackNameAnchor;
+
+        private bool usingSignatureFallback;
 
         public EShirtFallback PreferredFallback => Preference switch
         {
@@ -80,15 +87,57 @@ namespace GorillaShirts.Behaviours.Appearance
                 return;
             }
 
-            ClearShirts();
+            if (!usingSignatureFallback)
+            {
+                string preferenceName = Preference.GetName();
+
+                Array.ForEach(fallbackShirtObjects, gameObject =>
+                {
+                    bool active = gameObject.name.StartsWith(preferenceName);
+                    if (gameObject.activeSelf != active) gameObject.SetActive(active);
+                });
+
+                Transform transform = null;
+                foreach (Transform anchor in fallbackNameAnchors)
+                {
+                    if (anchor.transform.name.StartsWith(preferenceName))
+                    {
+                        transform = anchor;
+                        break;
+                    }
+                }
+                if (fallbackNameAnchor != transform)
+                {
+                    fallbackNameAnchor = transform;
+                    MoveNameTag();
+                }
+
+                ClearShirts();
+                usingSignatureFallback = true;
+            }
+        }
+
+        public override void OnShirtWorn()
+        {
+            if (usingSignatureFallback)
+            {
+                Array.ForEach(Array.FindAll(fallbackShirtObjects, gameObject => gameObject.activeSelf), gameObject => gameObject.SetActive(false));
+               
+                if (fallbackNameAnchor is not null && characterNameTagAnchor.transform.parent == fallbackNameAnchor)
+                {
+                    fallbackNameAnchor = null;
+                    MoveNameTag();
+                }
+
+                usingSignatureFallback = false;
+            }
         }
 
         public override void MoveNameTag()
         {
-            characterNameTagAnchor.transform.parent = NameTagAnchor is not null ? NameTagAnchor.transform : Body;
+            characterNameTagAnchor.transform.parent = NameTagAnchor is not null ? NameTagAnchor.transform : (fallbackNameAnchor is not null ? fallbackNameAnchor.transform : Body);
             characterNameTagAnchor.transform.localPosition = Vector3.zero;
             characterNameTagAnchor.transform.localRotation = Quaternion.identity;
-
             MoveNameTagTransform(characterNameText.transform, NameTagOffset);
         }
 #endif

@@ -73,6 +73,7 @@ namespace GorillaShirts.Behaviours
             ShirtStand.infoContentRoot.SetActive(false);
 
             ShirtStand.Character.SetAppearence(Plugin.StandCharacter.Value);
+            ShirtStand.Character.WearSignatureShirt();
 
             ShirtStand.Character.OnPreferenceSet += delegate (ECharacterPreference preference)
             {
@@ -111,8 +112,6 @@ namespace GorillaShirts.Behaviours
                     }
                 }
             };
-
-            ShirtStand.Character.gameObject.SetActive(false);
 
             foreach (EAudioType audioType in Enum.GetValues(typeof(EAudioType)).Cast<EAudioType>())
             {
@@ -181,8 +180,6 @@ namespace GorillaShirts.Behaviours
                     await completionSource.Task;
                 }
             }
-
-            ShirtStand.Character.gameObject.SetActive(true);
 
             MenuStateMachine.SwitchState(menuState_Load);
             Content = new ContentHandler(Path.GetDirectoryName(Plugin.Info.Location));

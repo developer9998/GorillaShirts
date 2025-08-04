@@ -24,6 +24,8 @@ namespace GorillaShirts.Behaviours.UI
 
         public StandCharacterHumanoid Character;
 
+        public GameObject interfaceRoot;
+
         [Header("Welcome Menu")]
 
         public GameObject welcomeMenuRoot;

@@ -316,8 +316,5 @@
 		<Reference Include="Utilla">
 			<HintPath>$(PluginsPath)\Utilla\Utilla.dll</HintPath>
 		</Reference>
-		<Reference Include="websocket-sharp">
-			<HintPath>$(GameAssemblyPath)\websocket-sharp.dll</HintPath>
-		</Reference>
 	</ItemGroup>
 </Project>

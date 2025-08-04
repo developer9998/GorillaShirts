@@ -62,6 +62,9 @@
 		<Compile Include="..\GorillaShirts\Behaviours\UI\Sidebar.cs">
 			<Link>Behaviours\UI\Sidebar.cs</Link>
 		</Compile>
+		<Compile Include="..\GorillaShirts\Behaviours\UI\StandProximityTrigger.cs">
+			<Link>Behaviours\UI\StandProximityTrigger.cs</Link>
+		</Compile>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -141,7 +144,7 @@
 			<HintPath>$(GameAssemblyPath)\Unity.Mathematics.dll</HintPath>
 		</Reference>
 		<Reference Include="Unity.TextMeshPro">
-		  <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Gorilla Tag\Gorilla Tag_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+		  <HintPath>$(GameAssemblyPath)\Unity.TextMeshPro.dll</HintPath>
 		</Reference>
 		<Reference Include="Unity.Timeline">
 			<HintPath>$(GameAssemblyPath)\Unity.Timeline.dll</HintPath>

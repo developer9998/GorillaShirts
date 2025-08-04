@@ -46,8 +46,8 @@ namespace GorillaShirts.Models
             ContentProcessCallback?.Invoke(contentProcessed, contentCount, errorCount);
 
             List<IGorillaShirt> shirts = [];
-            shirts.AddRange(await LoadShirts<GorillaShirt>(files));
             shirts.AddRange(await LoadShirts<LegacyGorillaShirt>(legacyFiles));
+            shirts.AddRange(await LoadShirts<GorillaShirt>(files));
 
             if (shirts.Count == 0)
             {
@@ -90,10 +90,16 @@ namespace GorillaShirts.Models
 
             foreach (PackDescriptor pack in packs.Values)
             {
-                pack.Author = string.Join(", ", pack.Shirts.Select(shirt => shirt.Descriptor.Author).Distinct().OrderBy(author => author, StringComparer.CurrentCultureIgnoreCase));
-
-                if (pack.Release is not null) pack.Description = pack.Release.Description;
-                else pack.Description = $"{pack.PackName} is a pack containing {pack.Shirts.Count} shirts by {pack.Author}";
+                if (pack.Release is not null)
+                {
+                    pack.Author = pack.Release.Author;
+                    pack.Description = pack.Release.Description;
+                }
+                else
+                {
+                    pack.Description = $"{pack.PackName} is a pack containing {pack.Shirts.Count} shirts by {pack.Author}";
+                    pack.Author = string.Join(", ", pack.Shirts.Select(shirt => shirt.Descriptor.Author).Distinct().OrderBy(author => author, StringComparer.CurrentCultureIgnoreCase));
+                }
 
                 int legacyShirtCount = pack.Shirts.Count(shirt => shirt is LegacyGorillaShirt);
                 if (legacyShirtCount == pack.Shirts.Count) pack.AdditionalNote = "All shirts in pack were made in an earlier editor version";
@@ -127,9 +133,9 @@ namespace GorillaShirts.Models
             {
                 FileInfo file = files[i];
 
-                if (Main.Instance.Shirts is var shirtDictionary && shirtDictionary.Count != 0 && Array.Find(shirtDictionary.Values.ToArray(), shirt => shirt.FileInfo.FullName == file.FullName) is IGorillaShirt shirt && shirt is T existingAsset)
+                if (Array.Find(Main.Instance.Shirts.Values.ToArray(), shirt => shirt.FileInfo.FullName == file.FullName) is IGorillaShirt shirt && shirt is T existingAsset && existingAsset.Bundle)
                 {
-                    await UnloadShirt(existingAsset, false);
+                    await UnloadShirt(existingAsset, existingAsset is LegacyGorillaShirt && typeof(T) == typeof(GorillaShirt));
                 }
 
                 T asset = Activator.CreateInstance<T>();
@@ -146,7 +152,7 @@ namespace GorillaShirts.Models
                 else
                 {
                     shirts.Add(asset);
-                    Main.Instance.ShirtStand.Character.SetShirt(asset);
+                    //Main.Instance.ShirtStand.Character.SetShirt(asset);
                 }
 
                 contentProcessed++;
@@ -186,7 +192,7 @@ namespace GorillaShirts.Models
             if (shirt is null) throw new ArgumentNullException(nameof(shirt));
             if (shirt.Bundle is not AssetBundle bundle || !shirt.Bundle) return;
 
-            string directory = Path.GetDirectoryName(shirt.FileInfo.FullName);
+            string directory = shirt.FileInfo.DirectoryName;
 
             TaskCompletionSource<object> completionSource = new();
             AssetBundleUnloadOperation unloadOperation = bundle.UnloadAsync(true);
