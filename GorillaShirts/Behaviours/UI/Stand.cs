@@ -55,6 +55,8 @@ namespace GorillaShirts.Behaviours.UI
         [TextArea(2, 4)]
         public string versionDiffFormat;
 
+        public GameObject softVersionContainer, hardVersionContainer;
+
         [Header("Main Menu")]
 
         public GameObject mainMenuRoot;

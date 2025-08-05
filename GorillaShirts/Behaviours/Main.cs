@@ -171,12 +171,28 @@ namespace GorillaShirts.Behaviours
 
             if (request.result == UnityWebRequest.Result.Success)
             {
+                Version installedVersion = Plugin.Info.Metadata.Version;
                 string latestVersionRaw = request.downloadHandler.text.Trim();
-                if (Version.TryParse(latestVersionRaw, out Version latestVersion) && latestVersion > Plugin.Info.Metadata.Version)
+                if (Version.TryParse(latestVersionRaw, out Version latestVersion) && latestVersion > installedVersion)
                 {
                     PlayAudio(EAudioType.Error, 1f);
+
+                    bool nonPatchUpdate = latestVersion.Major > installedVersion.Major || latestVersion.Minor > installedVersion.Minor;
+                    if (nonPatchUpdate)
+                    {
+                        ShirtStand.softVersionContainer.SetActive(false);
+                        ShirtStand.hardVersionContainer.SetActive(true);
+                    }
+                    else
+                    {
+                        ShirtStand.softVersionContainer.SetActive(true);
+                        ShirtStand.hardVersionContainer.SetActive(false);
+                    }
+
                     TaskCompletionSource<object> completionSource = new();
                     MenuStateMachine.SwitchState(new Menu_WrongVersion(ShirtStand, Constants.Version, latestVersionRaw, completionSource));
+
+                    if (nonPatchUpdate) return;
                     await completionSource.Task;
                 }
             }
