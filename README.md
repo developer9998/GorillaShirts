@@ -111,16 +111,11 @@ Supporters of Dev's Patreon and Ko-fi services are listed within the info sectio
 
 ### Lead Contributors
 
-- **dev9998**
-  - Creator
-  - Programmer
-  - Design - visual and auditory
+- **dev9998**: Creator, programmr, and designer 
 
-- **gizmogoat**
-  - Tester
+- **gizmogoat**: Tester
 
-- **crescentmondo**
-  - Artist - 2D sprites and 3D models
+- **crescentmondo**: 2D and 3D artist
     
 ### Special Thanks
 
