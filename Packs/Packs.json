@@ -27,6 +27,14 @@
         "PackPreviewLink": "https://raw.githubusercontent.com/developer9998/GorillaShirts/main/Packs/PreviewAssets/Preview_ExpressionPack.png"
     },
     {
+        "Title": "Gorilla Games",
+        "Author": "supercatcraze, stridefr, and kpmaxo",
+        "Description": "dev9998 and SuperCatCraze have partnered together to release the Gorilla Games pack based on Virtual Stump map. Let the new game begin.",
+        "Version": 1,
+        "PackArchiveLink": "https://github.com/developer9998/GorillaShirts/raw/main/Packs/GorillaGames.zip",
+        "PackPreviewLink": "https://raw.githubusercontent.com/developer9998/GorillaShirts/main/Packs/PreviewAssets/Preview_GorillaGamesV1.png"
+    },
+    {
         "Title": "Pride Hoodies",
         "Author": "cresmondo",
         "Description": "a pack that comes with 14 pride-flag themed hoodies!",

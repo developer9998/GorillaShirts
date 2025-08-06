@@ -7,11 +7,13 @@ namespace GorillaShirts.Extensions
 {
     public static class UberShaderEx
     {
-        private static readonly string[] supportedShaderNames = ["Universal Render Pipeline/Unlit", "Universal Render Pipeline/Lit", "Unlit/Texture", "Custom/UnlitAO"];
+        private static readonly string[] supportedShaderNames = ["Universal Render Pipeline/Unlit", "Universal Render Pipeline/Lit", "Unlit/Texture", "Custom/UnlitAO", "GorillaShirts/ColourTex", "GorillaShirts/UnlitOutline", "GorillaShirts/UnlitRGB"];
+
+        private static readonly string[] supportedKeywords = ["_USE_TEXTURE", "_WATER_EFFECT", "_HEIGHT_BASED_WATER_EFFECT"];
+
+        private static readonly string[] unsupportedKeywords = ["_USE_TEX_ARRAY_ATLAS"];
 
         private static string[] keywords = null;
-        private static readonly string[] supportedKeywords = ["_USE_TEXTURE", "_WATER_EFFECT", "_HEIGHT_BASED_WATER_EFFECT"];
-        private static readonly string[] unsupportedKeywords = ["_USE_TEX_ARRAY_ATLAS"];
 
         private static void GetKeywords()
         {
@@ -68,7 +70,7 @@ namespace GorillaShirts.Extensions
                 if (hasTexture && hasColour) break;
             }
 
-            uberMaterial.shaderKeywords = [.. keywords.Concat(baseMaterial.shaderKeywords).Distinct()];
+            uberMaterial.shaderKeywords = keywords;
             uberMaterial.enabledKeywords = [.. keywords.Select(keyword => new LocalKeyword(uberMaterial.shader, keyword))];
 
             return uberMaterial;
@@ -84,6 +86,7 @@ namespace GorillaShirts.Extensions
             {
                 shader = uberShader
             };
+
             return uberMaterial;
         }
     }

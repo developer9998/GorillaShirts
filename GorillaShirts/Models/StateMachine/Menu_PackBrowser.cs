@@ -57,7 +57,7 @@ namespace GorillaShirts.Models.StateMachine
             flags = (info.Version > info.GetVersion(EReleaseVersion.Installed) && info.Pack is not null) ? ReleaseFlags.Update : ((info.Title == "Default" && info.Rank == 0) ? ReleaseFlags.Reinstall : ReleaseFlags.None);
             if (info.IsOutdated) flags |= ReleaseFlags.Outdated;
 
-            Stand.headerText.text = string.Format(Stand.headerFormat, info.Title.EnforceLength(20), "Pack", info.Author.EnforceLength(30));
+            Stand.headerText.text = string.Format(Stand.headerFormat, info.Title.EnforceLength(20), "Pack", info.Author.EnforceLength(48));
 
             Stand.shirtStatusText.text = flags.HasFlag(ReleaseFlags.Outdated) ? "<color=red>GorillaShirts update required</color>" : GetState(info) switch
             {
@@ -75,7 +75,7 @@ namespace GorillaShirts.Models.StateMachine
 
             Stand.descriptionText.text = str.ToString();
 
-            Sprite releasePreview = info.PackPreviewSprite;
+            Sprite releasePreview = info.PreviewSprite;
             bool hasPreview = releasePreview is not null;
 
             if (Stand.previewImage.gameObject.activeSelf != hasPreview)

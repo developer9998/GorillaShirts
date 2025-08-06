@@ -27,7 +27,7 @@ namespace GorillaShirts.Models
         public string PackPreviewLink = null;
 
         [NonSerialized]
-        public Sprite PackPreviewSprite;
+        public Sprite PreviewSprite;
 
         [NonSerialized]
         public PackDescriptor Pack;

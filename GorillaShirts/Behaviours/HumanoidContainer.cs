@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace GorillaShirts.Behaviours
 {
-    [RequireComponent(typeof(RigContainer))]
+    [RequireComponent(typeof(RigContainer), typeof(VRRig))]
     [DisallowMultipleComponent]
     internal class HumanoidContainer : ShirtHumanoid
     {
@@ -92,7 +92,8 @@ namespace GorillaShirts.Behaviours
 
         private void RefreshBodyRenderer()
         {
-            if (Rig != null && Rig.bodyRenderer is GorillaBodyRenderer bodyRenderer) bodyRenderer.Refresh();
+            if (Rig is null || Rig.bodyRenderer is not GorillaBodyRenderer bodyRenderer) return;
+            bodyRenderer.Refresh();
         }
     }
 }

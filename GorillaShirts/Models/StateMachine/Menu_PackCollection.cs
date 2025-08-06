@@ -75,7 +75,7 @@ namespace GorillaShirts.Models.StateMachine
             Stand.mainSideBar.SetButtonActive(EButtonType.Favourite, pack != Main.Instance.FavouritePack && shownPacks.Contains(Main.Instance.FavouritePack));
             Stand.mainSideBar.favouriteButtonSymbol.color = Color.white;
 
-            Stand.headerText.text = pack.Author == null ? pack.PackName.EnforceLength(20) : string.Format(Stand.headerFormat, pack.PackName.EnforceLength(20), "Pack", pack.Author.EnforceLength(30));
+            Stand.headerText.text = pack.Author == null ? pack.PackName.EnforceLength(20) : string.Format(Stand.headerFormat, pack.PackName.EnforceLength(20), "Pack", pack.Author.EnforceLength(48));
             Stand.shirtStatusText.text = "View";
 
             StringBuilder str = new();

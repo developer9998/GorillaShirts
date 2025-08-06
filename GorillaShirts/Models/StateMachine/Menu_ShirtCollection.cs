@@ -45,14 +45,11 @@ namespace GorillaShirts.Models.StateMachine
             pack.Selection = pack.Selection.Wrap(0, pack.Shirts.Count);
             IGorillaShirt shirt = pack.Shirts[pack.Selection];
 
-            Stand.headerText.text = string.Format(Stand.headerFormat, shirt.Descriptor.ShirtName.EnforceLength(50), "Shirt", shirt.Descriptor.Author.EnforceLength(30));
+            Stand.headerText.text = string.Format(Stand.headerFormat, shirt.Descriptor.ShirtName.EnforceLength(50), "Shirt", shirt.Descriptor.Author.EnforceLength(32));
 
             List<IGorillaShirt> wornShirts = HumanoidContainer.LocalHumanoid.Shirts;
             if (wornShirts.Contains(shirt)) Stand.shirtStatusText.text = "Remove";
-            else Stand.shirtStatusText.text = wornShirts
-                    .All(wornShirt => Enum.GetValues(typeof(EShirtObject)).Cast<EShirtObject>()
-                    .Where(shirtObject => wornShirt.Objects.HasFlag(shirtObject))
-                    .All(shirtObject => !shirt.Objects.HasFlag(shirtObject))) ? "Wear" : "Swap";
+            else Stand.shirtStatusText.text = wornShirts.All(wornShirt => Enum.GetValues(typeof(EShirtObject)).Cast<EShirtObject>().Where(shirtObject => wornShirt.Objects.HasFlag(shirtObject)).All(shirtObject => !shirt.Objects.HasFlag(shirtObject))) ? "Wear" : "Swap";
 
             StringBuilder str = new();
             str.AppendLine(shirt.Descriptor.Description.EnforceLength(256));

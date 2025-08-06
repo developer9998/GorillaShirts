@@ -26,6 +26,7 @@
         Button7,
         Button8,
         Button9,
-        Button10
+        Button10,
+        CustomColour
     }
 }

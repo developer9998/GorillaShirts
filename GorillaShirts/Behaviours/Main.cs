@@ -144,10 +144,12 @@ namespace GorillaShirts.Behaviours
 
                     string previewLink = info.PackPreviewLink;
                     if (string.IsNullOrEmpty(previewLink)) continue;
+
                     Texture2D texture = await AssetLoader.LoadTexture(previewLink);
                     if (texture is null || !texture) continue;
+
                     Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
-                    info.PackPreviewSprite = sprite;
+                    info.PreviewSprite = sprite;
                 }
             }
 
@@ -178,17 +180,9 @@ namespace GorillaShirts.Behaviours
                     PlayAudio(EAudioType.Error, 1f);
 
                     bool nonPatchUpdate = latestVersion.Major > installedVersion.Major || latestVersion.Minor > installedVersion.Minor;
-                    if (nonPatchUpdate)
-                    {
-                        ShirtStand.softVersionContainer.SetActive(false);
-                        ShirtStand.hardVersionContainer.SetActive(true);
-                    }
-                    else
-                    {
-                        ShirtStand.softVersionContainer.SetActive(true);
-                        ShirtStand.hardVersionContainer.SetActive(false);
-                    }
-
+                    ShirtStand.hardVersionContainer.SetActive(nonPatchUpdate);
+                    ShirtStand.softVersionContainer.SetActive(!nonPatchUpdate);
+                    
                     TaskCompletionSource<object> completionSource = new();
                     MenuStateMachine.SwitchState(new Menu_WrongVersion(ShirtStand, Constants.Version, latestVersionRaw, completionSource));
 
