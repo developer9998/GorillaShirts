@@ -68,6 +68,7 @@ namespace GorillaShirts.Behaviours
             ShirtStand.versionMenuRoot.SetActive(false);
             ShirtStand.mainMenuRoot.SetActive(false);
             ShirtStand.packBrowserMenuRoot.SetActive(false);
+            ShirtStand.packBrowserNewSymbol.SetActive(false);
 
             ShirtStand.mainContentRoot.SetActive(true);
             ShirtStand.infoContentRoot.SetActive(false);
