@@ -64,7 +64,7 @@ A fallback refers to a shirt found within the "Default" shirt pack to use on a p
 
 This fallback might not be assigned, but when it is, it's done by the shirt, and cannot be configured at runtime (in Gorilla Tag).
 
-**GorillaShirts** is a mod for Gorilla Tag. The mod is able to import community-made shirts into the game, which then can be worn and seen by others with the mod. You can create your own shirts using the [GorillaShirtsUnityProject](https://github.com/developer9998/GorillaShirtsUnityProject).
+*GorillaShirts* is a mod for Gorilla Tag. The mod is able to import community-made shirts into the game, which then can be worn and seen by others with the mod. You can create your own shirts using the [GorillaShirtsUnityProject](https://github.com/developer9998/GorillaShirtsUnityProject).
 
 ## Instructions
 
@@ -105,7 +105,7 @@ If you did download the accompanied ``GorillaShirts.pdb`` file, simply place it 
 
 ## Credits
 
-``GorillaShirts`` is a product contributed to by many during its continued development since 2022.
+*GorillaShirts* is a product contributed to by many during its continued development since 2022.
 
 Supporters of Dev's Patreon and Ko-fi services are listed within the info section of the mod, in addition to everyone listed below.
 
