@@ -5,7 +5,7 @@
 <div align="center">
   <a href="https://discord.gg/dev9998"><img src="https://img.shields.io/discord/989239017511989258?label=Discord&style=flat-square&color=blue"></a>
 	<a href="https://github.com/developer9998/GorillaShirts/releases/latest"><img src="https://img.shields.io/github/v/release/developer9998/GorillaShirts?label=Version&style=flat-square&color=red"></a>
-	<a href="https://github.com/developer9998/GorillaShirts/releases/latest"><img src="https://img.shields.io/github/downloads/developer9998/GorillaShirts/total?label=Downloads&style=flat-square&color=green"></a>
+	<a href="https://github.com/developer9998/GorillaShirts/releases"><img src="https://img.shields.io/github/downloads/developer9998/GorillaShirts/total?label=Downloads&style=flat-square&color=green"></a>
   <a href="https://github.com/developer9998/GorillaShirts/blob/main/LICENSE/"><img src="https://img.shields.io/github/license/developer9998/GorillaShirts?label=License&style=flat-square&color=yellow"</img></a>
 </div><br>
 
