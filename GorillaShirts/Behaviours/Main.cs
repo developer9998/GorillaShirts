@@ -229,19 +229,22 @@ namespace GorillaShirts.Behaviours
 
                 for (int i = 0; i < packDescriptor.Shirts.Count; i++)
                 {
-                    if (Shirts.ContainsKey(packDescriptor.Shirts[i].ShirtId))
+                    IGorillaShirt shirt = packDescriptor.Shirts[i];
+
+                    if (Shirts.ContainsKey(shirt.ShirtId))
                     {
                         packDescriptor.Shirts.RemoveAt(i);
                         i--;
                         continue;
                     }
-                    Shirts.Add(packDescriptor.Shirts[i].ShirtId, packDescriptor.Shirts[i]);
+                    Shirts.Add(shirt.ShirtId, shirt);
 
-                    LocalHumanoid.SetShirtColour(packDescriptor.Shirts[i], packDescriptor.Shirts[i].Colour);
+                    LocalHumanoid.SetShirtColour(shirt, shirt.Colour);
+                    ShirtStand.Character.SetShirtColour(shirt, shirt.Colour);
 
-                    if (wornGorillaShirts != null && wornGorillaShirts.Contains(packDescriptor.Shirts[i].ShirtId))
+                    if (wornGorillaShirts != null && wornGorillaShirts.Contains(shirt.ShirtId))
                     {
-                        shirtsToWear.Add((packDescriptor.Shirts[i], packDescriptor));
+                        shirtsToWear.Add((shirt, packDescriptor));
                         packDescriptor.Selection = i;
                     }
                 }

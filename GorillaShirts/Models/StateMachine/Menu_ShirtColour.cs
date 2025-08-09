@@ -49,6 +49,12 @@ namespace GorillaShirts.Models.StateMachine
 
             //Stand.colourPicker_ApplyButton.SetActive(!usePlayerColour);
             Stand.colourPicker_SyncButton.SetActive(!usePlayerColour);
+
+            Stand.Character.SetShirtColour(Shirt, new ShirtColour()
+            {
+                CustomColour = colour,
+                UsePlayerColour = usePlayerColour
+            });
         }
 
         public override void Update()
@@ -74,23 +80,21 @@ namespace GorillaShirts.Models.StateMachine
         {
             if (button == EButtonType.Return)
             {
+                Stand.Character.SetShirtColour(Shirt, Shirt.Colour);
                 Main.Instance.MenuStateMachine.SwitchState(PreviousState);
                 return;
             }
 
             if (button == EButtonType.Button1)
             {
-                // apply custom colour
-
                 Main.Instance.ColourShirt(Shirt, colour, usePlayerColour);
+                Stand.Character.SetShirtColour(Shirt, Shirt.Colour);
                 Main.Instance.MenuStateMachine.SwitchState(PreviousState);
                 return;
             }
 
             if (button == EButtonType.Button2)
             {
-                // sync to local colour
-
                 colour = GorillaTagger.Instance.offlineVRRig.playerColor * 1f;
                 usePlayerColour = true;
 
