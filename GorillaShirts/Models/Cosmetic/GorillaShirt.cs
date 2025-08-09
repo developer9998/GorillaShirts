@@ -23,6 +23,7 @@ namespace GorillaShirts.Models.Cosmetic
         public AssetBundle Bundle { get; private set; }
         public ShirtDescriptor Descriptor { get; private set; }
         public GameObject Template { get; private set; }
+        public ShirtColour Colour { get; private set; }
         public EShirtObject Objects { get; private set; }
         public EShirtAnchor Anchors { get; private set; }
         public EShirtFeature Features { get; private set; }
@@ -58,7 +59,10 @@ namespace GorillaShirts.Models.Cosmetic
 
                     ShirtId = Encoding.UTF8.GetString(Encoding.Default.GetBytes($"{Descriptor.PackName}/{Descriptor.ShirtName}"));
 
+                    Colour = ShirtColour.FromShirtId(ShirtId);
+
                     Template.name = $"{Descriptor.ShirtName} Asset";
+                    GameObjectExtensions.sanitizeFPLODs = false;
                     Template.SanitizeObjectRecursive();
 
                     var anchorTypes = Enum.GetValues(typeof(EShirtAnchor)).Cast<EShirtAnchor>().ToArray();
@@ -81,8 +85,9 @@ namespace GorillaShirts.Models.Cosmetic
                             Logging.Info($"Object: {objectTypes[i]}");
                             Objects |= objectTypes[i];
 
-                            ShirtColourProfile shirtProfile = child.gameObject.GetOrAddComponent<ShirtColourProfile>();
-                            shirtProfile.enabled = false;
+                            ShirtColourProfile colourProfile = child.gameObject.GetOrAddComponent<ShirtColourProfile>();
+                            colourProfile.enabled = false;
+                            colourProfile.SetCustomColour((Color?)Colour);
 
                             List<ShirtWobbleRoot> wobbleList = [];
 
@@ -133,7 +138,7 @@ namespace GorillaShirts.Models.Cosmetic
                                         if (!Features.HasFlag(EShirtFeature.CustomColours)) Features |= EShirtFeature.CustomColours;
                                         Logging.Info("Assigned ShirtProfile to ShirtCustomColour");
                                         Logging.Info(decendant.GetPath().TrimStart('/'));
-                                        customColour.ShirtProfile = shirtProfile;
+                                        customColour.ShirtProfile = colourProfile;
                                     }
                                     else if (decendant.TryGetComponent(out ShirtCustomMaterial customMaterial))
                                     {
@@ -142,7 +147,7 @@ namespace GorillaShirts.Models.Cosmetic
 
                                         if (furMaterial == null)
                                         {
-                                            Texture2D furTexture = await AssetLoader.LoadAsset<Texture2D>("lightfur");
+                                            Texture2D furTexture = await AssetLoader.LoadAsset<Texture2D>(Constants.FurAssetName);
                                             Shader uberShader = UberShader.GetShader();
 
                                             string[] keywords = (GorillaTagger.Instance.offlineVRRig && GorillaTagger.Instance.offlineVRRig.myDefaultSkinMaterialInstance) ? GorillaTagger.Instance.offlineVRRig.myDefaultSkinMaterialInstance.shaderKeywords : ["_USE_TEXTURE", "_ENVIRONMENTREFLECTIONS_OFF", "_GLOSSYREFLECTIONS_OFF", "_SPECULARHIGHLIGHTS_OFF"];
@@ -156,7 +161,7 @@ namespace GorillaShirts.Models.Cosmetic
                                             };
                                         }
 
-                                        customMaterial.ShirtProfile = shirtProfile;
+                                        customMaterial.ShirtProfile = colourProfile;
                                         customMaterial.BaseFurMaterial = furMaterial;
                                     }
                                 }

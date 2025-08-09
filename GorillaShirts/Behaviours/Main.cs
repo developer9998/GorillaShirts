@@ -57,7 +57,7 @@ namespace GorillaShirts.Behaviours
             }
             Instance = this;
 
-            GameObject standObject = Instantiate(await AssetLoader.LoadAsset<GameObject>("ShirtStand"));
+            GameObject standObject = Instantiate(await AssetLoader.LoadAsset<GameObject>(Constants.StandAssetName));
             standObject.name = "Shirt Stand";
             standObject.transform.SetParent(transform);
 
@@ -69,9 +69,9 @@ namespace GorillaShirts.Behaviours
             ShirtStand.mainMenuRoot.SetActive(false);
             ShirtStand.packBrowserMenuRoot.SetActive(false);
             ShirtStand.packBrowserNewSymbol.SetActive(false);
-
             ShirtStand.mainContentRoot.SetActive(true);
             ShirtStand.infoContentRoot.SetActive(false);
+            ShirtStand.mainMenu_colourSubMenu.SetActive(false);
 
             ShirtStand.Character.SetAppearence(Plugin.StandCharacter.Value);
             ShirtStand.Character.WearSignatureShirt();
@@ -183,7 +183,7 @@ namespace GorillaShirts.Behaviours
                     bool nonPatchUpdate = latestVersion.Major > installedVersion.Major || latestVersion.Minor > installedVersion.Minor;
                     ShirtStand.hardVersionContainer.SetActive(nonPatchUpdate);
                     ShirtStand.softVersionContainer.SetActive(!nonPatchUpdate);
-                    
+
                     TaskCompletionSource<object> completionSource = new();
                     MenuStateMachine.SwitchState(new Menu_WrongVersion(ShirtStand, Constants.Version, latestVersionRaw, completionSource));
 
@@ -237,6 +237,8 @@ namespace GorillaShirts.Behaviours
                     }
                     Shirts.Add(packDescriptor.Shirts[i].ShirtId, packDescriptor.Shirts[i]);
 
+                    LocalHumanoid.SetShirtColour(packDescriptor.Shirts[i], packDescriptor.Shirts[i].Colour);
+
                     if (wornGorillaShirts != null && wornGorillaShirts.Contains(packDescriptor.Shirts[i].ShirtId))
                     {
                         shirtsToWear.Add((packDescriptor.Shirts[i], packDescriptor));
@@ -281,7 +283,7 @@ namespace GorillaShirts.Behaviours
             }
             else menuState_PackList.Packs = Packs;
 
-            CheckRigsForProperties();
+            CheckPlayerProperties();
         }
 
         public void OnShirtUnloaded(IGorillaShirt unloadedShirt)
@@ -304,7 +306,7 @@ namespace GorillaShirts.Behaviours
                 pack.Shirts.Remove(unloadedShirt);
             }
 
-            CheckRigsForProperties();
+            CheckPlayerProperties();
         }
 
         public void OnPackUnloaded(PackDescriptor content)
@@ -319,7 +321,7 @@ namespace GorillaShirts.Behaviours
                 await Content.UnloadShirt(shirt);
             });
 
-            CheckRigsForProperties();
+            CheckPlayerProperties();
 
             if (content.Release is not null)
             {
@@ -347,17 +349,14 @@ namespace GorillaShirts.Behaviours
             MenuStateMachine?.Update();
         }
 
-        public void CheckRigsForProperties()
+        public void CheckPlayerProperties()
         {
-            if (NetworkSystem.Instance.InRoom && VRRigCache.isInitialized)
+            if (!NetworkSystem.Instance.InRoom || !VRRigCache.isInitialized) return;
+
+            foreach (RigContainer playerRig in VRRigCache.rigsInUse.Values)
             {
-                foreach (RigContainer playerRig in VRRigCache.rigsInUse.Values)
-                {
-                    if (playerRig.TryGetComponent(out NetworkedPlayer component) && component.Creator is PunNetPlayer punPlayer && punPlayer.PlayerRef is Player playerRef)
-                    {
-                        NetworkManager.Instance.OnPlayerPropertiesUpdate(playerRef, playerRef.CustomProperties);
-                    }
-                }
+                if (!playerRig.TryGetComponent(out NetworkedPlayer component)) continue;
+                component.CheckProperties();
             }
         }
 
@@ -399,6 +398,15 @@ namespace GorillaShirts.Behaviours
             SetShirtNames(FavouritePack.Shirts, Plugin.Favourites);
         }
 
+        public void ColourShirt(IGorillaShirt shirt, Color colour, bool usePlayerColour)
+        {
+            shirt.Colour.CustomColour = colour;
+            shirt.Colour.UsePlayerColour = usePlayerColour;
+            shirt.Colour.SetData(shirt.ShirtId);
+            LocalHumanoid.SetShirtColour(shirt, shirt.Colour);
+            NetworkShirts(LocalHumanoid.Shirts);
+        }
+
         public void HandleShirt(IGorillaShirt shirt)
         {
             if (LocalHumanoid.Shirts.Contains(shirt))
@@ -419,10 +427,13 @@ namespace GorillaShirts.Behaviours
 
         private void NetworkShirts(List<IGorillaShirt> shirts)
         {
-            var fallbacks = shirts.Select(shirt => shirt.Descriptor.Fallback).Select(fallback => (int)fallback).ToArray();
+            int[] fallbacks = [.. shirts.Select(shirt => shirt.Descriptor.Fallback).Select(fallback => fallback.GetIndex())];
             NetworkManager.Instance.SetProperty("Fallbacks", fallbacks);
 
-            var shirtNames = shirts.Select(shirt => shirt.ShirtId).ToArray();
+            int[] colourData = [.. shirts.Select(shirt => shirt.Colour).Select(colour => colour.Data)];
+            NetworkManager.Instance.SetProperty("Colours", colourData);
+
+            string[] shirtNames = [.. shirts.Select(shirt => shirt.ShirtId)];
             NetworkManager.Instance.SetProperty("Shirts", shirtNames);
         }
 

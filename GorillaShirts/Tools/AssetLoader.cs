@@ -11,19 +11,20 @@ namespace GorillaShirts.Tools
     {
         private static AssetBundle loadedBundle;
 
-        private static readonly Dictionary<string, Object> loadedAssets = [];
-
         private static Task bundleLoadTask;
 
-        private static readonly Dictionary<string, TaskCompletionSource<Texture2D>> textureCompletionSources = [];
+        private static readonly Dictionary<string, TaskCompletionSource<Object>> assetCache = [];
+
+        private static readonly Dictionary<string, TaskCompletionSource<Texture2D>> textureCache = [];
 
         private static async Task LoadAssetBundle()
         {
             TaskCompletionSource<AssetBundle> completionSource = new();
 
-            Stream stream = typeof(Plugin).Assembly.GetManifestResourceStream("GorillaShirts.Content.legacyshirtbundle");
+            Stream stream = typeof(Plugin).Assembly.GetManifestResourceStream(Constants.AssetBundleName);
 
             AssetBundleCreateRequest request = AssetBundle.LoadFromStreamAsync(stream);
+            request.priority = 10;
             request.completed += _ => completionSource.SetResult(request.assetBundle);
 
             loadedBundle = await completionSource.Task;
@@ -32,7 +33,17 @@ namespace GorillaShirts.Tools
 
         public static async Task<T> LoadAsset<T>(string assetName) where T : Object
         {
-            if (loadedAssets.TryGetValue(assetName, out Object asset) && asset is T) return (T)asset;
+            Logging.Message("LoadAsset");
+            Logging.Info($"{assetName} of {typeof(T).FullName}");
+
+            if (assetCache.TryGetValue(assetName, out TaskCompletionSource<Object> completionSource))
+            {
+                Object completedAsset = completionSource.Task.IsCompleted ? completionSource.Task.Result : await completionSource.Task;
+                return (T)completedAsset;
+            }
+
+            completionSource = new();
+            assetCache.Add(assetName, completionSource);
 
             if (loadedBundle is null)
             {
@@ -40,40 +51,45 @@ namespace GorillaShirts.Tools
                 await bundleLoadTask;
             }
 
-            TaskCompletionSource<T> completionSource = new();
-
             AssetBundleRequest request = loadedBundle.LoadAssetAsync<T>(assetName);
-            request.completed += _ => completionSource.SetResult(request.asset is Object asset ? (T)asset : null);
+            request.priority = 8;
+            request.completed += _ => completionSource.TrySetResult(request.asset);
 
-            T result = await completionSource.Task;
-            loadedAssets.Add(assetName, result);
-            return result;
+            Object result = await completionSource.Task;
+            return (T)result;
         }
 
         public static async Task<Texture2D> LoadTexture(string url)
         {
-            if (textureCompletionSources.TryGetValue(url, out TaskCompletionSource<Texture2D> completionSource))
+            Logging.Message("LoadTexture");
+            Logging.Info(url);
+
+            if (textureCache.TryGetValue(url, out TaskCompletionSource<Texture2D> completionSource))
             {
                 Texture2D completedTex = completionSource.Task.IsCompleted ? completionSource.Task.Result : await completionSource.Task;
                 return completedTex;
             }
 
             completionSource = new();
-            textureCompletionSources.Add(url, completionSource);
+            textureCache.Add(url, completionSource);
 
             using UnityWebRequest request = UnityWebRequestTexture.GetTexture(url);
             UnityWebRequestAsyncOperation operation = request.SendWebRequest();
+            operation.priority = 8;
             await operation;
 
             if (request.result == UnityWebRequest.Result.Success)
             {
-                Texture texture = ((DownloadHandlerTexture)request.downloadHandler).texture;
-
-                Texture2D texture2D = Texture2D.CreateExternalTexture(texture.width, texture.height, TextureFormat.RGB24, false, false, texture.GetNativeTexturePtr());
+                Texture2D texture2D = DownloadHandlerTexture.GetContent(request);
+                texture2D.Compress(true);
+                texture2D.Apply();
 
                 completionSource.TrySetResult(texture2D);
                 return texture2D;
             }
+
+            Logging.Fatal($"Result for web request: {request.result}");
+            Logging.Error(request.downloadHandler.error);
 
             return null;
         }

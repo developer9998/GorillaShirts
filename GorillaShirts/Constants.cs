@@ -8,7 +8,14 @@
 
         public const string Version = "2.2.1";
 
-        public const float NetworkRaiseInterval = 0.25f;
+        public const string AssetBundleName = "GorillaShirts.Content.legacyshirtbundle";
+
+        public const string StandAssetName = "ShirtStand";
+
+        public const string FurAssetName = "lightfur";
+
         public const string NetworkPropertyKey = "GorillaShirts";
+
+        public const float NetworkRaiseInterval = 0.25f;
     }
 }

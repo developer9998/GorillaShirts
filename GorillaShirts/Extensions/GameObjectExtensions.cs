@@ -50,6 +50,8 @@ namespace GorillaShirts.Extensions
             typeof(ShirtBillboard)
         ];
 
+        public static bool sanitizeFPLODs = true;
+
         public static void SanitizeObjectRecursive(this GameObject gameObject)
         {
             SanitizeObject(gameObject);
@@ -81,7 +83,8 @@ namespace GorillaShirts.Extensions
                         var lod = lodArray[j];
                         if (lod.renderers.Length == 0)
                         {
-                            allowLOD = false;
+                            allowLOD = !sanitizeFPLODs;
+                            //lodGroup.enabled = false;
                             break;
                         }
                     }

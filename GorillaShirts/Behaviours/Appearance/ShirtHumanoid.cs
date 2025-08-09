@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 
 #if PLUGIN
+using GorillaShirts.Models;
 using GorillaShirts.Behaviours.Cosmetic;
 using GorillaShirts.Extensions;
 using GorillaShirts.Models.Cosmetic;
@@ -45,6 +46,8 @@ namespace GorillaShirts.Behaviours.Appearance
         public readonly List<IGorillaShirt> Shirts = [];
 
         public int NameTagOffset;
+
+        public Dictionary<string, ShirtColour> ShirtColours = [];
 
         public void SetShirt(IGorillaShirt shirt) => SetShirts(shirt is not null ? [shirt] : []);
 
@@ -123,6 +126,13 @@ namespace GorillaShirts.Behaviours.Appearance
                     if (newSectorObject.TryGetComponent(out ShirtColourProfile profile))
                     {
                         profile.Humanoid = this;
+
+                        if (ShirtColours.TryGetValue(shirt.ShirtId, out ShirtColour customColour))
+                        {
+                            Color? colour = (Color?)customColour;
+                            profile.SetCustomColour(colour);
+                        }
+
                         profile.enabled = true;
                     }
 
@@ -284,6 +294,23 @@ namespace GorillaShirts.Behaviours.Appearance
             Objects.Clear();
         }
 
+        public void SetShirtColour(IGorillaShirt shirt, ShirtColour customColour)
+        {
+            if (Objects.TryGetValue(shirt, out List<GameObject> shirtObjects))
+            {
+                foreach(GameObject gameObject in shirtObjects)
+                {
+                    if (!gameObject.TryGetComponent(out ShirtColourProfile profile)) continue;
+
+                    Color? colour = (Color?)customColour;
+                    profile.SetCustomColour(colour);
+                }
+            }
+
+            if (ShirtColours.ContainsKey(shirt.ShirtId)) ShirtColours[shirt.ShirtId] = customColour;
+            else ShirtColours.Add(shirt.ShirtId, customColour);
+        }
+
         private static void CheckForAnchor(Dictionary<EShirtAnchor, Transform> dictionary, EShirtAnchor anchor, ref GameObject anchorObject)
         {
             if (dictionary.TryGetValue(anchor, out Transform value) && (anchorObject is null || !anchorObject || value.localPosition.z > anchorObject.transform.localPosition.z))
@@ -291,6 +318,7 @@ namespace GorillaShirts.Behaviours.Appearance
                 anchorObject = value.gameObject;
             }
         }
+
 #endif
     }
 }

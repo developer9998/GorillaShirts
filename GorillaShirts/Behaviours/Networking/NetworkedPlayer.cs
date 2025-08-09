@@ -1,6 +1,8 @@
 ﻿using GorillaExtensions;
+using GorillaShirts.Models;
 using GorillaShirts.Models.Cosmetic;
 using GorillaShirts.Tools;
+using Photon.Pun;
 using Photon.Realtime;
 using System;
 using System.Collections.Generic;
@@ -12,15 +14,19 @@ namespace GorillaShirts.Behaviours.Networking
     [RequireComponent(typeof(RigContainer)), DisallowMultipleComponent]
     internal class NetworkedPlayer : MonoBehaviour
     {
-        public bool HasGorillaShirts;
+        public bool IsShirtUser;
 
-        public VRRig Rig;
+        public VRRig PlayerRig;
 
         public NetPlayer Creator;
+
+        public Player Creator_PunRef;
 
         private HumanoidContainer playerHumanoid;
 
         private readonly List<EShirtFallback> playerFallbacks = [];
+
+        private readonly List<int> colourData = [];
 
         public void Start()
         {
@@ -28,8 +34,9 @@ namespace GorillaShirts.Behaviours.Networking
 
             playerHumanoid = gameObject.GetOrAddComponent<HumanoidContainer>();
 
-            if (!HasGorillaShirts && Creator is PunNetPlayer punPlayer && punPlayer.PlayerRef is Player playerRef)
-                NetworkManager.Instance.OnPlayerPropertiesUpdate(playerRef, playerRef.CustomProperties);
+            Creator_PunRef = (Creator is PunNetPlayer punNetPlayer && punNetPlayer.PlayerRef is not null) ? punNetPlayer.PlayerRef : PhotonNetwork.CurrentRoom.GetPlayer(Creator.ActorNumber);
+
+            if (!IsShirtUser) CheckProperties();
 
             // humanoid.WearShirt(Main.Instance.Shirts.GetRandomItem());
         }
@@ -41,11 +48,18 @@ namespace GorillaShirts.Behaviours.Networking
             if (playerHumanoid != null && playerHumanoid) Destroy(playerHumanoid);
         }
 
+        public void CheckProperties()
+        {
+            if (Creator_PunRef is null) return;
+            NetworkManager.Instance.OnPlayerPropertiesUpdate(Creator_PunRef, Creator_PunRef.CustomProperties);
+        }
+
         public void OnPlayerPropertyChanged(NetPlayer player, Dictionary<string, object> properties)
         {
             if (player == Creator)
             {
-                Logging.Message($"{player.NickName} got properties");
+                Logging.Message($"{player.NickName}: Updated properties");
+
                 //Logging.Info(string.Join(", ", properties.Select(prop => $"[{prop.Key}: {prop.Value}]")));
 
                 try
@@ -66,19 +80,44 @@ namespace GorillaShirts.Behaviours.Networking
                 {
                     if (properties.TryGetValue("Fallbacks", out object fallbackObject) && fallbackObject is int[] fallbackArray)
                     {
+                        Dictionary<int, EShirtFallback> indexToEnumDict = EnumData<EShirtFallback>.Shared.IndexToEnum;
+
                         for (int i = 0; i < fallbackArray.Length; i++)
                         {
                             int fallbackIndex = fallbackArray[i];
-                            EShirtFallback fallback = Enum.IsDefined(typeof(EShirtFallback), fallbackIndex) ? (EShirtFallback)fallbackIndex : EShirtFallback.None;
+                            EShirtFallback fallback = indexToEnumDict.ContainsKey(fallbackIndex) ? indexToEnumDict[fallbackIndex] : EShirtFallback.None;
 
                             if ((i + 1) > playerFallbacks.Count) playerFallbacks.Insert(i, fallback);
                             else playerFallbacks[i] = fallback;
                         }
+
+                        Logging.Info($"Fallbacks: {string.Join(", ", playerFallbacks.Select(fallback => fallback.GetName()))}");
                     }
                 }
                 catch (Exception)
                 {
 
+                }
+
+                try
+                {
+                    if (properties.TryGetValue("Colours", out object coloursObject) && coloursObject is int[] colourDataArray)
+                    {
+                        for (int i = 0; i < colourDataArray.Length; i++)
+                        {
+                            int data = colourDataArray[i];
+
+                            if (i >= colourData.Count) colourData.Insert(i, data);
+                            else colourData[i] = data;
+                        }
+
+                        Logging.Info($"Colour Data: {string.Join(", ", colourData)} (based on {string.Join(", ", colourDataArray)})");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logging.Fatal("Custom colours could not be set");
+                    Logging.Error(ex);
                 }
 
                 try
@@ -98,13 +137,22 @@ namespace GorillaShirts.Behaviours.Networking
 
                         if (shirtsToRemove.Count != 0) Logging.Info($"Removing: {string.Join(", ", shirtsToRemove.Select(shirt => shirt.ShirtId))}");
 
+                        Dictionary<IGorillaShirt, int> shirtToColourData = [];
+
                         List<IGorillaShirt> shirtsToWear = [];
+
                         for (int i = 0; i < shirtPreferences.Length; i++)
                         {
                             var preference = shirtPreferences[i];
-                            if (playerHumanoid.Shirts.Any(shirt => shirt.ShirtId == preference)) continue;
+
+                            if (playerHumanoid.Shirts.Find(shirt => shirt.ShirtId == preference) is IGorillaShirt wornShirt && wornShirt.Bundle)
+                            {
+                                shirtToColourData.TryAdd(wornShirt, (i < 0 || i >= colourData.Count) ? -1 : colourData[i]);
+                                continue;
+                            }
 
                             IGorillaShirt shirt = null;
+
                             if (Main.Instance.Shirts.ContainsKey(preference))
                             {
                                 shirt = Main.Instance.Shirts[preference];
@@ -116,7 +164,11 @@ namespace GorillaShirts.Behaviours.Networking
                                 Logging.Info($"{fallbackShirt.Descriptor?.ShirtName ?? fallbackShirt.ShirtId} (fallback)");
                             }
 
-                            if (shirt is not null) shirtsToWear.Add(shirt);
+                            if (shirt is not null)
+                            {
+                                shirtsToWear.Add(shirt);
+                                shirtToColourData.TryAdd(shirt, (i < 0 || i >= colourData.Count) ? -1 : colourData[i]);
+                            }
                         }
 
                         if (shirtsToWear.Count != 0) Logging.Info($"Wearing: {string.Join(", ", shirtsToWear.Select(shirt => shirt.ShirtId))}");
@@ -130,6 +182,16 @@ namespace GorillaShirts.Behaviours.Networking
                         {
                             shirtsToRemove.ForEach(playerHumanoid.NegateShirt);
                             Main.Instance.PlayShirtRemoveSound(playerHumanoid.Rig, shirts: [.. shirtsToRemove]);
+                        }
+
+                        //Logging.Info($"Colour Data: {shirtToColourData.Count} entries");
+
+                        foreach (var (shirt, data) in shirtToColourData)
+                        {
+                            ShirtColour shirtColour = (ShirtColour)data;
+                            //Logging.Info($"{shirt.Descriptor.ShirtName} Colour: {shirtColour}");
+
+                            playerHumanoid.SetShirtColour(shirt, shirtColour);
                         }
                     }
                 }

@@ -1,6 +1,6 @@
-﻿using HarmonyLib;
-using GorillaNetworking;
+﻿using GorillaNetworking;
 using GorillaShirts.Behaviours;
+using HarmonyLib;
 
 namespace GorillaShirts.Patches
 {

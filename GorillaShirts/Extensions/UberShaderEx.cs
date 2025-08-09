@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GorillaShirts.Tools;
+using System;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -7,11 +8,32 @@ namespace GorillaShirts.Extensions
 {
     public static class UberShaderEx
     {
-        private static readonly string[] supportedShaderNames = ["Universal Render Pipeline/Unlit", "Universal Render Pipeline/Lit", "Unlit/Texture", "Custom/UnlitAO", "GorillaShirts/ColourTex", "GorillaShirts/UnlitRGB", "Shader Graphs/LitColorTex_Overlay", "Shader Graphs/UnlitColorTex"];
+        private static readonly string[] supportedShaderNames =
+        [
+            // unity shaders
+            "Universal Render Pipeline/Unlit",
+            "Universal Render Pipeline/Lit",
+            "Unlit/Texture",
+            "Unlit/Color",
+            // custom shaders
+            "Custom/UnlitAO",
+            "GorillaShirts/ColourTex",
+            "GorillaShirts/UnlitRGB",
+            "Shader Graphs/LitColorTex_Overlay",
+            "Shader Graphs/UnlitColorTex"
+        ];
 
-        private static readonly string[] supportedKeywords = ["_USE_TEXTURE", "_WATER_EFFECT", "_HEIGHT_BASED_WATER_EFFECT"];
+        private static readonly string[] supportedKeywords =
+        [
+            "_USE_TEXTURE",
+            "_WATER_EFFECT",
+            "_HEIGHT_BASED_WATER_EFFECT"
+        ];
 
-        private static readonly string[] unsupportedKeywords = ["_USE_TEX_ARRAY_ATLAS"];
+        private static readonly string[] unsupportedKeywords =
+        [
+            "_USE_TEX_ARRAY_ATLAS"
+        ];
 
         private static string[] keywords = null;
 
@@ -19,7 +41,7 @@ namespace GorillaShirts.Extensions
         {
             if (keywords is not null) return;
 
-            if (VRRigCache.Instance.localRig is RigContainer localRig && localRig.Rig.myDefaultSkinMaterialInstance is Material material)
+            if (GorillaTagger.Instance.offlineVRRig.myDefaultSkinMaterialInstance is Material material && material)
             {
                 keywords = [.. material.shaderKeywords.Except(unsupportedKeywords)];
                 return;
@@ -30,13 +52,17 @@ namespace GorillaShirts.Extensions
 
         public static Material CreateUberMaterial(this Material baseMaterial)
         {
+            if (baseMaterial is null || !baseMaterial) throw new ArgumentNullException(nameof(baseMaterial));
+
             Shader uberShader = UberShader.GetShader();
 
-            if (baseMaterial == null || !baseMaterial || !supportedShaderNames.Contains(baseMaterial.shader.name) || baseMaterial.shader == uberShader)
-                return baseMaterial;
+            if (baseMaterial.shader == uberShader) return baseMaterial;
 
-            if (baseMaterial.shader.name == uberShader.name)
-                return baseMaterial.ResolveUberMaterial();
+            if (!supportedShaderNames.Contains(baseMaterial.shader.name))
+            {
+                Logging.Warning($"CreateUberMaterial doesn't support shader: {baseMaterial.shader.name}");
+                return baseMaterial;
+            }
 
             GetKeywords();
 
@@ -45,8 +71,10 @@ namespace GorillaShirts.Extensions
                 shader = uberShader
             };
 
-            int propertyCount = baseMaterial.shader.GetPropertyCount();
             bool hasTexture = false, hasColour = false;
+
+            int propertyCount = baseMaterial.shader.GetPropertyCount();
+
             for (int i = 0; i < propertyCount; i++)
             {
                 ShaderPropertyType propertyType = baseMaterial.shader.GetPropertyType(i);
@@ -76,6 +104,7 @@ namespace GorillaShirts.Extensions
             return uberMaterial;
         }
 
+        /*
         public static Material ResolveUberMaterial(this Material baseMaterial)
         {
             Shader uberShader = UberShader.GetShader(); // The latest UberShader, can be more up to date than what the baseMaterial uses
@@ -89,5 +118,6 @@ namespace GorillaShirts.Extensions
 
             return uberMaterial;
         }
+        */
     }
 }

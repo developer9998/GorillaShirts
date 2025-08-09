@@ -46,7 +46,7 @@ namespace GorillaShirts.Behaviours.Networking
 
         public void Update()
         {
-            propertySetTimer = Mathf.Max(propertySetTimer - Time.deltaTime, 0f);
+            propertySetTimer = Mathf.Max(propertySetTimer - Time.unscaledDeltaTime, 0f);
 
             if (propertiesReady && propertySetTimer <= 0)
             {
@@ -63,10 +63,20 @@ namespace GorillaShirts.Behaviours.Networking
 
         public void SetProperty(string key, object value)
         {
-            if (properties.ContainsKey(key)) properties[key] = value;
-            else properties.Add(key, value);
+            bool setProperties;
 
-            propertiesReady = true;
+            if (properties.ContainsKey(key))
+            {
+                setProperties = !properties[key].Equals(value);
+                properties[key] = value;
+            }
+            else
+            {
+                setProperties = true;
+                properties.Add(key, value);
+            }
+
+            propertiesReady = propertiesReady || setProperties;
         }
 
         public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
@@ -82,17 +92,13 @@ namespace GorillaShirts.Behaviours.Networking
             {
                 propertiesObject = changedProps[Constants.NetworkPropertyKey];
             }
-            else if (changedProps.ContainsKey("ShirtProperties"))
-            {
-                propertiesObject = changedProps["ShirtProperties"];
-            }
 
-            if (propertiesObject != null && propertiesObject is Dictionary<string, object> properties)
+            if (propertiesObject is Dictionary<string, object> properties)
             {
-                if (!networkedPlayer.HasGorillaShirts)
+                if (!networkedPlayer.IsShirtUser)
                 {
-                    Logging.Message($"{netPlayer.NickName} has GorillaShirts");
-                    networkedPlayer.HasGorillaShirts = true;
+                    Logging.Message($"Player has GorillaShirts: {targetPlayer.NickName}");
+                    networkedPlayer.IsShirtUser = true;
                 }
 
                 OnPlayerPropertyChanged?.Invoke(netPlayer, properties);

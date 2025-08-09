@@ -24,6 +24,8 @@ namespace GorillaShirts.Models.StateMachine
             base.Enter();
 
             Stand.mainMenuRoot.SetActive(true);
+            Stand.mainContentRoot.SetActive(true);
+            Stand.mainMenu_colourSubMenu.SetActive(false);
 
             Stand.navigationRoot.SetActive(true);
             Stand.navigationText.text = pack.PackName;
@@ -69,6 +71,8 @@ namespace GorillaShirts.Models.StateMachine
 
             Stand.Character.SetShirts(shirt.Concat(HumanoidContainer.LocalHumanoid.Shirts));
 
+            Stand.mainSideBar.SetButtonActive(EButtonType.CustomColour, shirt.Features.HasFlag(EShirtFeature.CustomColours));
+
             UpdateSidebar();
         }
 
@@ -93,6 +97,9 @@ namespace GorillaShirts.Models.StateMachine
                     return;
                 case EButtonType.Return:
                     Main.Instance.MenuStateMachine.SwitchState(PreviousState);
+                    return;
+                case EButtonType.CustomColour:
+                    Main.Instance.MenuStateMachine.SwitchState(new Menu_ShirtColour(Stand, this, pack.Shirts[pack.Selection]));
                     return;
             }
 

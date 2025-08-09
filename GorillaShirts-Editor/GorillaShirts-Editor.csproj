@@ -65,6 +65,12 @@
 		<Compile Include="..\GorillaShirts\Behaviours\UI\StandProximityTrigger.cs">
 			<Link>Behaviours\UI\StandProximityTrigger.cs</Link>
 		</Compile>
+		<Compile Include="..\GorillaShirts\Behaviours\UI\Slider.cs">
+			<Link>Behaviours\UI\Slider.cs</Link>
+		</Compile>
+		<Compile Include="..\GorillaShirts\Behaviours\UI\ColourPicker.cs">
+			<Link>Behaviours\UI\ColourPicker.cs</Link>
+		</Compile>
 	</ItemGroup>
 
 	<ItemGroup>

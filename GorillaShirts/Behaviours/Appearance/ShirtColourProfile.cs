@@ -1,5 +1,4 @@
-﻿using GorillaShirts.Tools;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,13 +6,15 @@ namespace GorillaShirts.Behaviours.Appearance
 {
     public class ShirtColourProfile : MonoBehaviour
     {
-        public readonly bool ProvideLogging = false;
+        public Color Colour => customColour.GetValueOrDefault(playerColour);
+        public Color? CustomColour => customColour;
 
         public ShirtHumanoid Humanoid;
 
         public VRRig Rig;
 
-        public Color Colour => playerColour;
+        [SerializeField]
+        private Color? customColour;
 
         private Color playerColour;
 
@@ -26,12 +27,12 @@ namespace GorillaShirts.Behaviours.Appearance
 
         public void OnEnable()
         {
-            LogMessage("ShirtColourProfile Enable");
+            //LogMessage("ShirtColourProfile Enable");
 
             CheckForVRRig();
             if (Rig != null)
             {
-                Rig.OnColorChanged += SetColour;
+                Rig.OnColorChanged += SetPlayerColour;
                 playerColour = Rig.playerColor;
             }
             else
@@ -41,58 +42,63 @@ namespace GorillaShirts.Behaviours.Appearance
 
             foreach (var (behaviour, callback) in recievers)
             {
-                LogInfo(behaviour.GetType().Name);
+                //LogInfo(behaviour.GetType().Name);
                 behaviour.enabled = true;
-                callback?.Invoke(playerColour);
+                callback?.Invoke(Colour);
             }
         }
 
         public void OnDisable()
         {
-            LogMessage("ShirtColourProfile Disable");
+            //LogMessage("ShirtColourProfile Disable");
             CheckForVRRig();
 
-            if (Rig != null) Rig.OnColorChanged -= SetColour;
+            if (Rig != null) Rig.OnColorChanged -= SetPlayerColour;
             playerColour = Color.white;
 
             foreach (var (behaviour, callback) in recievers)
             {
-                LogInfo(behaviour.GetType().Name);
+                //LogInfo(behaviour.GetType().Name);
                 behaviour.enabled = false;
             }
         }
 
-        public void SetColour(Color colour)
+        public void SetPlayerColour(Color colour)
         {
-            LogMessage("ShirtColourProfile SetColour");
+            //LogMessage("ShirtColourProfile SetColour");
 
             playerColour = colour;
 
-            foreach (var (behaviour, callback) in recievers)
+            if (isActiveAndEnabled)
             {
-                LogInfo(behaviour.GetType().Name);
-                callback?.Invoke(playerColour);
+                foreach (var (behaviour, callback) in recievers)
+                {
+                    //LogInfo(behaviour.GetType().Name);
+                    callback?.Invoke(Colour);
+                }
+            }
+        }
+
+        public void SetCustomColour(Color? colour)
+        {
+            customColour = colour;
+
+            if (isActiveAndEnabled)
+            {
+                foreach (var (behaviour, callback) in recievers)
+                {
+                    //LogInfo(behaviour.GetType().Name);
+                    callback?.Invoke(Colour);
+                }
             }
         }
 
         public void AddRecipient(MonoBehaviour behaviour, Action<Color> callback)
         {
             if (behaviour == null || callback == null || recievers.Exists(pair => pair.behaviour == behaviour)) return;
-            LogInfo($"Added recipient: {behaviour.GetType().Name} with callback {callback.Method.Name}");
+            //LogInfo($"Added recipient: {behaviour.GetType().Name} with callback {callback.Method.Name}");
             recievers.Add((behaviour, callback));
-            if (isActiveAndEnabled) callback?.Invoke(playerColour);
-        }
-
-        public void LogMessage(object data)
-        {
-            if (!ProvideLogging) return;
-            Logging.Message(data);
-        }
-
-        public void LogInfo(object data)
-        {
-            if (!ProvideLogging) return;
-            Logging.Info(data);
+            if (isActiveAndEnabled) callback?.Invoke(Colour);
         }
     }
 }

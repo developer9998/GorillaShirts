@@ -12,6 +12,7 @@ namespace GorillaShirts.Models.Cosmetic
         AssetBundle Bundle { get; }
         ShirtDescriptor Descriptor { get; }
         GameObject Template { get; }
+        ShirtColour Colour { get; }
         EShirtObject Objects { get; }
         EShirtAnchor Anchors { get; }
         EShirtFeature Features { get; }

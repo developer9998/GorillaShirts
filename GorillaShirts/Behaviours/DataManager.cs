@@ -56,8 +56,14 @@ namespace GorillaShirts.Behaviours
         {
             if (File.Exists(dataLocation))
             {
-                data = JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(dataLocation), deserializeSettings);
-                data ??= [];
+                try
+                {
+                    data = JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(dataLocation), deserializeSettings) ?? [];
+                }
+                catch
+                {
+                    data = [];
+                }
                 return;
             }
 
@@ -74,34 +80,33 @@ namespace GorillaShirts.Behaviours
             });
         }
 
-        public T GetItem<T>(string key, T defaultValue = default)
+        public bool HasItem(string key) => data.ContainsKey(key);
+
+        public T GetItem<T>(string key, T defaultValue = default, bool setDefaultValue = true)
         {
             if (data.TryGetValue(key, out object value))
             {
                 if (value is T item) return item;
 
                 TypeCode typeCode = Type.GetTypeCode(typeof(T));
-                if (typeCode != TypeCode.Int64 && value is long newtonsoftQuirk2000)
+
+                if (typeCode != TypeCode.Int64 && value is long deserializedLong)
                 {
                     switch (typeCode)
                     {
-                        case TypeCode.Int32:
-                            int int32 = Convert.ToInt32(newtonsoftQuirk2000);
-                            data[key] = int32;
-                            return (T)(object)int32;
                         case TypeCode.Int16:
-                            int int16 = Convert.ToInt16(newtonsoftQuirk2000);
+                            short int16 = Convert.ToInt16(deserializedLong);
                             data[key] = int16;
                             return (T)(object)int16;
-                        case TypeCode.Single:
-                            float single = Convert.ToSingle(newtonsoftQuirk2000);
-                            data[key] = single;
-                            return (T)(object)single;
+                        case TypeCode.Int32:
+                            int int32 = Convert.ToInt32(deserializedLong);
+                            data[key] = int32;
+                            return (T)(object)int32;
                     }
                 }
             }
 
-            //SetItem(key, defaultValue);
+            if (setDefaultValue) SetItem(key, defaultValue);
             return defaultValue;
         }
 
@@ -115,7 +120,7 @@ namespace GorillaShirts.Behaviours
 
         public void RemoveItem(string key)
         {
-            if (data.ContainsKey(key))
+            if (HasItem(key))
             {
                 data.Remove(key);
                 WriteData();

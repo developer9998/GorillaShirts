@@ -72,7 +72,7 @@ namespace GorillaShirts.Behaviours.Appearance
             {
                 if (allShirtObjects[i].TryGetComponent(out ShirtColourProfile colourProfile))
                 {
-                    colourProfile.SetColour(MainSkin.material.color);
+                    colourProfile.SetPlayerColour(MainSkin.material.color);
                 }
             }
 
@@ -122,7 +122,7 @@ namespace GorillaShirts.Behaviours.Appearance
             if (usingSignatureFallback)
             {
                 Array.ForEach(Array.FindAll(fallbackShirtObjects, gameObject => gameObject.activeSelf), gameObject => gameObject.SetActive(false));
-               
+
                 if (fallbackNameAnchor is not null && characterNameTagAnchor.transform.parent == fallbackNameAnchor)
                 {
                     fallbackNameAnchor = null;

@@ -238,7 +238,7 @@ namespace GorillaShirts.Models.StateMachine
                     Stand.mainMenuRoot.SetActive(true);
                     Stand.mainSideBar.SetSidebarState(Sidebar.SidebarState.ReleaseView);
                     DisplayRelease();
-                    Main.Instance.CheckRigsForProperties();
+                    Main.Instance.CheckPlayerProperties();
                     return;
                 }
 

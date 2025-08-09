@@ -48,5 +48,7 @@ namespace GorillaShirts.Models
             if (DataManager.Instance is null) return;
             DataManager.Instance.SetItem(GetVersionKey(versionType), Version);
         }
+
+        public override string ToString() => $"{Author}: {Title} at {PackArchiveLink}";
     }
 }

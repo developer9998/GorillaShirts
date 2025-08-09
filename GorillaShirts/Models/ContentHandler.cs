@@ -143,8 +143,19 @@ namespace GorillaShirts.Models
 
                 if (asset.Descriptor is null)
                 {
-                    Logging.Warning($"Shirt {file.Name}: broken");
-                    File.Move(file.FullName, string.Concat(file, ".broken"));
+                    try
+                    {
+                        File.Move(file.FullName, string.Concat(file, ".broken"));
+                    }
+                    catch (Exception ex)
+                    {
+                        Logging.Fatal("Eine Datei kann nicht erstellt werden, wenn sie bereits vorhanden ist");
+                        Logging.Error(ex);
+                    }
+                    finally
+                    {
+                        Logging.Warning($"Shirt {file.Name}: broken");
+                    }
 
                     errorCount++;
                     Main.Instance.PlayOhNoAudio();
@@ -190,7 +201,8 @@ namespace GorillaShirts.Models
         public async Task UnloadShirt(IGorillaShirt shirt, bool removeFile = true)
         {
             if (shirt is null) throw new ArgumentNullException(nameof(shirt));
-            if (shirt.Bundle is not AssetBundle bundle || !shirt.Bundle) return;
+
+            if (shirt.Bundle is not AssetBundle bundle || !shirt.Bundle) throw new InvalidOperationException($"Shirt {shirt.ShirtId} does not have existing AssetBundle, is it already unloaded?");
 
             string directory = shirt.FileInfo.DirectoryName;
 
@@ -199,9 +211,7 @@ namespace GorillaShirts.Models
             unloadOperation.completed += _ => completionSource.TrySetResult(null);
             await completionSource.Task;
 
-            Logging.Info($"Unloaded shirt bundle: {shirt.ShirtId}"); // descriptor is no more
-            UnityEngine.Object.Destroy(shirt.Bundle);
-            OnShirtUnloaded?.Invoke(shirt);
+            if (shirt.Bundle is not null && shirt.Bundle) UnityEngine.Object.Destroy(shirt.Bundle);
 
             if (removeFile)
             {
@@ -210,49 +220,54 @@ namespace GorillaShirts.Models
                     try
                     {
                         File.Delete(shirt.FileInfo.FullName);
-                        if (!Directory.EnumerateFileSystemEntries(directory).Any())
-                        {
-                            Directory.Delete(directory, false);
-                        }
+                        if (!Directory.EnumerateFileSystemEntries(directory).Any()) Directory.Delete(directory, true);
                     }
-                    catch (UnauthorizedAccessException)
+                    catch (UnauthorizedAccessException ex)
                     {
-
+                        Logging.Fatal($"Shirt file deletion is unauthorized");
+                        Logging.Error(ex);
                     }
-                    catch (DirectoryNotFoundException)
+                    catch (DirectoryNotFoundException ex)
                     {
-
+                        Logging.Fatal($"Directory of shirt file was not found");
+                        Logging.Error(ex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logging.Fatal($"Failed to delete shirt file");
+                        Logging.Error(ex);
                     }
                     return null;
                 });
             }
 
-        }
-
-        public async Task UninstallRelease(ReleaseInfo info, Action<float> callback)
-        {
-            callback.Invoke(0);
-
-            if (info.Pack is not PackDescriptor pack || !pack) return;
-
-            ContentProcessCallback += (assetsLoaded, assetCount, errorCount) =>
-            {
-                callback.Invoke((float)assetsLoaded / assetCount);
-            };
-
-            await UnloadContent(pack);
+            Logging.Message($"Unloaded Shirt: {shirt.ShirtId}");
+            OnShirtUnloaded?.Invoke(shirt);
         }
 
         public async Task InstallRelease(ReleaseInfo info, Action<int, float> callback, bool loadContent = true)
         {
-            string link = info.PackArchiveLink;
-            string archiveDestination = Path.Combine(RootLocation, $"{info.Title}.zip");
-            string folderDestination = Path.Combine(RootLocation, info.Title);
-            callback.Invoke(0, 0);
+            Logging.Message("InstallRelease");
+            Logging.Info(info.ToString());
 
+            if (callback is null) Logging.Warning("Callback is null! A callback isn't mandatory, but why not include one?");
+
+            string folderPath = Path.Combine(RootLocation, info.Title);
+            Logging.Info($"Folder: {folderPath}");
+
+            string temporaryArchivePath = Path.Combine(Application.temporaryCachePath, $"GorillaShirts_{info.Title}.zip");
+            Logging.Info($"Temporary Archive: {temporaryArchivePath}");
+            string temporaryFolderPath = Path.Combine(Application.temporaryCachePath, $"GorillaShirts_{info.Title}");
+            Logging.Info($"Temporary Folder: {temporaryFolderPath}");
+
+            callback?.Invoke(0, 0);
+
+            if (File.Exists(temporaryArchivePath)) File.Delete(temporaryArchivePath);
+
+            string link = info.PackArchiveLink;
             UnityWebRequest request = new(link)
             {
-                downloadHandler = new DownloadHandlerFile(archiveDestination)
+                downloadHandler = new DownloadHandlerFile(temporaryArchivePath)
             };
 
             UnityWebRequestAsyncOperation operation = request.SendWebRequest();
@@ -264,57 +279,91 @@ namespace GorillaShirts.Models
                 if (donwloadProgress != request.downloadProgress)
                 {
                     donwloadProgress = request.downloadProgress;
-                    callback.Invoke(0, Mathf.Clamp01(donwloadProgress));
+                    callback?.Invoke(0, Mathf.Clamp01(donwloadProgress));
                 }
             }
 
             if (request.result != UnityWebRequest.Result.Success)
             {
-                Logging.Error($"Failed to download zip: {request.error}");
+                Logging.Fatal($"Failed to download archive");
+                Logging.Error(request.error);
                 return;
             }
 
             request.Dispose();
 
-            Logging.Info($"Extracting zip file to {folderDestination}");
+            Logging.Info($"Extracting temporary archive");
 
-            using (ZipArchive archive = ZipFile.OpenRead(archiveDestination))
+            if (Directory.Exists(temporaryFolderPath))
             {
-                callback.Invoke(1, 0);
+                Directory.Delete(temporaryFolderPath, true);
+                Directory.CreateDirectory(temporaryFolderPath);
+            }
 
-                int totalEntries = archive.Entries.Count;
-                int entriesExtracted = 0;
+            int totalEntries, entriesExtracted;
+
+            using (ZipArchive archive = ZipFile.OpenRead(temporaryArchivePath))
+            {
+                callback?.Invoke(1, 0);
+
+                totalEntries = archive.Entries.Count;
+                entriesExtracted = 0;
 
                 foreach (ZipArchiveEntry entry in archive.Entries)
                 {
-                    string path = Path.Combine(folderDestination, entry.FullName);
-                    string directory = Path.GetDirectoryName(path);
+                    if (!Directory.Exists(temporaryFolderPath)) Directory.CreateDirectory(temporaryFolderPath);
 
-                    if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
+                    string relativePath = Path.Combine(temporaryFolderPath, entry.FullName);
 
                     if (!string.IsNullOrEmpty(entry.Name))
                     {
                         using Stream stream = entry.Open();
-                        using FileStream fileStream = File.Create(path);
+                        using FileStream fileStream = File.Create(relativePath);
                         stream.CopyTo(fileStream);
                     }
 
                     entriesExtracted++;
-                    callback.Invoke(1, (float)entriesExtracted / totalEntries);
+                    callback?.Invoke(1, (float)entriesExtracted / totalEntries);
                     await Task.Delay(8);
                 }
             }
 
-            if (File.Exists(archiveDestination)) File.Delete(archiveDestination);
+            if (File.Exists(temporaryArchivePath)) File.Delete(temporaryArchivePath);
+
+            Logging.Info($"Moving temporary folder");
+
+            if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+
+            foreach (string fileSource in Directory.GetFiles(temporaryFolderPath, "*", SearchOption.AllDirectories))
+            {
+                string relativePath = Path.GetRelativePath(temporaryFolderPath, fileSource);
+                string fileDestination = Path.Combine(folderPath, relativePath);
+
+                // directory check
+                string directoryName = Path.GetDirectoryName(fileDestination);
+                if (!Directory.Exists(directoryName)) Directory.CreateDirectory(directoryName);
+
+                // existing shirt check (regardless of "loadContent" argument fyi)
+                if (Array.Find(Main.Instance.Shirts.Values.ToArray(), shirt => shirt.FileInfo.FullName == fileDestination) is IGorillaShirt shirt && shirt.Bundle)
+                {
+                    Logging.Message($"Loaded shirt found at path to override");
+                    Logging.Info(shirt.ToString());
+                    await UnloadShirt(shirt, false);
+                }
+
+                File.Copy(fileSource, fileDestination, true);
+            }
+
+            if (Directory.Exists(temporaryFolderPath)) Directory.Delete(temporaryFolderPath, true);
 
             if (!loadContent) return;
 
             ContentProcessCallback += (assetsLoaded, assetCount, errorCount) =>
             {
-                callback.Invoke(2, (float)assetsLoaded / assetCount);
+                callback?.Invoke(2, (float)assetsLoaded / assetCount);
             };
 
-            await LoadContent(folderDestination);
+            await LoadContent(folderPath);
 
             List<string> names = [info.Title];
             if (info.AlsoKnownAs is not null && info.AlsoKnownAs.Length != 0) names.AddRange(info.AlsoKnownAs);
@@ -327,10 +376,28 @@ namespace GorillaShirts.Models
                 {
                     pack.Release = info;
                     info.Pack = pack;
-                    Logging.Info($"{pack.PackName} has release: {info.Title} by {info.Author} at {info.PackArchiveLink}");
+                    Logging.Info($"{pack.PackName} has release: {info}");
                     break;
                 }
             }
+        }
+
+        public async Task UninstallRelease(ReleaseInfo info, Action<float> callback)
+        {
+            Logging.Message("UninstallRelease");
+            Logging.Info(info.ToString());
+
+            if (callback is null) Logging.Warning("Callback is null! A callback isn't mandatory, but why not include one?");
+            callback?.Invoke(0);
+
+            if (info.Pack is not PackDescriptor pack || !pack) return;
+
+            ContentProcessCallback += (assetsLoaded, assetCount, errorCount) =>
+            {
+                callback?.Invoke((float)assetsLoaded / assetCount);
+            };
+
+            await UnloadContent(pack);
         }
     }
 }

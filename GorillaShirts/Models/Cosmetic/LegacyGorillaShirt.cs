@@ -26,6 +26,7 @@ namespace GorillaShirts.Models.Cosmetic
         public AssetBundle Bundle { get; private set; }
         public ShirtDescriptor Descriptor { get; private set; }
         public GameObject Template { get; private set; }
+        public ShirtColour Colour { get; private set; }
         public EShirtObject Objects { get; private set; }
         public EShirtAnchor Anchors { get; private set; }
         public EShirtFeature Features { get; private set; }
@@ -100,7 +101,10 @@ namespace GorillaShirts.Models.Cosmetic
 
                 ShirtId = Encoding.UTF8.GetString(Encoding.Default.GetBytes($"{Descriptor.PackName}/{Descriptor.ShirtName}"));
 
+                Colour = ShirtColour.FromShirtId(ShirtId);
+
                 Template.name = $"{Descriptor.ShirtName} Legacy Asset";
+                GameObjectExtensions.sanitizeFPLODs = true;
                 Template.SanitizeObjectRecursive();
 
                 foreach (Transform child in Template.transform)
@@ -149,14 +153,15 @@ namespace GorillaShirts.Models.Cosmetic
                         Descriptor.SectorList.Add(newSector);
                         */
 
-                        ShirtColourProfile visualParent = body_part.GetOrAddComponent<ShirtColourProfile>();
-                        visualParent.enabled = false;
+                        ShirtColourProfile colourProfile = body_part.GetOrAddComponent<ShirtColourProfile>();
+                        colourProfile.enabled = false;
+                        colourProfile.SetCustomColour((Color?)Colour);
 
                         List<Transform> bones = [], ignoreBones = [];
 
                         void FindFeature<T>(EShirtFeature feature, Action<T> handleFeature = null) where T : Component
                         {
-                            var components = body_part.GetComponentsInChildren<T>();
+                            var components = body_part.GetComponentsInChildren<T>(true);
                             if (components.Length > 0)
                             {
                                 Features |= feature;
@@ -209,8 +214,8 @@ namespace GorillaShirts.Models.Cosmetic
                                     {
                                         if (!fur_material)
                                         {
-                                            Texture2D furTexture = await AssetLoader.LoadAsset<Texture2D>("lightfur");
-                                            Shader uberShader = Shader.Find("GorillaTag/UberShader");
+                                            Texture2D furTexture = await AssetLoader.LoadAsset<Texture2D>(Constants.FurAssetName);
+                                            Shader uberShader = UberShader.GetShader();
 
                                             string[] keywords = (GorillaTagger.Instance.offlineVRRig && GorillaTagger.Instance.offlineVRRig.myDefaultSkinMaterialInstance) ? GorillaTagger.Instance.offlineVRRig.myDefaultSkinMaterialInstance.shaderKeywords : ["_USE_TEXTURE", "_ENVIRONMENTREFLECTIONS_OFF", "_GLOSSYREFLECTIONS_OFF", "_SPECULARHIGHLIGHTS_OFF"];
                                             keywords = [.. keywords.Except(["_GT_BASE_MAP_ATLAS_SLICE_SOURCE__PROPERTY", "_USE_TEX_ARRAY_ATLAS"])];
@@ -227,7 +232,7 @@ namespace GorillaShirts.Models.Cosmetic
                                         gorillaFur.Appearance = (ShirtCustomMaterial.EAppearanceType)Convert.ToInt32(decendant.GetChild(decendant.childCount - 1).name[^1]);
                                         // gorillaFur.Source = EMaterialSource.Skin;
                                         gorillaFur.BaseFurMaterial = fur_material;
-                                        gorillaFur.ShirtProfile = visualParent;
+                                        gorillaFur.ShirtProfile = colourProfile;
                                     }
                                     if (child.name.StartsWith("G_BB"))
                                     {
@@ -239,7 +244,7 @@ namespace GorillaShirts.Models.Cosmetic
 
                             if (colourSupport && customColour && !decendant.GetComponent<ShirtCustomMaterial>())
                             {
-                                decendant.gameObject.AddComponent<ShirtCustomColour>().ShirtProfile = visualParent;
+                                decendant.gameObject.AddComponent<ShirtCustomColour>().ShirtProfile = colourProfile;
                             }
                         }
 

@@ -71,6 +71,7 @@ namespace GorillaShirts.Behaviours.UI
             EButtonType[] ignoreButtonArray = state switch
             {
                 SidebarState.MainMenu => [EButtonType.Favourite],
+                SidebarState.ShirtView => [EButtonType.CustomColour],
                 _ => []
             };
 

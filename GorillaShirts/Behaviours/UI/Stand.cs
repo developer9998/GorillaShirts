@@ -95,6 +95,16 @@ namespace GorillaShirts.Behaviours.UI
         [TextArea(4, 6), FormerlySerializedAs("personalDataFormat")]
         public string playerInfoFormat;
 
+        [Header("Main Menu - Colour Manager")]
+
+        public GameObject mainMenu_colourSubMenu;
+
+        public TMP_Text colourPicker_NavText;
+
+        public ColourPicker colourPicker;
+
+        public GameObject colourPicker_SyncButton, colourPicker_ApplyButton;
+
         [Header("Pack Browser Load Menu")]
 
         public GameObject packBrowserMenuRoot;

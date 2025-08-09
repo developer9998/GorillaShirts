@@ -13,7 +13,7 @@ namespace GorillaShirts.Patches
             if (__instance.GetComponent<NetworkedPlayer>()) return;
 
             NetworkedPlayer component = __instance.gameObject.AddComponent<NetworkedPlayer>();
-            component.Rig = __instance.Rig;
+            component.PlayerRig = __instance.Rig;
             component.Creator = value;
         }
 
