@@ -5,7 +5,7 @@
 <div align="center">
   <a href="https://discord.gg/dev9998"><img src="https://img.shields.io/discord/989239017511989258?label=Discord&style=flat-square&color=blue"></a>
 	<a href="https://github.com/developer9998/GorillaShirts/releases/latest"><img src="https://img.shields.io/github/v/release/developer9998/GorillaShirts?label=Version&style=flat-square&color=red"></a>
-	<a href="https://github.com/developer9998/GorillaShirts/releases/latest"><img src="https://img.shields.io/github/downloads/developer9998/GorillaShirts/total?label=Downloads&style=flat-square&color=green"></a>
+	<a href="https://github.com/developer9998/GorillaShirts/releases"><img src="https://img.shields.io/github/downloads/developer9998/GorillaShirts/total?label=Downloads&style=flat-square&color=green"></a>
   <a href="https://github.com/developer9998/GorillaShirts/blob/main/LICENSE/"><img src="https://img.shields.io/github/license/developer9998/GorillaShirts?label=License&style=flat-square&color=yellow"</img></a>
 </div><br>
 
@@ -64,7 +64,7 @@ A fallback refers to a shirt found within the "Default" shirt pack to use on a p
 
 This fallback might not be assigned, but when it is, it's done by the shirt, and cannot be configured at runtime (in Gorilla Tag).
 
-**GorillaShirts** is a mod for Gorilla Tag. The mod is able to import community-made shirts into the game, which then can be worn and seen by others with the mod. You can create your own shirts using the [GorillaShirtsUnityProject](https://github.com/developer9998/GorillaShirtsUnityProject).
+*GorillaShirts* is a mod for Gorilla Tag. The mod is able to import community-made shirts into the game, which then can be worn and seen by others with the mod. You can create your own shirts using the [GorillaShirtsUnityProject](https://github.com/developer9998/GorillaShirtsUnityProject).
 
 ## Instructions
 
@@ -105,22 +105,17 @@ If you did download the accompanied ``GorillaShirts.pdb`` file, simply place it 
 
 ## Credits
 
-``GorillaShirts`` is a product contributed to by many during its continued development since 2022.
+*GorillaShirts* is a product contributed to by many during its continued development since 2022.
 
 Supporters of Dev's Patreon and Ko-fi services are listed within the info section of the mod, in addition to everyone listed below.
 
 ### Lead Contributors
 
-- **dev9998**
-  - Creator
-  - Programmer
-  - Design - visual and auditory
+- **dev9998**: Creator (programmer and designer)
 
-- **gizmogoat**
-  - Tester
+- **gizmogoat**: Tester
 
-- **crescentmondo**
-  - Artist - 2D sprites and 3D models
+- **crescentmondo**: Artist (2D sprites and 3D models)
     
 ### Special Thanks
 
