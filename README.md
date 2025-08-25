@@ -76,13 +76,10 @@ Method 1 refers to the automatic process of a program downloading and installing
 
 A program capable of this method is **MonkeModManager**. There are two instances of the application you can use:
 
-- **Recommended by Dev:** @arielthemonke Version
+- @arielthemonke Version
   - [Windows Download](https://github.com/arielthemonke/MonkeModManager/releases/latest/download/MonkeModManager.exe)
   - [Linux Download](https://github.com/arielthemonke/MonkeModManager/releases/latest/download/MonkeModManager.Linux)
 
-- @The-Graze Version
-  - [Windows Download](https://github.com/The-Graze/MonkeModManager/releases/latest/download/MonkeModManager.exe)
- 
 Using either version, under the "Cosmetic" section, "GorillaShirts" can be located. You can proceed to select the mod and start the installation/update process.
 
 ### Downloading GorillaShirts (Method 2)
