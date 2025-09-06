@@ -13,6 +13,8 @@ namespace GorillaShirts.Behaviours
 
         public VRRig Rig;
 
+        public float NameTagZOffset = 0f;
+
         public void Awake()
         {
             Rig = GetComponent<VRRig>();
@@ -61,6 +63,13 @@ namespace GorillaShirts.Behaviours
         {
             RefreshBodyRenderer();
             MoveNameTag();
+        }
+
+        public override void MoveNameTagTransform(Transform transform, float offset)
+        {
+            Vector3 offsetVector = transform.localPosition;
+            offsetVector.z = NameTagZOffset + ((float)offset * 0.02f);
+            transform.localPosition = offsetVector;
         }
 
         public override void MoveNameTag()
