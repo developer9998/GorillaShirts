@@ -10,7 +10,7 @@ namespace GorillaShirts.Patches
         [HarmonyWrapSafe]
         public static void Postfix()
         {
-            if (Main.HasInstance) Main.Instance.Initialize();
+            if (ShirtManager.HasInstance) ShirtManager.Instance.Initialize();
         }
     }
 }

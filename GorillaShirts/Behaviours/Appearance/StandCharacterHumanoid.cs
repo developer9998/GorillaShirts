@@ -81,7 +81,7 @@ namespace GorillaShirts.Behaviours.Appearance
 
         public void WearSignatureShirt()
         {
-            if (Main.Instance.GetShirtFromFallback(PreferredFallback) is IGorillaShirt shirt)
+            if (ShirtManager.Instance.GetShirtFromFallback(PreferredFallback) is IGorillaShirt shirt)
             {
                 SetShirt(shirt);
                 return;

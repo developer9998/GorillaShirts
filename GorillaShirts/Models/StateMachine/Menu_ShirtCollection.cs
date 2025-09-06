@@ -40,7 +40,7 @@ namespace GorillaShirts.Models.StateMachine
         {
             if (pack.Shirts.Count == 0)
             {
-                Main.Instance.MenuStateMachine.SwitchState(PreviousState);
+                ShirtManager.Instance.MenuStateMachine.SwitchState(PreviousState);
                 return;
             }
 
@@ -83,7 +83,7 @@ namespace GorillaShirts.Models.StateMachine
             if (pack.Shirts.Count != 0)
             {
                 IGorillaShirt shirt = pack.Shirts[pack.Selection];
-                Stand.mainSideBar.favouriteButtonSymbol.color = Main.Instance.IsFavourite(shirt) ? Color.yellow : Color.white;
+                Stand.mainSideBar.favouriteButtonSymbol.color = ShirtManager.Instance.IsFavourite(shirt) ? Color.yellow : Color.white;
             }
         }
 
@@ -93,13 +93,13 @@ namespace GorillaShirts.Models.StateMachine
             switch (button)
             {
                 case EButtonType.Info:
-                    Main.Instance.MenuStateMachine.SwitchState(new Menu_Info(Stand, this));
+                    ShirtManager.Instance.MenuStateMachine.SwitchState(new Menu_Info(Stand, this));
                     return;
                 case EButtonType.Return:
-                    Main.Instance.MenuStateMachine.SwitchState(PreviousState);
+                    ShirtManager.Instance.MenuStateMachine.SwitchState(PreviousState);
                     return;
                 case EButtonType.CustomColour:
-                    Main.Instance.MenuStateMachine.SwitchState(new Menu_ShirtColour(Stand, this, pack.Shirts[pack.Selection]));
+                    ShirtManager.Instance.MenuStateMachine.SwitchState(new Menu_ShirtColour(Stand, this, pack.Shirts[pack.Selection]));
                     return;
             }
 
@@ -122,7 +122,7 @@ namespace GorillaShirts.Models.StateMachine
                     Texture2D texture = await Stand.Camera.GetTexture();
                     if (texture is not null)
                     {
-                        Main.Instance.PlayAudio(EAudioType.CameraShutter, 1f);
+                        ShirtManager.Instance.PlayAudio(EAudioType.CameraShutter, 1f);
 
                         string nativePicturesDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
                         string shirtsDirectoryName = "GorillaShirts";
@@ -143,20 +143,20 @@ namespace GorillaShirts.Models.StateMachine
                     isWritingPhoto = false;
                     return;
                 case EButtonType.Randomize:
-                    Main.Instance.PlayAudio(EAudioType.DiceRoll, 1f);
+                    ShirtManager.Instance.PlayAudio(EAudioType.DiceRoll, 1f);
                     pack.Shuffle();
                     ViewShirt();
                     return;
                 case EButtonType.TagIncrease:
-                    Main.Instance.AdjustTagOffset(Mathf.Min(HumanoidContainer.LocalHumanoid.NameTagOffset + 1, 8));
+                    ShirtManager.Instance.AdjustTagOffset(Mathf.Min(HumanoidContainer.LocalHumanoid.NameTagOffset + 1, 8));
                     UpdateSidebar();
                     return;
                 case EButtonType.TagDecrease:
-                    Main.Instance.AdjustTagOffset(Mathf.Max(HumanoidContainer.LocalHumanoid.NameTagOffset - 1, 0));
+                    ShirtManager.Instance.AdjustTagOffset(Mathf.Max(HumanoidContainer.LocalHumanoid.NameTagOffset - 1, 0));
                     UpdateSidebar();
                     return;
                 case EButtonType.Favourite:
-                    Main.Instance.FavouriteShirt(pack.Shirts[pack.Selection]);
+                    ShirtManager.Instance.FavouriteShirt(pack.Shirts[pack.Selection]);
                     ViewShirt();
                     return;
             }
@@ -165,7 +165,7 @@ namespace GorillaShirts.Models.StateMachine
             switch (button)
             {
                 case EButtonType.NavigateSelect:
-                    Main.Instance.HandleShirt(pack.Shirts[pack.Selection]);
+                    ShirtManager.Instance.HandleShirt(pack.Shirts[pack.Selection]);
                     break;
                 case EButtonType.NavigateIncrease:
                     pack.Selection++;

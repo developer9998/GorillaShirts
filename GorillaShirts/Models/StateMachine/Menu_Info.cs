@@ -25,9 +25,9 @@ namespace GorillaShirts.Models.StateMachine
 #endif
 
             Stand.playerInfoText.text = Stand.playerInfoFormat
-                .Replace("[SHIRTCOUNT]", Main.Instance.Packs.Select(pack => pack.Shirts.Count).Sum().ToString())
-                .Replace("[PACKCOUNT]", Main.Instance.Packs.Count(pack => pack != Main.Instance.FavouritePack).ToString())
-                .Replace("[RELEASECOUNT]", Main.Instance.Packs.Count(pack => pack.Release is not null).ToString())
+                .Replace("[SHIRTCOUNT]", ShirtManager.Instance.Packs.Select(pack => pack.Shirts.Count).Sum().ToString())
+                .Replace("[PACKCOUNT]", ShirtManager.Instance.Packs.Count(pack => pack != ShirtManager.Instance.FavouritePack).ToString())
+                .Replace("[RELEASECOUNT]", ShirtManager.Instance.Packs.Count(pack => pack.Release is not null).ToString())
                 .Replace("[BUILDCONFIG]", build_config)
                 .Replace("[VERSION]", Constants.Version)
                 .Replace("[PLAYERNAME]", GorillaTagger.Instance.offlineVRRig.NormalizeName(true, NetworkSystem.Instance.GetMyNickName()));
@@ -36,7 +36,7 @@ namespace GorillaShirts.Models.StateMachine
         public override void OnButtonPress(EButtonType button)
         {
             if (button != EButtonType.Return) return;
-            Main.Instance.MenuStateMachine.SwitchState(PreviousState);
+            ShirtManager.Instance.MenuStateMachine.SwitchState(PreviousState);
         }
 
         public override void Exit()

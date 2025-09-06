@@ -37,7 +37,7 @@ namespace GorillaShirts.Models.StateMachine
             Stand.navigationRoot.SetActive(false);
             Stand.mainSideBar.SetSidebarState(Sidebar.SidebarState.MainMenu);
 
-            bool hasUnreadRelease = Main.Instance.Releases.Any(info => info.GetVersion(EReleaseVersion.Viewed) == -1 || info.Version > info.GetVersion(EReleaseVersion.Viewed));
+            bool hasUnreadRelease = ShirtManager.Instance.Releases.Any(info => info.GetVersion(EReleaseVersion.Viewed) == -1 || info.Version > info.GetVersion(EReleaseVersion.Viewed));
             if (Stand.mainSideBar.packBrowserButtonNewSymbol.activeSelf != hasUnreadRelease) Stand.mainSideBar.packBrowserButtonNewSymbol.SetActive(hasUnreadRelease);
 
             PreviewPack();
@@ -72,7 +72,7 @@ namespace GorillaShirts.Models.StateMachine
             PackDescriptor pack = shownPacks[packIndex];
             lastPack = pack;
 
-            Stand.mainSideBar.SetButtonActive(EButtonType.Favourite, pack != Main.Instance.FavouritePack && shownPacks.Contains(Main.Instance.FavouritePack));
+            Stand.mainSideBar.SetButtonActive(EButtonType.Favourite, pack != ShirtManager.Instance.FavouritePack && shownPacks.Contains(ShirtManager.Instance.FavouritePack));
             Stand.mainSideBar.favouriteButtonSymbol.color = Color.white;
 
             Stand.headerText.text = pack.Author == null ? pack.PackName.EnforceLength(20) : string.Format(Stand.headerFormat, pack.PackName.EnforceLength(20), "Pack", pack.Author.EnforceLength(48));
@@ -119,13 +119,13 @@ namespace GorillaShirts.Models.StateMachine
         {
             if (button == EButtonType.Info)
             {
-                Main.Instance.MenuStateMachine.SwitchState(new Menu_Info(Stand, this));
+                ShirtManager.Instance.MenuStateMachine.SwitchState(new Menu_Info(Stand, this));
                 return;
             }
 
             if (button == EButtonType.PackBrowser)
             {
-                Main.Instance.MenuStateMachine.SwitchState(new Menu_PackBrowser(Stand, this));
+                ShirtManager.Instance.MenuStateMachine.SwitchState(new Menu_PackBrowser(Stand, this));
                 return;
             }
 
@@ -133,7 +133,7 @@ namespace GorillaShirts.Models.StateMachine
             {
                 PackDescriptor pack = shownPacks[packIndex];
                 if (!menuPerPack.ContainsKey(pack)) menuPerPack.Add(pack, new Menu_ShirtCollection(Stand, this, pack));
-                Main.Instance.MenuStateMachine.SwitchState(menuPerPack[pack]);
+                ShirtManager.Instance.MenuStateMachine.SwitchState(menuPerPack[pack]);
                 return;
             }
 
@@ -146,7 +146,7 @@ namespace GorillaShirts.Models.StateMachine
                     packIndex--;
                     break;
                 case EButtonType.Favourite:
-                    packIndex = shownPacks.IndexOf(Main.Instance.FavouritePack);
+                    packIndex = shownPacks.IndexOf(ShirtManager.Instance.FavouritePack);
                     break;
                 default:
                     return;

@@ -8,6 +8,7 @@ using HarmonyLib;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 
 namespace GorillaShirts
@@ -33,8 +34,8 @@ namespace GorillaShirts
             var characters = Enum.GetValues(typeof(ECharacterPreference)).Cast<ECharacterPreference>().ToArray();
             StandCharacter = Config.Bind("Appearance", "Stand Character Identity", characters[UnityEngine.Random.Range(0, characters.Length)], "The gender identity of the character present at the shirt stand");
 
-            Harmony.CreateAndPatchAll(typeof(Main).Assembly, Constants.GUID);
-            GorillaTagger.OnPlayerSpawned(() => new GameObject(Constants.Name, typeof(NetworkManager), typeof(DataManager), typeof(Main)));
+            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), Constants.GUID);
+            GorillaTagger.OnPlayerSpawned(() => new GameObject(Constants.Name, typeof(NetworkManager), typeof(DataManager), typeof(ShirtManager)));
         }
     }
 }

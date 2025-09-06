@@ -31,7 +31,7 @@ namespace GorillaShirts.Models.StateMachine
 
         public override void Enter()
         {
-            releases = [.. Main.Instance.Releases.OrderBy(info => info.Rank)];
+            releases = [.. ShirtManager.Instance.Releases.OrderBy(info => info.Rank)];
 
             Stand.mainMenuRoot.SetActive(true);
             Stand.navigationRoot.SetActive(false);
@@ -142,7 +142,7 @@ namespace GorillaShirts.Models.StateMachine
 
             if (button == EButtonType.Return)
             {
-                Main.Instance.MenuStateMachine.SwitchState(PreviousState);
+                ShirtManager.Instance.MenuStateMachine.SwitchState(PreviousState);
                 return;
             }
 
@@ -158,11 +158,11 @@ namespace GorillaShirts.Models.StateMachine
                     Stand.mainSideBar.UpdateSidebar();
                     return;
                 case EButtonType.TagIncrease:
-                    Main.Instance.AdjustTagOffset(Mathf.Min(HumanoidContainer.LocalHumanoid.NameTagOffset + 1, 8));
+                    ShirtManager.Instance.AdjustTagOffset(Mathf.Min(HumanoidContainer.LocalHumanoid.NameTagOffset + 1, 8));
                     Stand.mainSideBar.UpdateSidebar();
                     return;
                 case EButtonType.TagDecrease:
-                    Main.Instance.AdjustTagOffset(Mathf.Max(HumanoidContainer.LocalHumanoid.NameTagOffset - 1, 0));
+                    ShirtManager.Instance.AdjustTagOffset(Mathf.Max(HumanoidContainer.LocalHumanoid.NameTagOffset - 1, 0));
                     Stand.mainSideBar.UpdateSidebar();
                     return;
             }
@@ -171,7 +171,7 @@ namespace GorillaShirts.Models.StateMachine
             {
                 if (flags.HasFlag(ReleaseFlags.Outdated))
                 {
-                    Main.Instance.PlayOhNoAudio();
+                    ShirtManager.Instance.PlayOhNoAudio();
                     return;
                 }
 
@@ -198,12 +198,12 @@ namespace GorillaShirts.Models.StateMachine
                     if (initialState == ReleaseState.HasRelease && flags.HasFlag(ReleaseFlags.Update) && info.Pack is not null)
                     {
                         // bandaid fix to duplicate packs after update with existing install
-                        Main.Instance.Packs.Remove(info.Pack);
+                        ShirtManager.Instance.Packs.Remove(info.Pack);
                     }
 
                     if (uninstallRelease)
                     {
-                        await Main.Instance.Content.UninstallRelease(info, (progress) =>
+                        await ShirtManager.Instance.Content.UninstallRelease(info, (progress) =>
                         {
                             Stand.packBrowserStatus.text = string.Format("<size=60%>{0} / {1}</size><br>{2}", "1", stepCount.ToString(), "Removing Pack");
                             Stand.packBrowserRadial.fillAmount = progress;
@@ -217,7 +217,7 @@ namespace GorillaShirts.Models.StateMachine
                     {
                         Stand.packBrowserLabel.text = string.Format("Name: {0}<br>Version: {1}<line-height=120%><br><color=#FF4C4C>Please refrain from closing Gorilla Tag at this time!", info.Title, info.Version);
 
-                        await Main.Instance.Content.InstallRelease(info, (step, progress) =>
+                        await ShirtManager.Instance.Content.InstallRelease(info, (step, progress) =>
                         {
                             Stand.packBrowserStatus.text = string.Format("<size=60%>{0} / {1}</size><br>{2}", (step + 1 + stepOffset).ToString(), stepCount.ToString(), step switch
                             {
@@ -238,11 +238,11 @@ namespace GorillaShirts.Models.StateMachine
                     Stand.mainMenuRoot.SetActive(true);
                     Stand.mainSideBar.SetSidebarState(Sidebar.SidebarState.ReleaseView);
                     DisplayRelease();
-                    Main.Instance.CheckPlayerProperties();
+                    ShirtManager.Instance.CheckPlayerProperties();
                     return;
                 }
 
-                Main.Instance.PlayOhNoAudio();
+                ShirtManager.Instance.PlayOhNoAudio();
 
                 return;
             }

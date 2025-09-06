@@ -77,11 +77,11 @@ namespace GorillaShirts.Behaviours.UI
 
                 GorillaTagger.Instance.StartVibration(component.isLeftHand, GorillaTagger.Instance.tapHapticStrength / 1.5f, GorillaTagger.Instance.tapHapticDuration);
 
-                if (Main.HasInstance)
+                if (ShirtManager.HasInstance)
                 {
                     AudioSource audioDevice = component.isLeftHand ? GorillaTagger.Instance.offlineVRRig.leftHandPlayer : GorillaTagger.Instance.offlineVRRig.rightHandPlayer;
-                    audioDevice.GTPlayOneShot(Main.Instance.Audio[Models.EAudioType.ButtonPress], 0.35f);
-                    if (Main.Instance.MenuStateMachine.HasState) Main.Instance.MenuStateMachine.CurrentState.OnButtonPress(Type);
+                    audioDevice.GTPlayOneShot(ShirtManager.Instance.Audio[Models.EAudioType.ButtonPress], 0.35f);
+                    if (ShirtManager.Instance.MenuStateMachine.HasState) ShirtManager.Instance.MenuStateMachine.CurrentState.OnButtonPress(Type);
                 }
             }
         }

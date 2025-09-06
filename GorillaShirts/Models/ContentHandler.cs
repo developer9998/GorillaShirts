@@ -69,7 +69,7 @@ namespace GorillaShirts.Models
                     pack.Shirts = [];
                     packs.Add(packName, pack);
 
-                    foreach (ReleaseInfo info in Main.Instance.Releases)
+                    foreach (ReleaseInfo info in ShirtManager.Instance.Releases)
                     {
                         List<string> names = [info.Title];
                         if (info.AlsoKnownAs is not null && info.AlsoKnownAs.Length != 0) names.AddRange(info.AlsoKnownAs);
@@ -116,7 +116,7 @@ namespace GorillaShirts.Models
 
         public async Task LoadDefaultContent(bool notInstalledExclusive)
         {
-            if (Main.Instance.Releases is not null && Array.Find(Main.Instance.Releases, info => info.Title == "Default" && info.Rank == 0) is ReleaseInfo defaultRelease && (!notInstalledExclusive || defaultRelease.Pack == null))
+            if (ShirtManager.Instance.Releases is not null && Array.Find(ShirtManager.Instance.Releases, info => info.Title == "Default" && info.Rank == 0) is ReleaseInfo defaultRelease && (!notInstalledExclusive || defaultRelease.Pack == null))
             {
                 await InstallRelease(defaultRelease, (step, progress) =>
                 {
@@ -133,7 +133,7 @@ namespace GorillaShirts.Models
             {
                 FileInfo file = files[i];
 
-                if (Array.Find(Main.Instance.Shirts.Values.ToArray(), shirt => shirt.FileInfo.FullName == file.FullName) is IGorillaShirt shirt && shirt is T existingAsset && existingAsset.Bundle)
+                if (Array.Find(ShirtManager.Instance.Shirts.Values.ToArray(), shirt => shirt.FileInfo.FullName == file.FullName) is IGorillaShirt shirt && shirt is T existingAsset && existingAsset.Bundle)
                 {
                     await UnloadShirt(existingAsset, existingAsset is LegacyGorillaShirt && typeof(T) == typeof(GorillaShirt));
                 }
@@ -158,7 +158,7 @@ namespace GorillaShirts.Models
                     }
 
                     errorCount++;
-                    Main.Instance.PlayOhNoAudio();
+                    ShirtManager.Instance.PlayOhNoAudio();
                 }
                 else
                 {
@@ -344,7 +344,7 @@ namespace GorillaShirts.Models
                 if (!Directory.Exists(directoryName)) Directory.CreateDirectory(directoryName);
 
                 // existing shirt check (regardless of "loadContent" argument fyi)
-                if (Array.Find(Main.Instance.Shirts.Values.ToArray(), shirt => shirt.FileInfo.FullName == fileDestination) is IGorillaShirt shirt && shirt.Bundle)
+                if (Array.Find(ShirtManager.Instance.Shirts.Values.ToArray(), shirt => shirt.FileInfo.FullName == fileDestination) is IGorillaShirt shirt && shirt.Bundle)
                 {
                     Logging.Message($"Loaded shirt found at path to override");
                     Logging.Info(shirt.ToString());
@@ -368,7 +368,7 @@ namespace GorillaShirts.Models
             List<string> names = [info.Title];
             if (info.AlsoKnownAs is not null && info.AlsoKnownAs.Length != 0) names.AddRange(info.AlsoKnownAs);
 
-            foreach (PackDescriptor pack in Enumerable.Reverse(Main.Instance.Packs))
+            foreach (PackDescriptor pack in Enumerable.Reverse(ShirtManager.Instance.Packs))
             {
                 if (pack.Release is not null) continue;
 

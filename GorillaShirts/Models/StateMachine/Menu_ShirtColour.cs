@@ -81,15 +81,15 @@ namespace GorillaShirts.Models.StateMachine
             if (button == EButtonType.Return)
             {
                 Stand.Character.SetShirtColour(Shirt, Shirt.Colour);
-                Main.Instance.MenuStateMachine.SwitchState(PreviousState);
+                ShirtManager.Instance.MenuStateMachine.SwitchState(PreviousState);
                 return;
             }
 
             if (button == EButtonType.Button1)
             {
-                Main.Instance.ColourShirt(Shirt, colour, usePlayerColour);
+                ShirtManager.Instance.ColourShirt(Shirt, colour, usePlayerColour);
                 Stand.Character.SetShirtColour(Shirt, Shirt.Colour);
-                Main.Instance.MenuStateMachine.SwitchState(PreviousState);
+                ShirtManager.Instance.MenuStateMachine.SwitchState(PreviousState);
                 return;
             }
 

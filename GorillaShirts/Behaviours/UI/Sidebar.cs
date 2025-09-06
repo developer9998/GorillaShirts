@@ -91,8 +91,8 @@ namespace GorillaShirts.Behaviours.UI
 
         public void UpdateSidebar()
         {
-            sillyHeadObject.SetActive(Main.Instance.ShirtStand.Character.Preference == ECharacterPreference.Feminine);
-            steadyHeadObject.SetActive(Main.Instance.ShirtStand.Character.Preference == ECharacterPreference.Masculine);
+            sillyHeadObject.SetActive(ShirtManager.Instance.ShirtStand.Character.Preference == ECharacterPreference.Feminine);
+            steadyHeadObject.SetActive(ShirtManager.Instance.ShirtStand.Character.Preference == ECharacterPreference.Masculine);
             tagOffsetText.text = HumanoidContainer.LocalHumanoid.NameTagOffset.ToString();
         }
 

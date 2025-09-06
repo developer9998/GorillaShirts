@@ -131,7 +131,7 @@ namespace GorillaShirts.Behaviours.Networking
 
                         foreach (IGorillaShirt shirt in currentShirts)
                         {
-                            if (shirt.Bundle && Main.Instance.Shirts.ContainsValue(shirt) && shirtPreferences.Contains(shirt.ShirtId)) continue;
+                            if (shirt.Bundle && ShirtManager.Instance.Shirts.ContainsValue(shirt) && shirtPreferences.Contains(shirt.ShirtId)) continue;
                             shirtsToRemove.Add(shirt);
                         }
 
@@ -153,12 +153,12 @@ namespace GorillaShirts.Behaviours.Networking
 
                             IGorillaShirt shirt = null;
 
-                            if (Main.Instance.Shirts.ContainsKey(preference))
+                            if (ShirtManager.Instance.Shirts.ContainsKey(preference))
                             {
-                                shirt = Main.Instance.Shirts[preference];
+                                shirt = ShirtManager.Instance.Shirts[preference];
                                 Logging.Info($"{shirt.Descriptor?.ShirtName ?? shirt.ShirtId}");
                             }
-                            else if (playerFallbacks.Count > i && playerFallbacks.ElementAtOrDefault(i) != EShirtFallback.None && Main.Instance.GetShirtFromFallback(playerFallbacks[i]) is IGorillaShirt fallbackShirt)
+                            else if (playerFallbacks.Count > i && playerFallbacks.ElementAtOrDefault(i) != EShirtFallback.None && ShirtManager.Instance.GetShirtFromFallback(playerFallbacks[i]) is IGorillaShirt fallbackShirt)
                             {
                                 shirt = fallbackShirt;
                                 Logging.Info($"{fallbackShirt.Descriptor?.ShirtName ?? fallbackShirt.ShirtId} (fallback)");
@@ -176,12 +176,12 @@ namespace GorillaShirts.Behaviours.Networking
                         if (shirtsToWear.Count > 0)
                         {
                             shirtsToWear.ForEach(playerHumanoid.UnionShirt);
-                            Main.Instance.PlayShirtWearSound(playerHumanoid.Rig, shirts: [.. shirtsToWear]);
+                            ShirtManager.Instance.PlayShirtWearSound(playerHumanoid.Rig, shirts: [.. shirtsToWear]);
                         }
                         else if (shirtsToRemove.Count > 0)
                         {
                             shirtsToRemove.ForEach(playerHumanoid.NegateShirt);
-                            Main.Instance.PlayShirtRemoveSound(playerHumanoid.Rig, shirts: [.. shirtsToRemove]);
+                            ShirtManager.Instance.PlayShirtRemoveSound(playerHumanoid.Rig, shirts: [.. shirtsToRemove]);
                         }
 
                         //Logging.Info($"Colour Data: {shirtToColourData.Count} entries");

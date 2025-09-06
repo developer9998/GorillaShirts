@@ -30,7 +30,8 @@ namespace GorillaShirts.Behaviours
             MainSkin = Rig.mainSkin;
             FaceSkin = Rig.faceSkin;
 
-            PlayerNameTags = [Rig.playerText1, Rig.playerText2];
+            PlayerNameTags = [Rig.playerText1];
+            NameTagZOffset = Rig.playerText1.transform.localPosition.z;
 
             if (LocalHumanoid == null && (Rig.isOfflineVRRig || Rig.isLocal || (Rig.Creator is NetPlayer creator && creator.IsLocal)))
             {

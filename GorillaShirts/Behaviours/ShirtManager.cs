@@ -20,9 +20,9 @@ using UnityEngine.Networking;
 
 namespace GorillaShirts.Behaviours
 {
-    internal class Main : MonoBehaviour
+    internal class ShirtManager : MonoBehaviour
     {
-        public static Main Instance { get; private set; }
+        public static ShirtManager Instance { get; private set; }
         public static bool HasInstance => Instance != null;
 
         public Stand ShirtStand = null;

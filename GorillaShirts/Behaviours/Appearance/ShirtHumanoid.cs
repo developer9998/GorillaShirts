@@ -31,6 +31,8 @@ namespace GorillaShirts.Behaviours.Appearance
 
         public TMP_Text[] PlayerNameTags;
 
+        public float NameTagZOffset = 0f;
+
         public Dictionary<IGorillaShirt, List<GameObject>> Objects = [];
 
         public Dictionary<IGorillaShirt, Dictionary<EShirtAnchor, Transform>> Anchors = [];
@@ -277,7 +279,7 @@ namespace GorillaShirts.Behaviours.Appearance
         internal void MoveNameTagTransform(Transform transform, float offset)
         {
             Vector3 offsetVector = transform.localPosition;
-            offsetVector.z = (float)-offset * 5;
+            offsetVector.z = NameTagZOffset + ((float)-offset * 5);
             transform.localPosition = offsetVector;
         }
 

@@ -8,7 +8,7 @@ namespace GorillaShirts.Extensions
 {
     public static class TaskExtensions
     {
-        private static MonoBehaviour MonoBehaviour => Main.HasInstance ? Main.Instance : ThreadingHelper.Instance;
+        private static MonoBehaviour MonoBehaviour => ShirtManager.HasInstance ? ShirtManager.Instance : ThreadingHelper.Instance;
 
         public static async Task YieldAsync(this YieldInstruction instruction)
         {
