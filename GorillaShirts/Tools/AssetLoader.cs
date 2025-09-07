@@ -80,12 +80,13 @@ namespace GorillaShirts.Tools
 
             if (request.result == UnityWebRequest.Result.Success)
             {
-                Texture2D texture2D = DownloadHandlerTexture.GetContent(request);
-                texture2D.Compress(true);
-                texture2D.Apply();
+                Texture2D sourceTexture = DownloadHandlerTexture.GetContent(request);
+                Texture2D newTexture = new(sourceTexture.width, sourceTexture.height, sourceTexture.format, false);
+                newTexture.SetPixels(sourceTexture.GetPixels());
+                newTexture.Apply();
 
-                completionSource.TrySetResult(texture2D);
-                return texture2D;
+                completionSource.TrySetResult(newTexture);
+                return newTexture;
             }
 
             Logging.Fatal($"Result for web request: {request.result}");
