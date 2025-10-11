@@ -14,7 +14,7 @@ using System.Linq;
 
 namespace GorillaShirts.Behaviours.UI
 {
-    public class Stand : MonoBehaviour
+    internal class Stand : MonoBehaviour
     {
         public GameObject Root;
 

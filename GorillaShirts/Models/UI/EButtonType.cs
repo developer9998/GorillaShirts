@@ -1,6 +1,6 @@
 ﻿namespace GorillaShirts.Models.UI
 {
-    public enum EButtonType
+    internal enum EButtonType
     {
         NavigateSelect,
         NavigateIncrease,

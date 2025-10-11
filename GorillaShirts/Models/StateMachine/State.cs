@@ -1,6 +1,6 @@
 ﻿namespace GorillaShirts.Models.StateMachine
 {
-    public class State
+    internal class State
     {
         protected bool initialized;
 

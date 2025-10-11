@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace GorillaShirts.Behaviours.UI
 {
-    public class PushButton : MonoBehaviour
+    internal class PushButton : MonoBehaviour
     {
         public GameObject Root;
 

@@ -99,7 +99,7 @@ namespace GorillaShirts.Models.StateMachine
                     ShirtManager.Instance.MenuStateMachine.SwitchState(PreviousState);
                     return;
                 case EButtonType.CustomColour:
-                    ShirtManager.Instance.MenuStateMachine.SwitchState(new Menu_ShirtColour(Stand, this, pack.Shirts[pack.Selection]));
+                    ShirtManager.Instance.MenuStateMachine.SwitchState(new Menu_ShirtCustomColour(Stand, this, pack.Shirts[pack.Selection]));
                     return;
             }
 

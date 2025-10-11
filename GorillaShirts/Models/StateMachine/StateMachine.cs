@@ -1,6 +1,6 @@
 ﻿namespace GorillaShirts.Models.StateMachine
 {
-    public class StateMachine<T> where T : State
+    internal class StateMachine<T> where T : State
     {
         public T CurrentState => currentState;
         public bool HasState => currentState is not null;
