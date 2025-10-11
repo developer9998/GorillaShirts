@@ -33,6 +33,8 @@ namespace GorillaShirts.Behaviours.Networking
 
         private Random irrelevantRandom, relevantRandom;
 
+        private int? irrelevantIndex, relevantIndex;
+
         private bool hasDefaultShirt = false;
 
         public void Start()
@@ -100,8 +102,19 @@ namespace GorillaShirts.Behaviours.Networking
 
             var shirts = ShirtManager.Instance.Shirts.Values;
             if (shirts == null || shirts.Count == 0) return;
-            var random = Plugin.DefaultShirtMode.Value == EDefaultShirtMode.RelevantPlayer ? relevantRandom : irrelevantRandom;
-            playerHumanoid.SetShirt(shirts.ElementAt(random.Next(0, shirts.Count)));
+
+            if (Plugin.DefaultShirtMode.Value == EDefaultShirtMode.RelevantPlayer && !relevantIndex.HasValue)
+            {
+                relevantIndex = relevantRandom.Next(0, shirts.Count);
+            }
+
+            if (Plugin.DefaultShirtMode.Value == EDefaultShirtMode.IrrelevantPlayer && !irrelevantIndex.HasValue)
+            {
+                irrelevantIndex = irrelevantRandom.Next(0, shirts.Count);
+            }
+
+            var index = (Plugin.DefaultShirtMode.Value == EDefaultShirtMode.RelevantPlayer ? relevantIndex : irrelevantIndex).GetValueOrDefault(0);
+            playerHumanoid.SetShirt(shirts.ElementAt(index));
         }
 
         public void RemoveDefaultShirt()
