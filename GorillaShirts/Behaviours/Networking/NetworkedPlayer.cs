@@ -129,9 +129,10 @@ namespace GorillaShirts.Behaviours.Networking
         {
             if (player == Creator)
             {
-                Logging.Message($"{player.NickName}: Updated properties");
+                Logging.Message($"{player.NickName}: updated properties");
+                Logging.Info(string.Join(", ", properties.Select(prop => $"[{prop.Key}: {prop.Value}]")));
 
-                //Logging.Info(string.Join(", ", properties.Select(prop => $"[{prop.Key}: {prop.Value}]")));
+                if (hasDefaultShirt) RemoveDefaultShirt();
 
                 try
                 {
@@ -196,8 +197,6 @@ namespace GorillaShirts.Behaviours.Networking
                     if (properties.TryGetValue("Shirts", out object shirtsObject) && shirtsObject is string[] shirtPreferences)
                     {
                         Logging.Info($"Shirts: {string.Join(", ", shirtPreferences)}");
-
-                        if (hasDefaultShirt) RemoveDefaultShirt();
 
                         List<IGorillaShirt> shirtsToRemove = [];
                         List<IGorillaShirt> currentShirts = [.. playerHumanoid.Shirts];
