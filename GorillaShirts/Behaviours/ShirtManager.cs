@@ -48,6 +48,8 @@ namespace GorillaShirts.Behaviours
 
         private bool initialized;
 
+        public event Action<bool> OnPacksLoadedEvent;
+
         public async void Awake()
         {
             if (Instance != null && Instance != this)
@@ -55,6 +57,7 @@ namespace GorillaShirts.Behaviours
                 Destroy(this);
                 return;
             }
+
             Instance = this;
 
             GameObject standObject = Instantiate(await AssetLoader.LoadAsset<GameObject>(Constants.StandAssetName));
@@ -199,6 +202,8 @@ namespace GorillaShirts.Behaviours
             Content.OnPackUnloaded += OnPackUnloaded;
             Content.OnShirtUnloaded += OnShirtUnloaded;
             Content.LoadContent();
+
+            Plugin.DefaultShirtMode.SettingChanged += (sender, args) => ForEachNetworkedPlayer(player => player.AddDefaultShirt());
         }
 
         public void OnPacksLoaded(List<PackDescriptor> content)
@@ -287,6 +292,8 @@ namespace GorillaShirts.Behaviours
             else menuState_PackList.Packs = Packs;
 
             CheckPlayerProperties();
+
+            OnPacksLoadedEvent?.Invoke(isInitialList);
         }
 
         public void OnShirtUnloaded(IGorillaShirt unloadedShirt)
@@ -352,14 +359,16 @@ namespace GorillaShirts.Behaviours
             MenuStateMachine?.Update();
         }
 
-        public void CheckPlayerProperties()
+        public void CheckPlayerProperties() => ForEachNetworkedPlayer(player => player.CheckProperties());
+
+        private void ForEachNetworkedPlayer(Action<NetworkedPlayer> action)
         {
             if (!NetworkSystem.Instance.InRoom || !VRRigCache.isInitialized) return;
 
             foreach (RigContainer playerRig in VRRigCache.rigsInUse.Values)
             {
                 if (!playerRig.TryGetComponent(out NetworkedPlayer component)) continue;
-                component.CheckProperties();
+                action(component);
             }
         }
 

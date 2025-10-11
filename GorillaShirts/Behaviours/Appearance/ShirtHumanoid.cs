@@ -49,6 +49,27 @@ namespace GorillaShirts.Behaviours.Appearance
 
         public Dictionary<string, ShirtColour> ShirtColours = [];
 
+        private bool hasUnloadInvocation;
+
+        public void OnDestroy()
+        {
+            if (hasUnloadInvocation)
+            {
+                hasUnloadInvocation = false;
+                ShirtManager.Instance.Content.OnShirtUnloaded -= OnShirtUnload;
+            }
+        }
+
+        public virtual void OnShirtWorn()
+        {
+
+        }
+
+        public virtual void OnShirtRemoved()
+        {
+
+        }
+
         public void SetShirt(IGorillaShirt shirt) => SetShirts(shirt is not null ? [shirt] : []);
 
         public void ClearShirts() => SetShirts([]);
@@ -168,6 +189,12 @@ namespace GorillaShirts.Behaviours.Appearance
                 }
             }
 
+            if (!hasUnloadInvocation)
+            {
+                hasUnloadInvocation = true;
+                ShirtManager.Instance.Content.OnShirtUnloaded += OnShirtUnload;
+            }
+
         ApplyCheck:
 
             var finalShirts = shirt.Concat(Shirts);
@@ -248,15 +275,6 @@ namespace GorillaShirts.Behaviours.Appearance
             MoveNameTag();
         }
 
-        public virtual void OnShirtWorn()
-        {
-
-        }
-
-        public virtual void OnShirtRemoved()
-        {
-
-        }
 
         public virtual void MoveNameTag()
         {
@@ -319,6 +337,10 @@ namespace GorillaShirts.Behaviours.Appearance
             }
         }
 
+        private void OnShirtUnload(IGorillaShirt shirtToUnload)
+        {
+            if (HumanoidContainer.LocalHumanoid != this && shirtToUnload != null && Shirts.Contains(shirtToUnload)) NegateShirt(shirtToUnload);
+        }
 #endif
     }
 }

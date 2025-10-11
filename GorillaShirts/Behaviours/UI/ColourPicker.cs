@@ -11,12 +11,5 @@ namespace GorillaShirts.Behaviours.UI
         public Slider SliderR, SliderG, SliderB;
 
         public Image ColourPreview;
-
-#if PLUGIN
-        public void Update()
-        {
-
-        }
-#endif
     }
 }

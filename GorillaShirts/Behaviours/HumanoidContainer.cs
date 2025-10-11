@@ -44,7 +44,7 @@ namespace GorillaShirts.Behaviours
             RigLocalInvisiblityPatch.OnSetInvisibleToLocalPlayer += OnLocalInvisibilityChanged;
         }
 
-        public void OnDestroy()
+        public new void OnDestroy()
         {
             ClearShirts();
             OffsetNameTag(0);

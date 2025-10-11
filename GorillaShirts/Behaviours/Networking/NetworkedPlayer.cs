@@ -7,7 +7,10 @@ using Photon.Realtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using UnityEngine;
+using Random = System.Random;
 
 namespace GorillaShirts.Behaviours.Networking
 {
@@ -28,15 +31,31 @@ namespace GorillaShirts.Behaviours.Networking
 
         private readonly List<int> colourData = [];
 
+        private Random irrelevantRandom, relevantRandom;
+
+        private bool hasDefaultShirt = false;
+
         public void Start()
         {
             NetworkManager.Instance.OnPlayerPropertyChanged += OnPlayerPropertyChanged;
+            ShirtManager.Instance.OnPacksLoadedEvent += OnPacksLoaded;
 
             playerHumanoid = gameObject.GetOrAddComponent<HumanoidContainer>();
 
             Creator_PunRef = (Creator is PunNetPlayer punNetPlayer && punNetPlayer.PlayerRef is not null) ? punNetPlayer.PlayerRef : PhotonNetwork.CurrentRoom.GetPlayer(Creator.ActorNumber);
 
-            if (!IsShirtUser) CheckProperties();
+            if (!IsShirtUser)
+            {
+                irrelevantRandom = new();
+
+                using SHA256 sha = SHA256.Create();
+                byte[] hash = sha.ComputeHash(Encoding.UTF8.GetBytes(Creator.UserId));
+                int seed = BitConverter.ToInt32(hash, 0);
+                relevantRandom = new(seed);
+
+                AddDefaultShirt();
+                CheckProperties();
+            }
 
             // humanoid.WearShirt(Main.Instance.Shirts.GetRandomItem());
         }
@@ -44,6 +63,11 @@ namespace GorillaShirts.Behaviours.Networking
         public void OnDestroy()
         {
             NetworkManager.Instance.OnPlayerPropertyChanged -= OnPlayerPropertyChanged;
+            ShirtManager.Instance.OnPacksLoadedEvent -= OnPacksLoaded;
+
+            // finalize
+            irrelevantRandom = null;
+            relevantRandom = null;
 
             if (playerHumanoid != null && playerHumanoid) Destroy(playerHumanoid);
         }
@@ -52,6 +76,40 @@ namespace GorillaShirts.Behaviours.Networking
         {
             if (Creator_PunRef is null) return;
             NetworkManager.Instance.OnPlayerPropertiesUpdate(Creator_PunRef, Creator_PunRef.CustomProperties);
+        }
+
+        public void AddDefaultShirt() => OnPacksLoaded(true);
+
+        private void OnPacksLoaded(bool isInitialList)
+        {
+            if (!isInitialList || IsShirtUser) return;
+
+            if (Plugin.DefaultShirtMode.Value == EDefaultShirtMode.None)
+            {
+                RemoveDefaultShirt();
+                return;
+            }
+
+            hasDefaultShirt = true;
+
+            if (Plugin.DefaultShirtMode.Value == EDefaultShirtMode.Shared)
+            {
+                playerHumanoid.SetShirts(HumanoidContainer.LocalHumanoid.Shirts ?? []);
+                return;
+            }
+
+            var shirts = ShirtManager.Instance.Shirts.Values;
+            if (shirts == null || shirts.Count == 0) return;
+            var random = Plugin.DefaultShirtMode.Value == EDefaultShirtMode.RelevantPlayer ? relevantRandom : irrelevantRandom;
+            playerHumanoid.SetShirt(shirts.ElementAt(random.Next(0, shirts.Count)));
+        }
+
+        public void RemoveDefaultShirt()
+        {
+            if (!hasDefaultShirt) return;
+
+            hasDefaultShirt = false;
+            playerHumanoid.ClearShirts();
         }
 
         public void OnPlayerPropertyChanged(NetPlayer player, Dictionary<string, object> properties)
@@ -125,6 +183,8 @@ namespace GorillaShirts.Behaviours.Networking
                     if (properties.TryGetValue("Shirts", out object shirtsObject) && shirtsObject is string[] shirtPreferences)
                     {
                         Logging.Info($"Shirts: {string.Join(", ", shirtPreferences)}");
+
+                        if (hasDefaultShirt) RemoveDefaultShirt();
 
                         List<IGorillaShirt> shirtsToRemove = [];
                         List<IGorillaShirt> currentShirts = [.. playerHumanoid.Shirts];

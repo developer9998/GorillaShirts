@@ -24,7 +24,6 @@ namespace GorillaShirts.Tools
             Stream stream = typeof(Plugin).Assembly.GetManifestResourceStream(Constants.AssetBundleName);
 
             AssetBundleCreateRequest request = AssetBundle.LoadFromStreamAsync(stream);
-            request.priority = 10;
             request.completed += _ => completionSource.SetResult(request.assetBundle);
 
             loadedBundle = await completionSource.Task;
@@ -52,7 +51,6 @@ namespace GorillaShirts.Tools
             }
 
             AssetBundleRequest request = loadedBundle.LoadAssetAsync<T>(assetName);
-            request.priority = 8;
             request.completed += _ => completionSource.TrySetResult(request.asset);
 
             Object result = await completionSource.Task;
@@ -66,27 +64,23 @@ namespace GorillaShirts.Tools
 
             if (textureCache.TryGetValue(url, out TaskCompletionSource<Texture2D> completionSource))
             {
-                Texture2D completedTex = completionSource.Task.IsCompleted ? completionSource.Task.Result : await completionSource.Task;
-                return completedTex;
+                Texture2D texture = completionSource.Task.IsCompleted ? completionSource.Task.Result : await completionSource.Task;
+                return texture;
             }
 
             completionSource = new();
             textureCache.Add(url, completionSource);
 
-            using UnityWebRequest request = UnityWebRequestTexture.GetTexture(url);
+            using UnityWebRequest request = UnityWebRequest.Get(url);
             UnityWebRequestAsyncOperation operation = request.SendWebRequest();
-            operation.priority = 8;
             await operation;
 
             if (request.result == UnityWebRequest.Result.Success)
             {
-                Texture2D sourceTexture = DownloadHandlerTexture.GetContent(request);
-                Texture2D newTexture = new(sourceTexture.width, sourceTexture.height, sourceTexture.format, false);
-                newTexture.SetPixels(sourceTexture.GetPixels());
-                newTexture.Apply();
-
-                completionSource.TrySetResult(newTexture);
-                return newTexture;
+                Texture2D texture = new(2, 2, TextureFormat.RGB24, false);
+                texture.LoadImage(request.downloadHandler.data);
+                completionSource.TrySetResult(texture);
+                return texture;
             }
 
             Logging.Fatal($"Result for web request: {request.result}");
