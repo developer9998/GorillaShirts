@@ -316,7 +316,7 @@ namespace GorillaShirts.Behaviours.Appearance
         {
             if (Objects.TryGetValue(shirt, out List<GameObject> shirtObjects))
             {
-                foreach(GameObject gameObject in shirtObjects)
+                foreach (GameObject gameObject in shirtObjects)
                 {
                     if (!gameObject.TryGetComponent(out ShirtColourProfile profile)) continue;
 

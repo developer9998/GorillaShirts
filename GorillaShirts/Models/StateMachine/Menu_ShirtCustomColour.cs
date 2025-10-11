@@ -88,7 +88,7 @@ namespace GorillaShirts.Models.StateMachine
 
         public override void OnButtonPress(EButtonType button)
         {
-            switch(button)
+            switch (button)
             {
                 case EButtonType.Button1: // submit custom colour
                     ShirtManager.Instance.ColourShirt(Shirt, Colour, UsePlayerColour);
