@@ -6,7 +6,7 @@
 
         public const string Name = "GorillaShirts";
 
-        public const string Version = "2.3.1";
+        public const string Version = "2.3.2";
 
         public const string AssetBundleName = "GorillaShirts.Content.legacyshirtbundle";
 
