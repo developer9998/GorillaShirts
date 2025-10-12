@@ -34,7 +34,9 @@ namespace GorillaShirts.Behaviours.UI
 
         public GameObject loadMenuRoot;
 
-        public Image loadRadial;
+        public UnityEngine.UI.Slider loadSlider;
+
+        //public Image loadRadial;
 
         public TMP_Text loadPercent;
 

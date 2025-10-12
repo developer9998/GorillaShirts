@@ -203,9 +203,11 @@ namespace GorillaShirts.Models.StateMachine
 
                     if (uninstallRelease)
                     {
+                        Stand.packBrowserLabel.text = "";
+
                         await ShirtManager.Instance.Content.UninstallRelease(info, (progress) =>
                         {
-                            Stand.packBrowserStatus.text = string.Format("<size=60%>{0} / {1}</size><br>{2}", "1", stepCount.ToString(), "Removing Pack");
+                            Stand.packBrowserStatus.text = string.Format("<cspace=-0.1em><size=60%>{0} / {1}</size></cspace><br>{2}", "1", stepCount.ToString(), "Removing Pack");
                             Stand.packBrowserRadial.fillAmount = progress;
                             Stand.packBrowserPercent.text = $"{Mathf.FloorToInt(progress * 100)}%";
                         });
@@ -215,11 +217,11 @@ namespace GorillaShirts.Models.StateMachine
 
                     if (installRelease)
                     {
-                        Stand.packBrowserLabel.text = string.Format("Name: {0}<br>Version: {1}<line-height=120%><br><color=#FF4C4C>Please refrain from closing Gorilla Tag at this time!", info.Title, info.Version);
+                        Stand.packBrowserLabel.text = string.Format("Name : {0}<br>Version : {1}<line-height=140%><br><color=#FF4C4C>Please refrain from closing Gorilla Tag at this time!", info.Title, info.Version);
 
                         await ShirtManager.Instance.Content.InstallRelease(info, (step, progress) =>
                         {
-                            Stand.packBrowserStatus.text = string.Format("<size=60%>{0} / {1}</size><br>{2}", (step + 1 + stepOffset).ToString(), stepCount.ToString(), step switch
+                            Stand.packBrowserStatus.text = string.Format("<cspace=-0.1em><size=60%>{0} / {1}</size></cspace><br>{2}", (step + 1 + stepOffset).ToString(), stepCount.ToString(), step switch
                             {
                                 0 => "Downloading Pack",
                                 1 => "Installing Pack",

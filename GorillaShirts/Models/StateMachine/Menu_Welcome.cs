@@ -1,4 +1,6 @@
-﻿using GorillaShirts.Behaviours.UI;
+﻿using GorillaShirts.Behaviours;
+using GorillaShirts.Behaviours.UI;
+using GorillaShirts.Models.UI;
 
 namespace GorillaShirts.Models.StateMachine
 {
@@ -8,6 +10,12 @@ namespace GorillaShirts.Models.StateMachine
         {
             base.Enter();
             Stand.welcomeMenuRoot.SetActive(true);
+        }
+
+        public override void OnButtonPress(EButtonType button)
+        {
+            base.OnButtonPress(button);
+            ShirtManager.Instance.Initialize();
         }
 
         public override void Exit()
