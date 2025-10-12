@@ -23,7 +23,7 @@ namespace GorillaShirts.Behaviours.Networking
 
         public NetPlayer Creator;
 
-        public Player Creator_PunRef;
+        public Player PlayerRef;
 
         private HumanoidContainer playerHumanoid;
 
@@ -31,11 +31,11 @@ namespace GorillaShirts.Behaviours.Networking
 
         private readonly List<int> colourData = [];
 
+        private bool hasDefaultShirt = false;
+
         private Random irrelevantRandom, relevantRandom;
 
         private int? irrelevantIndex, relevantIndex;
-
-        private bool hasDefaultShirt = false;
 
         public void Start()
         {
@@ -44,17 +44,10 @@ namespace GorillaShirts.Behaviours.Networking
 
             playerHumanoid = gameObject.GetOrAddComponent<HumanoidContainer>();
 
-            Creator_PunRef = (Creator is PunNetPlayer punNetPlayer && punNetPlayer.PlayerRef is not null) ? punNetPlayer.PlayerRef : PhotonNetwork.CurrentRoom.GetPlayer(Creator.ActorNumber);
+            PlayerRef = (Creator is PunNetPlayer punNetPlayer) ? punNetPlayer.PlayerRef : PhotonNetwork.CurrentRoom.GetPlayer(Creator.ActorNumber);
 
             if (!IsShirtUser)
             {
-                irrelevantRandom = new();
-
-                using SHA256 sha = SHA256.Create();
-                byte[] hash = sha.ComputeHash(Encoding.UTF8.GetBytes(Creator.UserId));
-                int seed = BitConverter.ToInt32(hash, 0);
-                relevantRandom = new(seed);
-
                 AddDefaultShirt();
                 CheckProperties();
             }
@@ -76,8 +69,8 @@ namespace GorillaShirts.Behaviours.Networking
 
         public void CheckProperties()
         {
-            if (Creator_PunRef is null) return;
-            NetworkManager.Instance.OnPlayerPropertiesUpdate(Creator_PunRef, Creator_PunRef.CustomProperties);
+            if (PlayerRef is null) return;
+            NetworkManager.Instance.OnPlayerPropertiesUpdate(PlayerRef, PlayerRef.CustomProperties);
         }
 
         public void AddDefaultShirt() => OnPacksLoaded(true);
@@ -101,19 +94,44 @@ namespace GorillaShirts.Behaviours.Networking
             }
 
             var shirts = ShirtManager.Instance.Shirts.Values;
-            if (shirts == null || shirts.Count == 0) return;
-
-            if (Plugin.DefaultShirtMode.Value == EDefaultShirtMode.RelevantPlayer && !relevantIndex.HasValue)
+            if (shirts == null || shirts.Count == 0)
             {
-                relevantIndex = relevantRandom.Next(0, shirts.Count);
+                RemoveDefaultShirt();
+                return;
             }
 
-            if (Plugin.DefaultShirtMode.Value == EDefaultShirtMode.IrrelevantPlayer && !irrelevantIndex.HasValue)
+            int index = -1;
+
+            switch (Plugin.DefaultShirtMode.Value)
             {
-                irrelevantIndex = irrelevantRandom.Next(0, shirts.Count);
+                case EDefaultShirtMode.IrrelevantPlayer:
+                    if (!irrelevantIndex.HasValue)
+                    {
+                        irrelevantRandom = new();
+                        irrelevantIndex = irrelevantRandom.Next(0, shirts.Count);
+                    }
+                    index = irrelevantIndex.Value;
+                    break;
+
+                case EDefaultShirtMode.RelevantPlayer:
+                    if (!relevantIndex.HasValue)
+                    {
+                        using SHA256 sha = SHA256.Create();
+                        byte[] hash = sha.ComputeHash(Encoding.UTF8.GetBytes(Creator.UserId));
+                        int seed = BitConverter.ToInt32(hash, 0);
+                        relevantRandom = new(seed);
+                        relevantIndex = relevantRandom.Next(0, shirts.Count);
+                    }
+                    index = relevantIndex.Value;
+                    break;
             }
 
-            var index = (Plugin.DefaultShirtMode.Value == EDefaultShirtMode.RelevantPlayer ? relevantIndex : irrelevantIndex).GetValueOrDefault(0);
+            if (index == -1)
+            {
+                RemoveDefaultShirt();
+                return;
+            }
+
             playerHumanoid.SetShirt(shirts.ElementAt(index));
         }
 
