@@ -74,11 +74,11 @@ Listed below are instructions regarding a handful of circumstances, but mostly s
 
 Method 1 refers to the automatic process of a program downloading and installing ``GorillaShirts`` before you. Though with most applications you download, please be cautious of malware and RATs, those unfortunately circulate more than you think.
 
-A program capable of this method is **MonkeModManager**. There are two instances of the application you can use:
+A program capable of this method is **MonkeModManager**:
 
-- @arielthemonke Version
   - [Windows Download](https://github.com/arielthemonke/MonkeModManager/releases/latest/download/MonkeModManager.exe)
   - [Linux Download](https://github.com/arielthemonke/MonkeModManager/releases/latest/download/MonkeModManager.Linux)
+
 
 Using either version, under the "Cosmetic" section, "GorillaShirts" can be located. You can proceed to select the mod and start the installation/update process.
 
