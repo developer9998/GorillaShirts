@@ -26,8 +26,8 @@ namespace GorillaShirts.Behaviours.UI
 
         public void Awake()
         {
-            leftHandEstimator = GTPlayer.Instance.leftControllerTransform.gameObject.GetOrAddComponent<GorillaVelocityEstimator>();
-            rightHandEstimator = GTPlayer.Instance.rightControllerTransform.gameObject.GetOrAddComponent<GorillaVelocityEstimator>();
+            leftHandEstimator = GTPlayer.Instance.leftHand.controllerTransform.gameObject.GetOrAddComponent<GorillaVelocityEstimator>();
+            rightHandEstimator = GTPlayer.Instance.RightHand.controllerTransform.gameObject.GetOrAddComponent<GorillaVelocityEstimator>();
         }
 
         public void OnTriggerEnter(Collider other)
