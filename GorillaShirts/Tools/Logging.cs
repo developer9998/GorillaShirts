@@ -2,9 +2,9 @@
 
 namespace GorillaShirts.Tools
 {
-    public static class Logging
+    internal static class Logging
     {
-        private static ManualLogSource Logger => Plugin.Logger;
+        public static ManualLogSource Logger => Plugin.Logger;
 
         public static void Message(object data) => Log(LogLevel.Message, data);
 

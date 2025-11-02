@@ -32,9 +32,7 @@ namespace GorillaShirts.Behaviours.Appearance
 
 #if PLUGIN
 
-        public ECharacterPreference Preference;
-
-        public event Action<ECharacterPreference> OnPreferenceSet;
+        public CharacterPreference Preference;
 
         private Transform fallbackNameAnchor;
 
@@ -42,24 +40,24 @@ namespace GorillaShirts.Behaviours.Appearance
 
         public EShirtFallback PreferredFallback => Preference switch
         {
-            ECharacterPreference.Masculine => EShirtFallback.SteadyHoodie,
-            ECharacterPreference.Feminine => EShirtFallback.SillyCroptop,
+            CharacterPreference.Masculine => EShirtFallback.SteadyHoodie,
+            CharacterPreference.Feminine => EShirtFallback.SillyCroptop,
             _ => EShirtFallback.None
         };
 
-        public void SetAppearence(ECharacterPreference preference)
+        public void SetAppearence(CharacterPreference preference)
         {
             Preference = preference;
 
             switch (preference)
             {
-                case ECharacterPreference.Masculine:
+                case CharacterPreference.Masculine:
                     mascAccessory.enabled = true;
                     femAccessory.enabled = false;
                     characterNameText.text = mascIdentity;
                     MainSkin.material.color = mascColour;
                     break;
-                case ECharacterPreference.Feminine:
+                case CharacterPreference.Feminine:
                     mascAccessory.enabled = false;
                     femAccessory.enabled = true;
                     characterNameText.text = femIdentity;
@@ -75,8 +73,6 @@ namespace GorillaShirts.Behaviours.Appearance
                     colourProfile.SetPlayerColour(MainSkin.material.color);
                 }
             }
-
-            OnPreferenceSet?.Invoke(preference);
         }
 
         public void WearSignatureShirt()

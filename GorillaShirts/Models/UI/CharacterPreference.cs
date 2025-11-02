@@ -1,6 +1,6 @@
 ﻿namespace GorillaShirts.Models.UI
 {
-    public enum ECharacterPreference
+    public enum CharacterPreference
     {
         Masculine, // Steady
         Feminine // Silly

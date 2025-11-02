@@ -18,10 +18,13 @@ namespace GorillaShirts
     internal class Plugin : BaseUnityPlugin
     {
         public static new PluginInfo Info;
+
         public static new ManualLogSource Logger;
 
-        public static ConfigEntry<ECharacterPreference> StandCharacter;
+        public static ConfigEntry<CharacterPreference> StandCharacter;
+
         public static ConfigEntry<string> Favourites;
+
         public static ConfigEntry<EDefaultShirtMode> DefaultShirtMode;
 
         public void Awake()
@@ -33,7 +36,7 @@ namespace GorillaShirts
 
             Favourites = Config.Bind("Preferences", "Favourites", JsonConvert.SerializeObject(Enumerable.Empty<string>()), "A collection of shirts favourited by the player");
 
-            var characters = Enum.GetValues(typeof(ECharacterPreference)).Cast<ECharacterPreference>().ToArray();
+            var characters = Enum.GetValues(typeof(CharacterPreference)).Cast<CharacterPreference>().ToArray();
             StandCharacter = Config.Bind("Appearance", "Stand Character Identity", characters[UnityEngine.Random.Range(0, characters.Length)], "The gender identity of the character present at the shirt stand");
 
             DefaultShirtMode = Config.Bind("Appearance", "Default Shirt Mode", EDefaultShirtMode.None, "The method used for how shirts are worn by players without the mod, known as default shirts");

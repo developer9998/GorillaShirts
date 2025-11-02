@@ -80,7 +80,7 @@ namespace GorillaShirts.Behaviours.UI
                 if (ShirtManager.HasInstance)
                 {
                     AudioSource audioDevice = component.isLeftHand ? GorillaTagger.Instance.offlineVRRig.leftHandPlayer : GorillaTagger.Instance.offlineVRRig.rightHandPlayer;
-                    audioDevice.GTPlayOneShot(ShirtManager.Instance.Audio[Models.EAudioType.ButtonPress], 0.35f);
+                    audioDevice.GTPlayOneShot(ShirtManager.Instance.Audio[Models.SoundType.ButtonPress], 0.35f);
                     if (ShirtManager.Instance.MenuStateMachine.HasState) ShirtManager.Instance.MenuStateMachine.CurrentState.OnButtonPress(Type);
                 }
             }

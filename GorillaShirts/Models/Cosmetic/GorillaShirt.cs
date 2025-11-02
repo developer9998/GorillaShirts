@@ -63,7 +63,7 @@ namespace GorillaShirts.Models.Cosmetic
 
                     Template.name = $"{Descriptor.ShirtName} Asset";
                     GameObjectExtensions.sanitizeFPLODs = false;
-                    Template.SanitizeObjectRecursive();
+                    Template.SanitizeRecursive();
 
                     var anchorTypes = Enum.GetValues(typeof(EShirtAnchor)).Cast<EShirtAnchor>().ToArray();
                     for (int i = 0; i < anchorTypes.Length; i++)

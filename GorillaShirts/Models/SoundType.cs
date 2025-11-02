@@ -1,6 +1,6 @@
 ﻿namespace GorillaShirts.Models
 {
-    internal enum EAudioType
+    internal enum SoundType
     {
         ShirtWear,
         ShirtRemove,

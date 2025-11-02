@@ -103,21 +103,5 @@ namespace GorillaShirts.Extensions
 
             return uberMaterial;
         }
-
-        /*
-        public static Material ResolveUberMaterial(this Material baseMaterial)
-        {
-            Shader uberShader = UberShader.GetShader(); // The latest UberShader, can be more up to date than what the baseMaterial uses
-
-            if (baseMaterial == null || !baseMaterial || baseMaterial.shader.name != uberShader.name) return null;
-
-            Material uberMaterial = new(baseMaterial)
-            {
-                shader = uberShader
-            };
-
-            return uberMaterial;
-        }
-        */
     }
 }

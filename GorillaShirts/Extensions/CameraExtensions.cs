@@ -8,9 +8,9 @@ namespace GorillaShirts.Extensions
 {
     internal static class CameraExtensions
     {
-        public static async Task<Texture2D> GetTexture(this Camera camera)
+        public static async Task<Texture2D> Render(this Camera camera)
         {
-            await new WaitForEndOfFrame().YieldAsync();
+            await new WaitForEndOfFrame().AsAwaitable();
 
             Texture2D texture;
 

@@ -17,5 +17,9 @@
         public const string NetworkPropertyKey = "GorillaShirts";
 
         public const float NetworkRaiseInterval = 0.25f;
+
+        public const string URL_ModVersion = @"https://raw.githubusercontent.com/developer9998/GorillaShirts/main/Version.txt";
+
+        public const string URL_PackReleases = @"https://raw.githubusercontent.com/developer9998/GorillaShirts/main/Packs/Packs.json";
     }
 }

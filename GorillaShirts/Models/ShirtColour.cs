@@ -75,6 +75,6 @@ namespace GorillaShirts.Models
 
         public static explicit operator Color?(ShirtColour shirtColour) => shirtColour.UsePlayerColour ? null : shirtColour.CustomColour;
 
-        public override string ToString() => UsePlayerColour ? "Use Player Colour" : CustomColour.ToString();
+        public override string ToString() => UsePlayerColour ? "Using Player Colour" : CustomColour.ToString();
     }
 }

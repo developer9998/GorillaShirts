@@ -52,17 +52,17 @@ namespace GorillaShirts.Extensions
 
         public static bool sanitizeFPLODs = true;
 
-        public static void SanitizeObjectRecursive(this GameObject gameObject)
+        public static void SanitizeRecursive(this GameObject gameObject)
         {
-            SanitizeObject(gameObject);
+            Sanitize(gameObject);
             for (int i = 0; i < gameObject.transform.childCount; i++)
             {
                 GameObject child = gameObject.transform.GetChild(i).gameObject;
-                SanitizeObjectRecursive(child);
+                SanitizeRecursive(child);
             }
         }
 
-        public static void SanitizeObject(this GameObject gameObject)
+        public static void Sanitize(this GameObject gameObject)
         {
             if (gameObject == null || !gameObject) return;
 

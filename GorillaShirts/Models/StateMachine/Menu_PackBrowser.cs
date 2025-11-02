@@ -14,12 +14,12 @@ namespace GorillaShirts.Models.StateMachine
 {
     internal class Menu_PackBrowser(Stand stand, Menu_StateBase previousState) : Menu_SubState(stand, previousState)
     {
-        private ReleaseInfo CurrentInfo => releases[releaseIndex];
+        private PackRelease CurrentInfo => releases[releaseIndex];
 
-        private ReleaseInfo[] releases;
+        private PackRelease[] releases;
         private static int releaseIndex;
 
-        private static readonly Dictionary<ReleaseInfo, ReleaseState> releaseStates = [];
+        private static readonly Dictionary<PackRelease, ReleaseState> releaseStates = [];
 
         private bool isProcessing;
         private ReleaseFlags flags;
@@ -49,12 +49,12 @@ namespace GorillaShirts.Models.StateMachine
         public void DisplayRelease()
         {
             releaseIndex = releaseIndex.Wrap(0, releases.Length);
-            ReleaseInfo info = CurrentInfo;
+            PackRelease info = CurrentInfo;
 
-            Stand.packBrowserNewSymbol.SetActive(info.Version > info.GetVersion(EReleaseVersion.Viewed) || info.GetVersion(EReleaseVersion.Viewed) == -1);
-            info.UpdateVersion(EReleaseVersion.Viewed);
+            Stand.packBrowserNewSymbol.SetActive(info.Version > info.GetVersion(PackRelease.ReleaseSource.Viewed) || info.GetVersion(PackRelease.ReleaseSource.Viewed) == -1);
+            info.UpdateVersion(PackRelease.ReleaseSource.Viewed);
 
-            flags = (info.Version > info.GetVersion(EReleaseVersion.Installed) && info.Pack is not null) ? ReleaseFlags.Update : ((info.Title == "Default" && info.Rank == 0) ? ReleaseFlags.Reinstall : ReleaseFlags.None);
+            flags = (info.Version > info.GetVersion(PackRelease.ReleaseSource.Installed) && info.Pack is not null) ? ReleaseFlags.Update : ((info.Title == "Default" && info.Rank == 0) ? ReleaseFlags.Reinstall : ReleaseFlags.None);
             if (info.IsOutdated) flags |= ReleaseFlags.Outdated;
 
             Stand.headerText.text = string.Format(Stand.headerFormat, info.Title.EnforceLength(20), "Pack", info.Author.EnforceLength(48));
@@ -105,7 +105,7 @@ namespace GorillaShirts.Models.StateMachine
             }
         }
 
-        public ReleaseState GetState(ReleaseInfo info)
+        public ReleaseState GetState(PackRelease info)
         {
             if (info is null) return ReleaseState.None;
 
@@ -128,7 +128,7 @@ namespace GorillaShirts.Models.StateMachine
             return ReleaseState.None;
         }
 
-        public void SetState(ReleaseInfo info, ReleaseState state)
+        public void SetState(PackRelease info, ReleaseState state)
         {
             if (releaseStates.ContainsKey(info)) releaseStates[info] = state;
             else releaseStates.Add(info, state);
@@ -151,8 +151,8 @@ namespace GorillaShirts.Models.StateMachine
                 case EButtonType.RigToggle:
                     Stand.Character.SetAppearence(Stand.Character.Preference switch
                     {
-                        ECharacterPreference.Masculine => ECharacterPreference.Feminine,
-                        ECharacterPreference.Feminine => ECharacterPreference.Masculine,
+                        CharacterPreference.Masculine => CharacterPreference.Feminine,
+                        CharacterPreference.Feminine => CharacterPreference.Masculine,
                         _ => Stand.Character.Preference
                     });
                     Stand.mainSideBar.UpdateSidebar();
@@ -175,7 +175,7 @@ namespace GorillaShirts.Models.StateMachine
                     return;
                 }
 
-                ReleaseInfo info = CurrentInfo;
+                PackRelease info = CurrentInfo;
 
                 ReleaseState initialState = GetState(info);
                 if (initialState != ReleaseState.Processing)
@@ -232,7 +232,7 @@ namespace GorillaShirts.Models.StateMachine
                             Stand.packBrowserPercent.text = $"{Mathf.FloorToInt(progress * 100)}%";
                         });
 
-                        info.UpdateVersion(EReleaseVersion.Installed);
+                        info.UpdateVersion(PackRelease.ReleaseSource.Installed);
                         SetState(info, ReleaseState.HasRelease);
                     }
 
@@ -249,7 +249,7 @@ namespace GorillaShirts.Models.StateMachine
                 return;
             }
 
-            releaseIndex += button.GetNavDirection();
+            releaseIndex += button.Sign();
             DisplayRelease();
         }
 

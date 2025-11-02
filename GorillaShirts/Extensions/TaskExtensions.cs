@@ -10,25 +10,18 @@ namespace GorillaShirts.Extensions
     {
         private static MonoBehaviour MonoBehaviour => ShirtManager.HasInstance ? ShirtManager.Instance : ThreadingHelper.Instance;
 
-        public static async Task YieldAsync(this YieldInstruction instruction)
+        public static async Task AsAwaitable(this YieldInstruction instruction)
         {
             var completionSource = new TaskCompletionSource<YieldInstruction>();
-            MonoBehaviour.StartCoroutine(YieldRoutine(instruction, completionSource));
+            MonoBehaviour.StartCoroutine(AsAwaitable(instruction, completionSource));
             await completionSource.Task;
         }
 
-        private static IEnumerator YieldRoutine(YieldInstruction instruction, TaskCompletionSource<YieldInstruction> completionSource)
+        private static IEnumerator AsAwaitable(YieldInstruction instruction, TaskCompletionSource<YieldInstruction> completionSource)
         {
             yield return instruction;
             completionSource.SetResult(instruction);
             yield break;
         }
-
-        /*
-        public static async Task YieldAsync(UnityWebRequest webRequest)
-        {
-
-        }
-        */
     }
 }

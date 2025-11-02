@@ -105,7 +105,7 @@ namespace GorillaShirts.Models.Cosmetic
 
                 Template.name = $"{Descriptor.ShirtName} Legacy Asset";
                 GameObjectExtensions.sanitizeFPLODs = true;
-                Template.SanitizeObjectRecursive();
+                Template.SanitizeRecursive();
 
                 foreach (Transform child in Template.transform)
                 {

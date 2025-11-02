@@ -27,11 +27,11 @@ namespace GorillaShirts.Behaviours
 
         public Stand ShirtStand = null;
 
-        public Dictionary<EAudioType, AudioClip> Audio = [];
+        public Dictionary<SoundType, AudioClip> Audio = [];
 
-        public ContentHandler Content;
+        public ContentLoader Content;
 
-        public ReleaseInfo[] Releases;
+        public PackRelease[] Releases;
 
         public List<PackDescriptor> Packs;
 
@@ -79,17 +79,20 @@ namespace GorillaShirts.Behaviours
             ShirtStand.Character.SetAppearence(Plugin.StandCharacter.Value);
             ShirtStand.Character.WearSignatureShirt();
 
-            ShirtStand.Character.OnPreferenceSet += delegate (ECharacterPreference preference)
+            Plugin.StandCharacter.SettingChanged += (sender, args) =>
             {
-                ShirtStand.mainSideBar.sillyHeadObject.SetActive(preference == ECharacterPreference.Feminine);
-                ShirtStand.mainSideBar.steadyHeadObject.SetActive(preference == ECharacterPreference.Masculine);
+                CharacterPreference preference = Plugin.StandCharacter.Value;
+
+                ShirtStand.mainSideBar.sillyHeadObject.SetActive(preference == CharacterPreference.Feminine);
+                ShirtStand.mainSideBar.steadyHeadObject.SetActive(preference == CharacterPreference.Masculine);
                 PlayAudio(preference switch
                 {
-                    ECharacterPreference.Masculine => EAudioType.SteadySpeech,
-                    ECharacterPreference.Feminine => EAudioType.SillySpeech,
-                    _ => EAudioType.Error
+                    CharacterPreference.Masculine => SoundType.SteadySpeech,
+                    CharacterPreference.Feminine => SoundType.SillySpeech,
+                    _ => SoundType.Error
                 }, 1f);
-                Plugin.StandCharacter.Value = preference;
+
+                ShirtStand.Character.SetAppearence(preference);
             };
 
             ShirtStand.Character.OnShirtWornEvent += delegate ()
@@ -117,7 +120,7 @@ namespace GorillaShirts.Behaviours
                 }
             };
 
-            foreach (EAudioType audioType in Enum.GetValues(typeof(EAudioType)).Cast<EAudioType>())
+            foreach (SoundType audioType in Enum.GetValues(typeof(SoundType)).Cast<SoundType>())
             {
                 AudioClip audioClip = await AssetLoader.LoadAsset<AudioClip>(audioType.GetName());
                 Audio.Add(audioType, audioClip);
@@ -130,18 +133,18 @@ namespace GorillaShirts.Behaviours
             menuState_Load = new Menu_Loading(ShirtStand);
             MenuStateMachine.SwitchState(new Menu_Welcome(ShirtStand));
 
-            using UnityWebRequest request = UnityWebRequest.Get(@"https://raw.githubusercontent.com/developer9998/GorillaShirts/main/Packs/Packs.json");
+            using UnityWebRequest request = UnityWebRequest.Get(Constants.URL_PackReleases);
             UnityWebRequestAsyncOperation operation = request.SendWebRequest();
             await operation;
 
             if (request.result == UnityWebRequest.Result.Success)
             {
-                Releases = request.downloadHandler.text.FromJson<ReleaseInfo[]>();
+                Releases = request.downloadHandler.text.FromJson<PackRelease[]>();
                 Logging.Info($"Releases include: {string.Join(", ", Releases.OrderBy(info => info.Rank).Select(info => info.Title))}");
 
                 Version pluginVersion = Plugin.Info.Metadata.Version;
 
-                foreach (ReleaseInfo info in Releases)
+                foreach (PackRelease info in Releases)
                 {
                     Version minimumVersion = info.MinimumPluginVersion is not null ? info.MinimumPluginVersion : pluginVersion;
                     info.IsOutdated = minimumVersion > pluginVersion;
@@ -171,7 +174,7 @@ namespace GorillaShirts.Behaviours
             if (initialized) return;
             initialized = true;
 
-            using UnityWebRequest request = UnityWebRequest.Get(@"https://raw.githubusercontent.com/developer9998/GorillaShirts/main/Version.txt");
+            using UnityWebRequest request = UnityWebRequest.Get(Constants.URL_ModVersion);
             UnityWebRequestAsyncOperation operation = request.SendWebRequest();
             await operation;
 
@@ -181,7 +184,7 @@ namespace GorillaShirts.Behaviours
                 string latestVersionRaw = request.downloadHandler.text.Trim();
                 if (Version.TryParse(latestVersionRaw, out Version latestVersion) && latestVersion > installedVersion)
                 {
-                    PlayAudio(EAudioType.Error, 1f);
+                    PlayAudio(SoundType.Error, 1f);
 
                     bool nonPatchUpdate = latestVersion.Major > installedVersion.Major || latestVersion.Minor > installedVersion.Minor;
                     ShirtStand.hardVersionContainer.SetActive(nonPatchUpdate);
@@ -196,12 +199,12 @@ namespace GorillaShirts.Behaviours
             }
 
             MenuStateMachine.SwitchState(menuState_Load);
-            Content = new ContentHandler(Path.GetDirectoryName(Plugin.Info.Location));
+            Content = new ContentLoader(Path.GetDirectoryName(Plugin.Info.Location));
             Content.ContentProcessCallback += menuState_Load.SetLoadAppearance;
             Content.OnPacksLoaded += OnPacksLoaded;
             Content.OnPackUnloaded += OnPackUnloaded;
             Content.OnShirtUnloaded += OnShirtUnloaded;
-            Content.LoadContent();
+            Content.LoadFromRoot();
 
             Plugin.DefaultShirtMode.SettingChanged += (sender, args) => ForEachNetworkedPlayer(player => player.AddDefaultShirt());
         }
@@ -345,7 +348,7 @@ namespace GorillaShirts.Behaviours
             {
                 ThreadingHelper.Instance.StartSyncInvoke(async () =>
                 {
-                    await Content.LoadDefaultContent(false);
+                    await Content.LoadDefaultRelease(false);
                 });
                 return;
             }
@@ -399,12 +402,12 @@ namespace GorillaShirts.Behaviours
             if (IsFavourite(shirt))
             {
                 FavouritePack.Shirts.Remove(shirt);
-                PlayAudio(EAudioType.NegativeClick, 0.75f);
+                PlayAudio(SoundType.NegativeClick, 0.75f);
             }
             else
             {
                 FavouritePack.Shirts.Add(shirt);
-                PlayAudio(EAudioType.PositiveClick, 0.75f);
+                PlayAudio(SoundType.PositiveClick, 0.75f);
             }
 
             SetShirtNames(FavouritePack.Shirts, Plugin.Favourites);
@@ -476,7 +479,7 @@ namespace GorillaShirts.Behaviours
                     PlayCustomAudio(playerRig, shirt.Descriptor.WearSound, 0.5f * volume);
                     continue;
                 }
-                PlayShirtAudio(playerRig, EAudioType.ShirtWear, 0.5f * volume);
+                PlayShirtAudio(playerRig, SoundType.ShirtWear, 0.5f * volume);
             }
         }
 
@@ -494,11 +497,11 @@ namespace GorillaShirts.Behaviours
                     PlayCustomAudio(playerRig, shirt.Descriptor.RemoveSound, 0.5f * volume);
                     continue;
                 }
-                PlayShirtAudio(playerRig, EAudioType.ShirtRemove, 0.5f * volume);
+                PlayShirtAudio(playerRig, SoundType.ShirtRemove, 0.5f * volume);
             }
         }
 
-        public void PlayShirtAudio(VRRig playerRig, EAudioType audio, float volume)
+        public void PlayShirtAudio(VRRig playerRig, SoundType audio, float volume)
         {
             if (!Audio.TryGetValue(audio, out AudioClip audioClip)) return;
             PlayCustomAudio(playerRig, audioClip, volume);
@@ -513,11 +516,11 @@ namespace GorillaShirts.Behaviours
 
         public void PlayOhNoAudio(float volume = 1f)
         {
-            var enums = Enum.GetValues(typeof(EAudioType)).Cast<EAudioType>().Where(audioType => audioType.GetName().StartsWith("OhNo")).ToArray();
+            var enums = Enum.GetValues(typeof(SoundType)).Cast<SoundType>().Where(audioType => audioType.GetName().StartsWith("OhNo")).ToArray();
             PlayAudio(enums[UnityEngine.Random.Range(0, enums.Length)], volume);
         }
 
-        public void PlayAudio(EAudioType audio, float volume = 1f)
+        public void PlayAudio(SoundType audio, float volume = 1f)
         {
             if (!Audio.TryGetValue(audio, out AudioClip audioClip)) return;
             PlayAudio(audioClip, volume);

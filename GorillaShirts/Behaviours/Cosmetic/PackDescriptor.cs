@@ -28,7 +28,7 @@ namespace GorillaShirts.Behaviours.Cosmetic
 
         public string AdditionalNote;
 
-        public ReleaseInfo Release;
+        public PackRelease Release;
 
         public void Shuffle()
         {

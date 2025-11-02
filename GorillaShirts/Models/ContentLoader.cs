@@ -14,7 +14,7 @@ using UnityEngine.Networking;
 
 namespace GorillaShirts.Models
 {
-    internal class ContentHandler(string rootLocation)
+    internal class ContentLoader(string rootLocation)
     {
         public readonly string RootLocation = rootLocation;
 
@@ -28,9 +28,9 @@ namespace GorillaShirts.Models
 
         private int contentProcessed, contentCount, errorCount;
 
-        public async void LoadContent() => await LoadContent(RootLocation);
+        public async void LoadFromRoot() => await LoadFromDirectory(RootLocation);
 
-        private async Task LoadContent(string directory)
+        private async Task LoadFromDirectory(string directory)
         {
             DirectoryInfo directoryInfo = new(directory);
             Logging.Message($"LoadShirts: {directoryInfo.FullName}");
@@ -51,7 +51,7 @@ namespace GorillaShirts.Models
 
             if (shirts.Count == 0)
             {
-                await LoadDefaultContent(false);
+                await LoadDefaultRelease(false);
                 return;
             }
 
@@ -69,7 +69,7 @@ namespace GorillaShirts.Models
                     pack.Shirts = [];
                     packs.Add(packName, pack);
 
-                    foreach (ReleaseInfo info in ShirtManager.Instance.Releases)
+                    foreach (PackRelease info in ShirtManager.Instance.Releases)
                     {
                         List<string> names = [info.Title];
                         if (info.AlsoKnownAs is not null && info.AlsoKnownAs.Length != 0) names.AddRange(info.AlsoKnownAs);
@@ -111,12 +111,12 @@ namespace GorillaShirts.Models
             OnPacksLoaded?.Invoke([.. packs.Values]);
             ContentProcessCallback = null;
 
-            await LoadDefaultContent(true);
+            await LoadDefaultRelease(true);
         }
 
-        public async Task LoadDefaultContent(bool notInstalledExclusive)
+        public async Task LoadDefaultRelease(bool notInstalledExclusive)
         {
-            if (ShirtManager.Instance.Releases is not null && Array.Find(ShirtManager.Instance.Releases, info => info.Title == "Default" && info.Rank == 0) is ReleaseInfo defaultRelease && (!notInstalledExclusive || defaultRelease.Pack == null))
+            if (ShirtManager.Instance.Releases is not null && Array.Find(ShirtManager.Instance.Releases, info => info.Title == "Default" && info.Rank == 0) is PackRelease defaultRelease && (!notInstalledExclusive || defaultRelease.Pack == null))
             {
                 await InstallRelease(defaultRelease, (step, progress) =>
                 {
@@ -245,7 +245,7 @@ namespace GorillaShirts.Models
             OnShirtUnloaded?.Invoke(shirt);
         }
 
-        public async Task InstallRelease(ReleaseInfo info, Action<int, float> callback, bool loadContent = true)
+        public async Task InstallRelease(PackRelease info, Action<int, float> callback, bool loadContent = true)
         {
             Logging.Message("InstallRelease");
             Logging.Info(info.ToString());
@@ -363,7 +363,7 @@ namespace GorillaShirts.Models
                 callback?.Invoke(2, (float)assetsLoaded / assetCount);
             };
 
-            await LoadContent(folderPath);
+            await LoadFromDirectory(folderPath);
 
             List<string> names = [info.Title];
             if (info.AlsoKnownAs is not null && info.AlsoKnownAs.Length != 0) names.AddRange(info.AlsoKnownAs);
@@ -382,7 +382,7 @@ namespace GorillaShirts.Models
             }
         }
 
-        public async Task UninstallRelease(ReleaseInfo info, Action<float> callback)
+        public async Task UninstallRelease(PackRelease info, Action<float> callback)
         {
             Logging.Message("UninstallRelease");
             Logging.Info(info.ToString());

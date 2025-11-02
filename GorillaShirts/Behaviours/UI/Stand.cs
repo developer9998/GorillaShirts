@@ -131,15 +131,13 @@ namespace GorillaShirts.Behaviours.UI
 
 #if PLUGIN
 
-        private readonly Dictionary<GTZone, Location_Base> locationFromZoneDict = [];
+        private readonly Dictionary<GTZone, Location_Base> _locationDictionary = [];
 
-        private Renderer[] renderers;
+        private bool _useUberMaterials = false;
 
-        private Dictionary<Renderer, Material[]> materials;
+        private Renderer[] _standRenderers;
 
-        private Dictionary<Renderer, Material[]> uberMaterials;
-
-        private bool uberMaterialsUsed = false;
+        private Dictionary<Renderer, Material[]> _baseMaterials, _uberMaterials;
 
         public void Start()
         {
@@ -151,37 +149,31 @@ namespace GorillaShirts.Behaviours.UI
                 if (type.IsSubclassOf(baseType))
                 {
                     Location_Base location = (Location_Base)Activator.CreateInstance(type);
-                    location.Zones.Where(zone => !locationFromZoneDict.ContainsKey(zone)).ForEach(zone => locationFromZoneDict.Add(zone, location));
+                    location.Zones.Where(zone => !_locationDictionary.ContainsKey(zone)).ForEach(zone => _locationDictionary.Add(zone, location));
                 }
             }
 
-            renderers = Root.GetComponentsInChildren<Renderer>(true);
-
-            materials = renderers.ToDictionary(renderer => renderer, renderer => renderer.materials);
-            uberMaterials = renderers.ToDictionary(renderer => renderer, renderer => renderer.materials.Select(material => material.CreateUberMaterial()).ToArray());
+            _standRenderers = Root.GetComponentsInChildren<Renderer>(true);
+            _baseMaterials = _standRenderers.ToDictionary(renderer => renderer, renderer => renderer.materials);
+            _uberMaterials = _standRenderers.ToDictionary(renderer => renderer, renderer => renderer.materials.Select(material => material.CreateUberMaterial()).ToArray());
+            SetMaterialState(Shader.IsKeywordEnabled("_ZONE_DYNAMIC_LIGHTS__CUSTOMVERTEX"));
 
             ZoneManagement.OnZoneChange += OnZoneChange;
             OnZoneChange(ZoneManagement.instance.zones);
         }
 
-        public void OnZoneChange(ZoneData[] zones)
+        public void OnZoneChange(ZoneData[] zoneData)
         {
-            IEnumerable<GTZone> activeZones = zones.Where(zone => zone.active).Select(zone => zone.zone);
+            IEnumerable<GTZone> activeZones = zoneData.Where(zone => zone.active).Select(zone => zone.zone);
             OnZoneChange(activeZones.ToArray());
         }
 
-        public void OnZoneChange(GTZone[] zones)
+        public void OnZoneChange(GTZone[] activeZones)
         {
-            foreach (GTZone zone in zones)
+            foreach (GTZone zone in activeZones)
             {
-                if (locationFromZoneDict.TryGetValue(zone, out Location_Base location))
+                if (_locationDictionary.TryGetValue(zone, out Location_Base location))
                 {
-                    bool useUberMaterials = zone == GTZone.ghostReactor;
-                    if (uberMaterialsUsed != useUberMaterials)
-                    {
-                        uberMaterialsUsed = useUberMaterials;
-                        renderers.ForEach(renderer => renderer.materials = uberMaterialsUsed ? uberMaterials[renderer] : materials[renderer]);
-                    }
                     MoveStand(location.Position, location.EulerAngles);
                     return;
                 }
@@ -197,6 +189,14 @@ namespace GorillaShirts.Behaviours.UI
             Root.transform.position = position;
             Root.transform.rotation = Quaternion.Euler(direction);
             Root.SetActive(true);
+        }
+
+        public void SetMaterialState(bool useUberMaterials)
+        {
+            if (_useUberMaterials == useUberMaterials) return;
+
+            _useUberMaterials = useUberMaterials;
+            _standRenderers.ForEach(renderer => renderer.materials = _useUberMaterials ? _uberMaterials[renderer] : _baseMaterials[renderer]);
         }
 #endif
     }

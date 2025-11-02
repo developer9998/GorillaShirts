@@ -107,22 +107,22 @@ namespace GorillaShirts.Models.StateMachine
             switch (button)
             {
                 case EButtonType.RigToggle:
-                    Stand.Character.SetAppearence(Stand.Character.Preference switch
+                    Plugin.StandCharacter.Value = Stand.Character.Preference switch
                     {
-                        ECharacterPreference.Masculine => ECharacterPreference.Feminine,
-                        ECharacterPreference.Feminine => ECharacterPreference.Masculine,
+                        CharacterPreference.Masculine => CharacterPreference.Feminine,
+                        CharacterPreference.Feminine => CharacterPreference.Masculine,
                         _ => Stand.Character.Preference
-                    });
+                    };
                     UpdateSidebar();
                     return;
                 case EButtonType.Capture:
                     if (isWritingPhoto) return;
                     isWritingPhoto = true;
 
-                    Texture2D texture = await Stand.Camera.GetTexture();
+                    Texture2D texture = await CameraExtensions.Render(Stand.Camera);
                     if (texture is not null)
                     {
-                        ShirtManager.Instance.PlayAudio(EAudioType.CameraShutter, 1f);
+                        ShirtManager.Instance.PlayAudio(SoundType.CameraShutter, 1f);
 
                         string nativePicturesDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
                         string shirtsDirectoryName = "GorillaShirts";
@@ -143,7 +143,7 @@ namespace GorillaShirts.Models.StateMachine
                     isWritingPhoto = false;
                     return;
                 case EButtonType.Randomize:
-                    ShirtManager.Instance.PlayAudio(EAudioType.DiceRoll, 1f);
+                    ShirtManager.Instance.PlayAudio(SoundType.DiceRoll, 1f);
                     pack.Shuffle();
                     ViewShirt();
                     return;

@@ -37,7 +37,7 @@ namespace GorillaShirts.Models.StateMachine
             Stand.navigationRoot.SetActive(false);
             Stand.mainSideBar.SetSidebarState(Sidebar.SidebarState.MainMenu);
 
-            bool hasUnreadRelease = ShirtManager.Instance.Releases.Any(info => info.GetVersion(EReleaseVersion.Viewed) == -1 || info.Version > info.GetVersion(EReleaseVersion.Viewed));
+            bool hasUnreadRelease = ShirtManager.Instance.Releases.Any(info => info.GetVersion(PackRelease.ReleaseSource.Viewed) == -1 || info.Version > info.GetVersion(PackRelease.ReleaseSource.Viewed));
             if (Stand.mainSideBar.packBrowserButtonNewSymbol.activeSelf != hasUnreadRelease) Stand.mainSideBar.packBrowserButtonNewSymbol.SetActive(hasUnreadRelease);
 
             PreviewPack();
