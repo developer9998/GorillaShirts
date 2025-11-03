@@ -85,31 +85,40 @@ namespace GorillaShirts.Behaviours.Appearance
 
             if (!usingSignatureFallback)
             {
-                string preferenceName = Preference.GetName();
-
-                Array.ForEach(fallbackShirtObjects, gameObject =>
+                try
                 {
-                    bool active = gameObject.name.StartsWith(preferenceName);
-                    if (gameObject.activeSelf != active) gameObject.SetActive(active);
-                });
+                    usingSignatureFallback = true;
 
-                Transform transform = null;
-                foreach (Transform anchor in fallbackNameAnchors)
-                {
-                    if (anchor.transform.name.StartsWith(preferenceName))
+                    string preferenceName = Preference.GetName();
+
+                    Array.ForEach(fallbackShirtObjects, gameObject =>
                     {
-                        transform = anchor;
-                        break;
-                    }
-                }
-                if (fallbackNameAnchor != transform)
-                {
-                    fallbackNameAnchor = transform;
-                    MoveNameTag();
-                }
+                        bool active = gameObject.name.StartsWith(preferenceName);
+                        if (gameObject.activeSelf != active) gameObject.SetActive(active);
+                    });
 
-                ClearShirts();
-                usingSignatureFallback = true;
+                    Transform transform = null;
+                    foreach (Transform anchor in fallbackNameAnchors)
+                    {
+                        if (anchor.transform.name.StartsWith(preferenceName))
+                        {
+                            transform = anchor;
+                            break;
+                        }
+                    }
+
+                    if (fallbackNameAnchor != transform)
+                    {
+                        fallbackNameAnchor = transform;
+                        MoveNameTag();
+                    }
+
+                    ClearShirts();
+                }
+                catch
+                {
+                    usingSignatureFallback = false;
+                }
             }
         }
 
@@ -117,12 +126,19 @@ namespace GorillaShirts.Behaviours.Appearance
         {
             if (usingSignatureFallback)
             {
-                Array.ForEach(Array.FindAll(fallbackShirtObjects, gameObject => gameObject.activeSelf), gameObject => gameObject.SetActive(false));
-
-                if (fallbackNameAnchor is not null && characterNameTagAnchor.transform.parent == fallbackNameAnchor)
+                try
                 {
-                    fallbackNameAnchor = null;
-                    MoveNameTag();
+                    Array.ForEach(Array.FindAll(fallbackShirtObjects, gameObject => gameObject.activeSelf), gameObject => gameObject.SetActive(false));
+
+                    if (fallbackNameAnchor is not null && characterNameTagAnchor.transform.parent == fallbackNameAnchor)
+                    {
+                        fallbackNameAnchor = null;
+                        MoveNameTag();
+                    }
+                }
+                catch
+                {
+
                 }
 
                 usingSignatureFallback = false;
@@ -131,7 +147,7 @@ namespace GorillaShirts.Behaviours.Appearance
 
         public override void MoveNameTag()
         {
-            characterNameTagAnchor.transform.parent = NameTagAnchor is not null ? NameTagAnchor.transform : (fallbackNameAnchor is not null ? fallbackNameAnchor.transform : Body);
+            characterNameTagAnchor.transform.parent = NameTagAnchor is not null ? NameTagAnchor.transform : (usingSignatureFallback && fallbackNameAnchor is not null ? fallbackNameAnchor.transform : Body);
             characterNameTagAnchor.transform.localPosition = Vector3.zero;
             characterNameTagAnchor.transform.localRotation = Quaternion.identity;
             MoveNameTagTransform(characterNameText.transform, NameTagOffset);

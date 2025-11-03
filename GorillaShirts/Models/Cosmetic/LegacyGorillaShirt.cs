@@ -171,7 +171,7 @@ namespace GorillaShirts.Models.Cosmetic
 
                         FindFeature<AudioSource>(EShirtFeature.Audio, audioSource =>
                         {
-                            if (audioSource.spatialBlend == 0)
+                            if (audioSource.spatialBlend != 1)
                             {
                                 audioSource.spatialBlend = 1f;
                                 audioSource.rolloffMode = AudioRolloffMode.Linear;

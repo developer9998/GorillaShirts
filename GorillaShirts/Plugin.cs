@@ -21,6 +21,8 @@ namespace GorillaShirts
 
         public static new ManualLogSource Logger;
 
+        public static ConfigEntry<bool> StandVisibility;
+
         public static ConfigEntry<CharacterPreference> StandCharacter;
 
         public static ConfigEntry<string> Favourites;
@@ -35,6 +37,8 @@ namespace GorillaShirts
             Config.SaveOnConfigSet = true;
 
             Favourites = Config.Bind("Preferences", "Favourites", JsonConvert.SerializeObject(Enumerable.Empty<string>()), "A collection of shirts favourited by the player");
+
+            StandVisibility = Config.Bind("Appearance", "Stand Visibility", true, "Whether the shirt stand is visible to the local player");
 
             var characters = Enum.GetValues(typeof(CharacterPreference)).Cast<CharacterPreference>().ToArray();
             StandCharacter = Config.Bind("Appearance", "Stand Character Identity", characters[UnityEngine.Random.Range(0, characters.Length)], "The gender identity of the character present at the shirt stand");

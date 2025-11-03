@@ -62,8 +62,9 @@ namespace GorillaShirts.Models.StateMachine
         public override void Update()
         {
             base.Update();
+
             previewCycleTimer += Time.unscaledDeltaTime;
-            if (previewCycleTimer >= 1f) PerformShirtCycle();
+            if (previewCycleTimer >= 2f) PerformShirtCycle();
         }
 
         public void PreviewPack()

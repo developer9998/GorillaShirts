@@ -131,6 +131,8 @@ namespace GorillaShirts.Behaviours.UI
 
 #if PLUGIN
 
+        private bool _isStandVisible = false;
+
         private readonly Dictionary<GTZone, Location_Base> _locationDictionary = [];
 
         private bool _useUberMaterials = false;
@@ -158,6 +160,9 @@ namespace GorillaShirts.Behaviours.UI
             _uberMaterials = _standRenderers.ToDictionary(renderer => renderer, renderer => renderer.materials.Select(material => material.CreateUberMaterial()).ToArray());
             SetMaterialState(Shader.IsKeywordEnabled("_ZONE_DYNAMIC_LIGHTS__CUSTOMVERTEX"));
 
+            Plugin.StandVisibility.SettingChanged += (sender, args) => SetVisibility(Plugin.StandVisibility.Value);
+            SetVisibility(Plugin.StandVisibility.Value);
+
             ZoneManagement.OnZoneChange += OnZoneChange;
             OnZoneChange(ZoneManagement.instance.zones);
         }
@@ -179,7 +184,7 @@ namespace GorillaShirts.Behaviours.UI
                 }
             }
 
-            Root.SetActive(false);
+            //Root.SetActive(false);
         }
 
         public void MoveStand(Transform transform) => MoveStand(transform.position, transform.eulerAngles);
@@ -188,7 +193,7 @@ namespace GorillaShirts.Behaviours.UI
         {
             Root.transform.position = position;
             Root.transform.rotation = Quaternion.Euler(direction);
-            Root.SetActive(true);
+            //Root.SetActive(true);
         }
 
         public void SetMaterialState(bool useUberMaterials)
@@ -198,6 +203,15 @@ namespace GorillaShirts.Behaviours.UI
             _useUberMaterials = useUberMaterials;
             _standRenderers.ForEach(renderer => renderer.materials = _useUberMaterials ? _uberMaterials[renderer] : _baseMaterials[renderer]);
         }
+
+        public void SetVisibility(bool isVisible)
+        {
+            if (_isStandVisible == isVisible) return;
+
+            _isStandVisible = isVisible;
+            Root.SetActive(_isStandVisible);
+        }
+
 #endif
     }
 }
