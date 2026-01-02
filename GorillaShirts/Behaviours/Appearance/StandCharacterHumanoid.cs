@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Rendering;
+
 
 #if PLUGIN
 using System;
@@ -151,6 +153,30 @@ namespace GorillaShirts.Behaviours.Appearance
             characterNameTagAnchor.transform.localPosition = Vector3.zero;
             characterNameTagAnchor.transform.localRotation = Quaternion.identity;
             MoveNameTagTransform(characterNameText.transform, NameTagOffset);
+        }
+
+        // bandaid fix for messed up renderer
+
+        public void OnEnable()
+        {
+            RenderPipelineManager.endCameraRendering += EndCameraRendering;
+            RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
+        }
+
+        public void OnDisable()
+        {
+            RenderPipelineManager.endCameraRendering -= EndCameraRendering;
+            RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
+        }
+
+        private void EndCameraRendering(ScriptableRenderContext context, Camera camera)
+        {
+            MainSkin.enabled = false;
+        }
+
+        private void BeginCameraRendering(ScriptableRenderContext context, Camera camera)
+        {
+            MainSkin.enabled = true;
         }
 #endif
     }

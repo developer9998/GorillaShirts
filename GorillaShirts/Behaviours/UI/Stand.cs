@@ -131,7 +131,7 @@ namespace GorillaShirts.Behaviours.UI
 
 #if PLUGIN
 
-        private bool _isStandVisible = false;
+        private bool _isStandVisible = true;
 
         private readonly Dictionary<GTZone, Location_Base> _locationDictionary = [];
 
@@ -160,11 +160,11 @@ namespace GorillaShirts.Behaviours.UI
             _uberMaterials = _standRenderers.ToDictionary(renderer => renderer, renderer => renderer.materials.Select(material => material.CreateUberMaterial()).ToArray());
             SetMaterialState(Shader.IsKeywordEnabled("_ZONE_DYNAMIC_LIGHTS__CUSTOMVERTEX"));
 
-            Plugin.StandVisibility.SettingChanged += (sender, args) => SetVisibility(Plugin.StandVisibility.Value);
-            SetVisibility(Plugin.StandVisibility.Value);
-
-            ZoneManagement.OnZoneChange += OnZoneChange;
+            SetVisibility(Plugin.State);
+            Plugin.OnStateChanged += SetVisibility;
+      
             OnZoneChange(ZoneManagement.instance.zones);
+            ZoneManagement.OnZoneChange += OnZoneChange;
         }
 
         public void OnZoneChange(ZoneData[] zoneData)
