@@ -52,6 +52,15 @@ namespace GorillaShirts.Behaviours.Networking
                 CheckProperties();
             }
 
+            GorillaBodyRenderer bodyRenderer = PlayerRig.bodyRenderer;
+            if (bodyRenderer.myDefaultSkinMaterialInstance != null && bodyRenderer.myDefaultSkinMaterialInstance)
+            {
+                // bodyRenderer.EnsureInstantiatedMaterial();
+                bodyRenderer.UpdateColor(PlayerRig.playerColor);
+                bodyRenderer._bodyType = GorillaBodyType.Invisible;
+                bodyRenderer.Refresh();
+            }
+
             // humanoid.WearShirt(Main.Instance.Shirts.GetRandomItem());
         }
 

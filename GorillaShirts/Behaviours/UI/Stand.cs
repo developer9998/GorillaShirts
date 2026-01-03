@@ -209,7 +209,7 @@ namespace GorillaShirts.Behaviours.UI
             if (_isStandVisible == isVisible) return;
 
             _isStandVisible = isVisible;
-            Root.SetActive(_isStandVisible);
+            Root?.SetActive(_isStandVisible);
         }
 
 #endif
