@@ -1,4 +1,5 @@
-﻿using GorillaShirts.Behaviours.Appearance;
+﻿using GorillaExtensions;
+using GorillaShirts.Behaviours.Appearance;
 using GorillaShirts.Models.Cosmetic;
 using GorillaShirts.Patches;
 using UnityEngine;
@@ -13,6 +14,8 @@ namespace GorillaShirts.Behaviours
 
         public VRRig Rig;
 
+        public GorillaIK IK;
+
         public float NameTagZOffset = 0f;
 
         public void Awake()
@@ -20,14 +23,16 @@ namespace GorillaShirts.Behaviours
             Rig = GetComponent<VRRig>();
             Root = gameObject;
 
-            Head = Rig.headMesh.transform;
-            Body = Head.parent;
-            LeftHand = Rig.leftHandTransform.parent;
-            RightHand = Rig.rightHandTransform.parent;
-            LeftLower = LeftHand.parent;
-            RightLower = RightHand.parent;
-            LeftUpper = LeftLower.parent;
-            RightUpper = RightLower.parent;
+            IK = Rig.myIk ?? gameObject.GetOrAddComponent<GorillaIK>();
+
+            Head = IK.headBone ?? Rig.headMesh.transform;
+            Body = IK.bodyBone.Find("body");
+            LeftHand = IK.leftHand;
+            RightHand = IK.rightHand;
+            LeftUpper = IK.leftUpperArm ?? IK.bodyBone.Find("shoulder.L");
+            RightUpper = IK.rightUpperArm ?? IK.bodyBone.Find("shoulder.R");
+            LeftLower = IK.leftLowerArm ?? IK.bodyBone.Find("shoulder.L/forearm.L");
+            RightLower = IK.rightLowerArm ?? IK.bodyBone.Find("shoulder.R/forearm.R");
 
             MainSkin = Rig.mainSkin;
             FaceSkin = Rig.faceSkin;

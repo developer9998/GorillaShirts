@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Rendering;
+using GameObjectExtensions = GorillaShirts.Extensions.GameObjectExtensions;
 using Object = UnityEngine.Object;
 
 namespace GorillaShirts.Models.Cosmetic

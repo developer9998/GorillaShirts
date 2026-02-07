@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Rendering;
 using static BoingKit.BoingBones;
+using GameObjectExtensions = GorillaShirts.Extensions.GameObjectExtensions;
 using Object = UnityEngine.Object;
 
 namespace GorillaShirts.Models.Cosmetic
