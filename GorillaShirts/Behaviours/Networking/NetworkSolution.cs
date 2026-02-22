@@ -39,7 +39,7 @@ internal abstract class NetworkSolution : MonoBehaviourPunCallbacks
 
             try
             {
-                SendProperties(_properties, playerArray);
+                SendProperties(_properties, [.. from player in playerArray where IsCompatiblePlayer(player) select player]);
             }
             catch (Exception ex)
             {
@@ -105,7 +105,6 @@ internal abstract class NetworkSolution : MonoBehaviourPunCallbacks
     public sealed override void OnPlayerLeftRoom(Player otherPlayer)
     {
         base.OnPlayerLeftRoom(otherPlayer);
-
         playerArray = PhotonNetwork.PlayerListOthers;
     }
 

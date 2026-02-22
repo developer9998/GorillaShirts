@@ -64,11 +64,11 @@ internal class NetworkSolution_RaiseEvent : NetworkSolution
                 networkedPlayer.IsShirtUser = true;
             }
 
+            Logging.Message($"{netPlayer.NickName}: {string.Join(", ", properties)}");
+
             networkedPlayer.OnPlayerPropertyChanged(properties);
             NotifyPropertiesRecieved(player, properties);
             return;
         }
-
-        Logging.Message("Shirt tuah");
     }
 }
