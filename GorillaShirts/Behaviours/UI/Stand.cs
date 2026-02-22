@@ -162,7 +162,7 @@ namespace GorillaShirts.Behaviours.UI
 
             SetVisibility(Plugin.State);
             Plugin.OnStateChanged += SetVisibility;
-      
+
             OnZoneChange(ZoneManagement.instance.zones);
             ZoneManagement.OnZoneChange += OnZoneChange;
         }

@@ -6,7 +6,7 @@
 
         public const string Name = "GorillaShirts";
 
-        public const string Version = "2.4.3";
+        public const string Version = "2.4.4";
 
         public const string AssetBundleName = "GorillaShirts.Content.legacyshirtbundle";
 
@@ -14,7 +14,7 @@
 
         public const string FurAssetName = "lightfur";
 
-        public const string NetworkPropertyKey = "GorillaShirts";
+        public const string NetworkPropertyKey = "GorillaShirtsFeb26";
 
         public const float NetworkRaiseInterval = 0.25f;
 

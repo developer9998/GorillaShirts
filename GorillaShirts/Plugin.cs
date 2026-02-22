@@ -46,7 +46,7 @@ namespace GorillaShirts
             DefaultShirtMode = Config.Bind("Appearance", "Default Shirt Mode", EDefaultShirtMode.None, "The method used for how shirts are worn by players without the mod, known as default shirts");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), Constants.GUID);
-            GorillaTagger.OnPlayerSpawned(() => DontDestroyOnLoad(new GameObject($"{Constants.Name} {Constants.Version}", typeof(NetworkManager), typeof(DataManager), typeof(ShirtManager))));
+            GorillaTagger.OnPlayerSpawned(() => DontDestroyOnLoad(new GameObject($"{Constants.Name} {Constants.Version}", typeof(NetworkSolution_RaiseEvent), typeof(DataManager), typeof(ShirtManager))));
         }
 
         public void OnEnable()

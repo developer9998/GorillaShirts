@@ -443,13 +443,13 @@ namespace GorillaShirts.Behaviours
         private void NetworkShirts(List<IGorillaShirt> shirts)
         {
             int[] fallbacks = [.. shirts.Select(shirt => shirt.Descriptor.Fallback).Select(fallback => fallback.GetIndex())];
-            NetworkManager.Instance.SetProperty("Fallbacks", fallbacks);
+            NetworkSolution.Instance.SetProperty("Fallbacks", fallbacks);
 
             int[] colourData = [.. shirts.Select(shirt => shirt.Colour).Select(colour => colour.Data)];
-            NetworkManager.Instance.SetProperty("Colours", colourData);
+            NetworkSolution.Instance.SetProperty("Colours", colourData);
 
             string[] shirtNames = [.. shirts.Select(shirt => shirt.ShirtId)];
-            NetworkManager.Instance.SetProperty("Shirts", shirtNames);
+            NetworkSolution.Instance.SetProperty("Shirts", shirtNames);
         }
 
         public void AdjustTagOffset(int tagOffset)
@@ -462,7 +462,7 @@ namespace GorillaShirts.Behaviours
 
         private void NetworkTagOffset(int tagOffset)
         {
-            NetworkManager.Instance.SetProperty("TagOffset", tagOffset);
+            NetworkSolution.Instance.SetProperty("TagOffset", tagOffset);
         }
 
         public void PlayShirtWearSound(VRRig playerRig, params IGorillaShirt[] shirts)

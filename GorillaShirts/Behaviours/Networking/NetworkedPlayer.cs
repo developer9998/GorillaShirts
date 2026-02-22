@@ -1,4 +1,5 @@
-﻿using GorillaExtensions;
+﻿using ExitGames.Client.Photon;
+using GorillaExtensions;
 using GorillaShirts.Models;
 using GorillaShirts.Models.Cosmetic;
 using GorillaShirts.Tools;
@@ -37,9 +38,19 @@ namespace GorillaShirts.Behaviours.Networking
 
         private int? irrelevantIndex, relevantIndex;
 
+        private bool _initialized;
+
         public void Start()
         {
-            NetworkManager.Instance.OnPlayerPropertyChanged += OnPlayerPropertyChanged;
+            Initialize();
+        }
+
+        private void Initialize()
+        {
+            if (_initialized) return;
+            _initialized = true;
+
+            // NetworkSolution.Instance.OnPlayerPropertiesChanged += OnPlayerPropertyChanged;
             ShirtManager.Instance.OnPacksLoadedEvent += OnPacksLoaded;
 
             playerHumanoid = gameObject.GetOrAddComponent<HumanoidContainer>();
@@ -66,7 +77,9 @@ namespace GorillaShirts.Behaviours.Networking
 
         public void OnDestroy()
         {
-            NetworkManager.Instance.OnPlayerPropertyChanged -= OnPlayerPropertyChanged;
+            if (!_initialized) return;
+
+            // NetworkSolution.Instance.OnPlayerPropertiesChanged -= OnPlayerPropertyChanged;
             ShirtManager.Instance.OnPacksLoadedEvent -= OnPacksLoaded;
 
             // finalize
@@ -79,7 +92,7 @@ namespace GorillaShirts.Behaviours.Networking
         public void CheckProperties()
         {
             if (PlayerRef is null) return;
-            NetworkManager.Instance.OnPlayerPropertiesUpdate(PlayerRef, PlayerRef.CustomProperties);
+            NetworkSolution.Instance.OnPlayerPropertiesUpdate(PlayerRef, PlayerRef.CustomProperties);
         }
 
         public void AddDefaultShirt() => OnPacksLoaded(true);
@@ -152,152 +165,148 @@ namespace GorillaShirts.Behaviours.Networking
             playerHumanoid.ClearShirts();
         }
 
-        public void OnPlayerPropertyChanged(NetPlayer player, Dictionary<string, object> properties)
+        public void OnPlayerPropertyChanged(Hashtable properties)
         {
-            if (player == Creator)
+            if (!_initialized) Initialize();
+
+            if (hasDefaultShirt) RemoveDefaultShirt();
+
+            try
             {
-                Logging.Message($"{player.NickName}: updated properties");
-                Logging.Info(string.Join(", ", properties.Select(prop => $"[{prop.Key}: {prop.Value}]")));
-
-                if (hasDefaultShirt) RemoveDefaultShirt();
-
-                try
+                if (properties.TryGetValue("TagOffset", out object tagOffsetObject) && tagOffsetObject is int tagOffset)
                 {
-                    if (properties.TryGetValue("TagOffset", out object tagOffsetObject) && tagOffsetObject is int tagOffset)
-                    {
-                        Logging.Info($"Tag Offset: {tagOffset}");
+                    Logging.Info($"Tag Offset: {tagOffset}");
 
-                        playerHumanoid.OffsetNameTag(tagOffset);
+                    playerHumanoid.OffsetNameTag(tagOffset);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.Error(ex);
+            }
+
+            try
+            {
+                if (properties.TryGetValue("Fallbacks", out object fallbackObject) && fallbackObject is int[] fallbackArray)
+                {
+                    Dictionary<int, EShirtFallback> indexToEnumDict = EnumData<EShirtFallback>.Shared.IndexToEnum;
+
+                    for (int i = 0; i < fallbackArray.Length; i++)
+                    {
+                        int fallbackIndex = fallbackArray[i];
+                        EShirtFallback fallback = indexToEnumDict.ContainsKey(fallbackIndex) ? indexToEnumDict[fallbackIndex] : EShirtFallback.None;
+
+                        if ((i + 1) > playerFallbacks.Count) playerFallbacks.Insert(i, fallback);
+                        else playerFallbacks[i] = fallback;
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logging.Error(ex);
-                }
 
-                try
+                    Logging.Info($"Fallbacks: {string.Join(", ", playerFallbacks.Select(fallback => fallback.GetName()))}");
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+
+            try
+            {
+                if (properties.TryGetValue("Colours", out object coloursObject) && coloursObject is int[] colourDataArray)
                 {
-                    if (properties.TryGetValue("Fallbacks", out object fallbackObject) && fallbackObject is int[] fallbackArray)
+                    for (int i = 0; i < colourDataArray.Length; i++)
                     {
-                        Dictionary<int, EShirtFallback> indexToEnumDict = EnumData<EShirtFallback>.Shared.IndexToEnum;
+                        int data = colourDataArray[i];
 
-                        for (int i = 0; i < fallbackArray.Length; i++)
-                        {
-                            int fallbackIndex = fallbackArray[i];
-                            EShirtFallback fallback = indexToEnumDict.ContainsKey(fallbackIndex) ? indexToEnumDict[fallbackIndex] : EShirtFallback.None;
-
-                            if ((i + 1) > playerFallbacks.Count) playerFallbacks.Insert(i, fallback);
-                            else playerFallbacks[i] = fallback;
-                        }
-
-                        Logging.Info($"Fallbacks: {string.Join(", ", playerFallbacks.Select(fallback => fallback.GetName()))}");
+                        if (i >= colourData.Count) colourData.Insert(i, data);
+                        else colourData[i] = data;
                     }
-                }
-                catch (Exception)
-                {
 
+                    Logging.Info($"Colour Data: {string.Join(", ", colourData)} (based on {string.Join(", ", colourDataArray)})");
                 }
+            }
+            catch (Exception ex)
+            {
+                Logging.Fatal("Custom colours could not be set");
+                Logging.Error(ex);
+            }
 
-                try
+            try
+            {
+                if (properties.TryGetValue("Shirts", out object shirtsObject) && shirtsObject is string[] shirtPreferences)
                 {
-                    if (properties.TryGetValue("Colours", out object coloursObject) && coloursObject is int[] colourDataArray)
+                    Logging.Info($"Shirts: {string.Join(", ", shirtPreferences)}");
+
+                    List<IGorillaShirt> shirtsToRemove = [];
+                    List<IGorillaShirt> currentShirts = [.. playerHumanoid.Shirts];
+
+                    foreach (IGorillaShirt shirt in currentShirts)
                     {
-                        for (int i = 0; i < colourDataArray.Length; i++)
-                        {
-                            int data = colourDataArray[i];
-
-                            if (i >= colourData.Count) colourData.Insert(i, data);
-                            else colourData[i] = data;
-                        }
-
-                        Logging.Info($"Colour Data: {string.Join(", ", colourData)} (based on {string.Join(", ", colourDataArray)})");
+                        if (shirt.Bundle && ShirtManager.Instance.Shirts.ContainsValue(shirt) && shirtPreferences.Contains(shirt.ShirtId)) continue;
+                        shirtsToRemove.Add(shirt);
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logging.Fatal("Custom colours could not be set");
-                    Logging.Error(ex);
-                }
 
-                try
-                {
-                    if (properties.TryGetValue("Shirts", out object shirtsObject) && shirtsObject is string[] shirtPreferences)
+                    if (shirtsToRemove.Count != 0) Logging.Info($"Removing: {string.Join(", ", shirtsToRemove.Select(shirt => shirt.ShirtId))}");
+
+                    Dictionary<IGorillaShirt, int> shirtToColourData = [];
+
+                    List<IGorillaShirt> shirtsToWear = [];
+
+                    for (int i = 0; i < shirtPreferences.Length; i++)
                     {
-                        Logging.Info($"Shirts: {string.Join(", ", shirtPreferences)}");
+                        var preference = shirtPreferences[i];
 
-                        List<IGorillaShirt> shirtsToRemove = [];
-                        List<IGorillaShirt> currentShirts = [.. playerHumanoid.Shirts];
-
-                        foreach (IGorillaShirt shirt in currentShirts)
+                        if (playerHumanoid.Shirts.Find(shirt => shirt.ShirtId == preference) is IGorillaShirt wornShirt && wornShirt.Bundle)
                         {
-                            if (shirt.Bundle && ShirtManager.Instance.Shirts.ContainsValue(shirt) && shirtPreferences.Contains(shirt.ShirtId)) continue;
-                            shirtsToRemove.Add(shirt);
+                            shirtToColourData.TryAdd(wornShirt, (i < 0 || i >= colourData.Count) ? -1 : colourData[i]);
+                            continue;
                         }
 
-                        if (shirtsToRemove.Count != 0) Logging.Info($"Removing: {string.Join(", ", shirtsToRemove.Select(shirt => shirt.ShirtId))}");
+                        IGorillaShirt shirt = null;
 
-                        Dictionary<IGorillaShirt, int> shirtToColourData = [];
-
-                        List<IGorillaShirt> shirtsToWear = [];
-
-                        for (int i = 0; i < shirtPreferences.Length; i++)
+                        if (ShirtManager.Instance.Shirts.ContainsKey(preference))
                         {
-                            var preference = shirtPreferences[i];
-
-                            if (playerHumanoid.Shirts.Find(shirt => shirt.ShirtId == preference) is IGorillaShirt wornShirt && wornShirt.Bundle)
-                            {
-                                shirtToColourData.TryAdd(wornShirt, (i < 0 || i >= colourData.Count) ? -1 : colourData[i]);
-                                continue;
-                            }
-
-                            IGorillaShirt shirt = null;
-
-                            if (ShirtManager.Instance.Shirts.ContainsKey(preference))
-                            {
-                                shirt = ShirtManager.Instance.Shirts[preference];
-                                Logging.Info($"{shirt.Descriptor?.ShirtName ?? shirt.ShirtId}");
-                            }
-                            else if (playerFallbacks.Count > i && playerFallbacks.ElementAtOrDefault(i) != EShirtFallback.None && ShirtManager.Instance.GetShirtFromFallback(playerFallbacks[i]) is IGorillaShirt fallbackShirt)
-                            {
-                                shirt = fallbackShirt;
-                                Logging.Info($"{fallbackShirt.Descriptor?.ShirtName ?? fallbackShirt.ShirtId} (fallback)");
-                            }
-
-                            if (shirt is not null)
-                            {
-                                shirtsToWear.Add(shirt);
-                                shirtToColourData.TryAdd(shirt, (i < 0 || i >= colourData.Count) ? -1 : colourData[i]);
-                            }
+                            shirt = ShirtManager.Instance.Shirts[preference];
+                            Logging.Info($"{shirt.Descriptor?.ShirtName ?? shirt.ShirtId}");
+                        }
+                        else if (playerFallbacks.Count > i && playerFallbacks.ElementAtOrDefault(i) != EShirtFallback.None && ShirtManager.Instance.GetShirtFromFallback(playerFallbacks[i]) is IGorillaShirt fallbackShirt)
+                        {
+                            shirt = fallbackShirt;
+                            Logging.Info($"{fallbackShirt.Descriptor?.ShirtName ?? fallbackShirt.ShirtId} (fallback)");
                         }
 
-                        if (shirtsToWear.Count != 0) Logging.Info($"Wearing: {string.Join(", ", shirtsToWear.Select(shirt => shirt.ShirtId))}");
-
-                        if (shirtsToWear.Count > 0)
+                        if (shirt is not null)
                         {
-                            shirtsToWear.ForEach(playerHumanoid.UnionShirt);
-                            ShirtManager.Instance.PlayShirtWearSound(playerHumanoid.Rig, shirts: [.. shirtsToWear]);
-                        }
-                        else if (shirtsToRemove.Count > 0)
-                        {
-                            shirtsToRemove.ForEach(playerHumanoid.NegateShirt);
-                            ShirtManager.Instance.PlayShirtRemoveSound(playerHumanoid.Rig, shirts: [.. shirtsToRemove]);
-                        }
-
-                        //Logging.Info($"Colour Data: {shirtToColourData.Count} entries");
-
-                        foreach (var (shirt, data) in shirtToColourData)
-                        {
-                            ShirtColour shirtColour = (ShirtColour)data;
-                            //Logging.Info($"{shirt.Descriptor.ShirtName} Colour: {shirtColour}");
-
-                            playerHumanoid.SetShirtColour(shirt, shirtColour);
+                            shirtsToWear.Add(shirt);
+                            shirtToColourData.TryAdd(shirt, (i < 0 || i >= colourData.Count) ? -1 : colourData[i]);
                         }
                     }
+
+                    if (shirtsToWear.Count != 0) Logging.Info($"Wearing: {string.Join(", ", shirtsToWear.Select(shirt => shirt.ShirtId))}");
+
+                    if (shirtsToWear.Count > 0)
+                    {
+                        shirtsToWear.ForEach(playerHumanoid.UnionShirt);
+                        ShirtManager.Instance.PlayShirtWearSound(playerHumanoid.Rig, shirts: [.. shirtsToWear]);
+                    }
+                    else if (shirtsToRemove.Count > 0)
+                    {
+                        shirtsToRemove.ForEach(playerHumanoid.NegateShirt);
+                        ShirtManager.Instance.PlayShirtRemoveSound(playerHumanoid.Rig, shirts: [.. shirtsToRemove]);
+                    }
+
+                    //Logging.Info($"Colour Data: {shirtToColourData.Count} entries");
+
+                    foreach (var (shirt, data) in shirtToColourData)
+                    {
+                        ShirtColour shirtColour = (ShirtColour)data;
+                        //Logging.Info($"{shirt.Descriptor.ShirtName} Colour: {shirtColour}");
+
+                        playerHumanoid.SetShirtColour(shirt, shirtColour);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Logging.Error(ex);
-                }
+            }
+            catch (Exception ex)
+            {
+                Logging.Error(ex);
             }
         }
     }
