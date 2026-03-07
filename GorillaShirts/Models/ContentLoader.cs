@@ -1,5 +1,4 @@
-﻿using BepInEx;
-using GorillaShirts.Behaviours;
+﻿using GorillaShirts.Behaviours;
 using GorillaShirts.Behaviours.Cosmetic;
 using GorillaShirts.Models.Cosmetic;
 using GorillaShirts.Tools;
@@ -215,7 +214,7 @@ namespace GorillaShirts.Models
 
             if (removeFile)
             {
-                ThreadingHelper.Instance.StartAsyncInvoke(() =>
+                ThreadingUtility.InvokeMainMethod(() =>
                 {
                     try
                     {
@@ -237,7 +236,6 @@ namespace GorillaShirts.Models
                         Logging.Fatal($"Failed to delete shirt file");
                         Logging.Error(ex);
                     }
-                    return null;
                 });
             }
 

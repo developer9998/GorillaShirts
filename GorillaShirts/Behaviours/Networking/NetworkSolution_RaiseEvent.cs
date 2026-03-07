@@ -1,4 +1,5 @@
 ﻿using ExitGames.Client.Photon;
+using GorillaLibrary.Utilities;
 using GorillaShirts.Tools;
 using Photon.Pun;
 using Photon.Realtime;
@@ -54,7 +55,7 @@ internal class NetworkSolution_RaiseEvent : NetworkSolution
 
         Player player = PhotonNetwork.CurrentRoom.GetPlayer(data.Sender);
         NetPlayer netPlayer = NetworkSystem.Instance.GetPlayer(data.Sender);
-        if (player.IsLocal || !VRRigCache.Instance.TryGetVrrig(netPlayer, out RigContainer playerRig) || !playerRig.TryGetComponent(out NetworkedPlayer networkedPlayer)) return;
+        if (player.IsLocal || !RigUtility.TryGetRig(netPlayer, out RigContainer playerRig) || !playerRig.TryGetComponent(out NetworkedPlayer networkedPlayer)) return;
 
         if (eventData[1] is Hashtable properties)
         {

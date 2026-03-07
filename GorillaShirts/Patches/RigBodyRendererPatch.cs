@@ -11,7 +11,7 @@ namespace GorillaShirts.Patches
         private static GorillaBodyType cosmeticBodyType;
         private static bool appliedCustomBodyType = false;
 
-        public static void Prefix(GorillaBodyRenderer __instance)
+        public static void Prefix(GorillaBodyRenderer __instance, ref GorillaBodyType ___cosmeticBodyType)
         {
             if (__instance.rig is VRRig rig && rig.TryGetComponent(out HumanoidContainer humanoid))
             {
@@ -19,18 +19,18 @@ namespace GorillaShirts.Patches
                 if (shirtBodyType != EShirtBodyType.Default && Enum.TryParse(shirtBodyType.GetName(), out GorillaBodyType bodyType))
                 {
                     appliedCustomBodyType = true;
-                    cosmeticBodyType = __instance.cosmeticBodyType;
-                    __instance.cosmeticBodyType = bodyType;
+                    cosmeticBodyType = ___cosmeticBodyType;
+                    ___cosmeticBodyType = bodyType;
                 }
             }
         }
 
-        public static void Postfix(GorillaBodyRenderer __instance)
+        public static void Postfix(GorillaBodyRenderer __instance, ref GorillaBodyType ___cosmeticBodyType)
         {
             if (appliedCustomBodyType)
             {
                 appliedCustomBodyType = false;
-                __instance.cosmeticBodyType = cosmeticBodyType;
+                ___cosmeticBodyType = cosmeticBodyType;
             }
         }
     }

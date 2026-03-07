@@ -1,26 +1,17 @@
-﻿using BepInEx.Logging;
+﻿using MelonLoader;
 
 namespace GorillaShirts.Tools
 {
     internal static class Logging
     {
-        public static ManualLogSource Logger => Plugin.Logger;
+        public static void Message(object data) => Melon<Plugin>.Logger.Msg(data);
 
-        public static void Message(object data) => Log(LogLevel.Message, data);
+        public static void Info(object data) => Melon<Plugin>.Logger.Msg(MelonLoader.Logging.ColorARGB.Gray, data);
 
-        public static void Info(object data) => Log(LogLevel.Info, data);
+        public static void Warning(object data) => Melon<Plugin>.Logger.Warning(data);
 
-        public static void Warning(object data) => Log(LogLevel.Warning, data);
+        public static void Error(object data) => Melon<Plugin>.Logger.Error(data);
 
-        public static void Error(object data) => Log(LogLevel.Error, data);
-
-        public static void Fatal(object data) => Log(LogLevel.Fatal, data);
-
-        private static void Log(LogLevel level, object data)
-        {
-#if DEBUG
-            Logger.Log(level, data);
-#endif
-        }
+        public static void Fatal(object data) => Melon<Plugin>.Logger.Error(data);
     }
 }

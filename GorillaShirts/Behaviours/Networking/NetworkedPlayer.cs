@@ -3,6 +3,7 @@ using GorillaExtensions;
 using GorillaShirts.Models;
 using GorillaShirts.Models.Cosmetic;
 using GorillaShirts.Tools;
+using HarmonyLib;
 using Photon.Pun;
 using Photon.Realtime;
 using System;
@@ -68,8 +69,8 @@ namespace GorillaShirts.Behaviours.Networking
             {
                 // bodyRenderer.EnsureInstantiatedMaterial();
                 bodyRenderer.UpdateColor(PlayerRig.playerColor);
-                bodyRenderer._bodyType = GorillaBodyType.Invisible;
-                bodyRenderer.Refresh();
+                AccessTools.Field(bodyRenderer.GetType(), "_bodyType").SetValue(bodyRenderer, GorillaBodyType.Invisible);
+                AccessTools.Method(bodyRenderer.GetType(), "Refresh").Invoke(bodyRenderer, null);
             }
 
             // humanoid.WearShirt(Main.Instance.Shirts.GetRandomItem());

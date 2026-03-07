@@ -1,4 +1,5 @@
 ﻿using ExitGames.Client.Photon;
+using GorillaLibrary.Utilities;
 using GorillaShirts.Tools;
 using Photon.Pun;
 using Photon.Realtime;
@@ -88,7 +89,7 @@ internal abstract class NetworkSolution : MonoBehaviourPunCallbacks
 
         if (TransferOnlyInRooms)
         {
-            while (VRRigCache.rigsInUse.All(player => player.Key.ActorNumber != newPlayer.ActorNumber)) await Task.Delay(PhotonNetwork.GetPing());
+            while (RigUtility.Rigs.All(player => player.Key.ActorNumber != newPlayer.ActorNumber)) await Task.Delay(PhotonNetwork.GetPing());
 
             try
             {

@@ -1,5 +1,4 @@
-﻿using BepInEx;
-using BepInEx.Configuration;
+﻿using GorillaLibrary.Utilities;
 using GorillaShirts.Behaviours.Cosmetic;
 using GorillaShirts.Behaviours.Networking;
 using GorillaShirts.Behaviours.UI;
@@ -8,12 +7,14 @@ using GorillaShirts.Models.Cosmetic;
 using GorillaShirts.Models.StateMachine;
 using GorillaShirts.Models.UI;
 using GorillaShirts.Tools;
+using MelonLoader;
 using Newtonsoft.Json;
 using Photon.Realtime;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -79,7 +80,7 @@ namespace GorillaShirts.Behaviours
             ShirtStand.Character.SetAppearence(Plugin.StandCharacter.Value);
             ShirtStand.Character.WearSignatureShirt();
 
-            Plugin.StandCharacter.SettingChanged += (sender, args) =>
+            Plugin.StandCharacter.OnEntryValueChanged.Subscribe((sender, args) =>
             {
                 CharacterPreference preference = Plugin.StandCharacter.Value;
 
@@ -93,7 +94,7 @@ namespace GorillaShirts.Behaviours
                 }, 1f);
 
                 ShirtStand.Character.SetAppearence(preference);
-            };
+            });
 
             ShirtStand.Character.OnShirtWornEvent += delegate ()
             {
@@ -142,7 +143,7 @@ namespace GorillaShirts.Behaviours
                 Releases = request.downloadHandler.text.FromJson<PackRelease[]>();
                 Logging.Info($"Releases include: {string.Join(", ", Releases.OrderBy(info => info.Rank).Select(info => info.Title))}");
 
-                Version pluginVersion = Plugin.Info.Metadata.Version;
+                Version pluginVersion = Version.Parse(Melon<Plugin>.Instance.Info.Version);
 
                 foreach (PackRelease info in Releases)
                 {
@@ -160,13 +161,13 @@ namespace GorillaShirts.Behaviours
                 }
             }
 
-            if (CosmeticsV2Spawner_Dirty.completed)
+            if (CosmeticsV2Spawner_Dirty.isPrepared)
             {
                 Initialize();
                 return;
             }
 
-            CosmeticsV2Spawner_Dirty.OnPostInstantiateAllPrefabs += Initialize;
+            CosmeticsV2Spawner_Dirty.OnPreFinalizing += Initialize;
         }
 
         public async void Initialize()
@@ -180,7 +181,7 @@ namespace GorillaShirts.Behaviours
 
             if (request.result == UnityWebRequest.Result.Success)
             {
-                Version installedVersion = Plugin.Info.Metadata.Version;
+                Version installedVersion = Version.Parse(Melon<Plugin>.Instance.Info.Version);
                 string latestVersionRaw = request.downloadHandler.text.Trim();
                 if (Version.TryParse(latestVersionRaw, out Version latestVersion) && latestVersion > installedVersion)
                 {
@@ -199,14 +200,14 @@ namespace GorillaShirts.Behaviours
             }
 
             MenuStateMachine.SwitchState(menuState_Load);
-            Content = new ContentLoader(Path.GetDirectoryName(Plugin.Info.Location));
+            Content = new ContentLoader(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
             Content.ContentProcessCallback += menuState_Load.SetLoadAppearance;
             Content.OnPacksLoaded += OnPacksLoaded;
             Content.OnPackUnloaded += OnPackUnloaded;
             Content.OnShirtUnloaded += OnShirtUnloaded;
             Content.LoadFromRoot();
 
-            Plugin.DefaultShirtMode.SettingChanged += (sender, args) => ForEachNetworkedPlayer(player => player.AddDefaultShirt());
+            Plugin.DefaultShirtMode.OnEntryValueChanged.Subscribe((_, _) => ForEachNetworkedPlayer(player => player.AddDefaultShirt()));
         }
 
         public void OnPacksLoaded(List<PackDescriptor> content)
@@ -336,17 +337,14 @@ namespace GorillaShirts.Behaviours
 
             CheckPlayerProperties();
 
-            if (content.Release is not null)
-            {
-                content.Release.Pack = null;
-                content.Release = null;
-            }
+            content.Release?.Pack = null;
+            content.Release = null;
 
             Destroy(content);
 
             if (Packs.Count == 0)
             {
-                ThreadingHelper.Instance.StartSyncInvoke(async () =>
+                ThreadingUtility.InvokeUnityMethod(async () =>
                 {
                     await Content.LoadDefaultRelease(false);
                 });
@@ -368,7 +366,7 @@ namespace GorillaShirts.Behaviours
         {
             if (!NetworkSystem.Instance.InRoom || !VRRigCache.isInitialized) return;
 
-            foreach (RigContainer playerRig in VRRigCache.rigsInUse.Values)
+            foreach (RigContainer playerRig in RigUtility.Rigs.Values)
             {
                 if (!playerRig.TryGetComponent(out NetworkedPlayer component)) continue;
                 action(component);
@@ -531,7 +529,7 @@ namespace GorillaShirts.Behaviours
             ShirtStand.AudioDevice.GTPlayOneShot(clip, volume);
         }
 
-        private List<string> GetShirtNames(ConfigEntry<string> entry)
+        private List<string> GetShirtNames(MelonPreferences_Entry<string> entry)
         {
             List<string> shirtNames = [];
 
@@ -548,7 +546,7 @@ namespace GorillaShirts.Behaviours
             return shirtNames;
         }
 
-        private void SetShirtNames(IList<IGorillaShirt> shirts, ConfigEntry<string> entry)
+        private void SetShirtNames(IList<IGorillaShirt> shirts, MelonPreferences_Entry<string> entry)
         {
             var shirtNames = shirts == null ? Enumerable.Empty<string>().ToArray() : [.. shirts.Select(shirt => shirt.ShirtId)];
             entry.Value = JsonConvert.SerializeObject(shirtNames, Formatting.None);

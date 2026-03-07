@@ -7,7 +7,7 @@ namespace GorillaShirts.Patches
     [HarmonyPatch(typeof(VRRigAnchorOverrides))]
     internal class RigAnchorOverridePatches
     {
-        [HarmonyPatch(nameof(VRRigAnchorOverrides.UpdateName))]
+        [HarmonyPatch("UpdateName")]
         [HarmonyPriority(Priority.High)]
         [HarmonyPrefix, HarmonyWrapSafe]
         public static bool NamePatch(VRRigAnchorOverrides __instance)
@@ -22,15 +22,15 @@ namespace GorillaShirts.Patches
             return true;
         }
 
-        [HarmonyPatch(nameof(VRRigAnchorOverrides.UpdateBadge))]
+        [HarmonyPatch("UpdateBadge")]
         [HarmonyPriority(Priority.High)]
         [HarmonyPrefix, HarmonyWrapSafe]
-        public static bool BadgePatch(VRRigAnchorOverrides __instance)
+        public static bool BadgePatch(VRRigAnchorOverrides __instance, Transform ___currentBadgeTransform)
         {
-            if (__instance.currentBadgeTransform && __instance.TryGetComponent(out HumanoidContainer humanoid) && humanoid.BadgeAnchor is not null)
+            if (___currentBadgeTransform && __instance.TryGetComponent(out HumanoidContainer humanoid) && humanoid.BadgeAnchor is not null)
             {
-                __instance.currentBadgeTransform.localPosition = humanoid.BadgeAnchor.transform.localPosition;
-                __instance.currentBadgeTransform.localRotation = humanoid.BadgeAnchor.transform.localRotation;
+                ___currentBadgeTransform.localPosition = humanoid.BadgeAnchor.transform.localPosition;
+                ___currentBadgeTransform.localRotation = humanoid.BadgeAnchor.transform.localRotation;
                 return false;
             }
             return true;

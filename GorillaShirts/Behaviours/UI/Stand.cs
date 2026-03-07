@@ -5,6 +5,7 @@ using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 #if PLUGIN
+using GorillaLibrary.Utilities;
 using GorillaShirts.Extensions;
 using System;
 using GorillaShirts.Models.Locations;
@@ -160,10 +161,9 @@ namespace GorillaShirts.Behaviours.UI
             _uberMaterials = _standRenderers.ToDictionary(renderer => renderer, renderer => renderer.materials.Select(material => material.CreateUberMaterial()).ToArray());
             SetMaterialState(Shader.IsKeywordEnabled("_ZONE_DYNAMIC_LIGHTS__CUSTOMVERTEX"));
 
-            SetVisibility(Plugin.State);
-            Plugin.OnStateChanged += SetVisibility;
+            SetVisibility(true);
 
-            OnZoneChange(ZoneManagement.instance.zones);
+            OnZoneChange(ZoneUtility.Zones);
             ZoneManagement.OnZoneChange += OnZoneChange;
         }
 
