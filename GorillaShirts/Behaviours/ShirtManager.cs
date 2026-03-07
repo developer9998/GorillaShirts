@@ -167,7 +167,7 @@ namespace GorillaShirts.Behaviours
                 return;
             }
 
-            CosmeticsV2Spawner_Dirty.OnPreFinalizing += Initialize;
+            CosmeticsV2Spawner_Dirty.OnPostInstantiateAllPrefabs += Initialize;
         }
 
         public async void Initialize()
