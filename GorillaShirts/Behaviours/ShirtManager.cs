@@ -192,7 +192,7 @@ namespace GorillaShirts.Behaviours
                     ShirtStand.softVersionContainer.SetActive(!nonPatchUpdate);
 
                     TaskCompletionSource<object> completionSource = new();
-                    MenuStateMachine.SwitchState(new Menu_WrongVersion(ShirtStand, Constants.Version, latestVersionRaw, completionSource));
+                    MenuStateMachine.SwitchState(new Menu_WrongVersion(ShirtStand, Melon<Plugin>.Instance.Info.Version, latestVersionRaw, completionSource));
 
                     if (nonPatchUpdate) return;
                     await completionSource.Task;

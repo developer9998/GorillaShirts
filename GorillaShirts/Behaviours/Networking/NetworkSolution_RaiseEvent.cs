@@ -1,6 +1,7 @@
 ﻿using ExitGames.Client.Photon;
 using GorillaLibrary.Utilities;
 using GorillaShirts.Tools;
+using MelonLoader;
 using Photon.Pun;
 using Photon.Realtime;
 using System.Linq;
@@ -21,7 +22,7 @@ internal class NetworkSolution_RaiseEvent : NetworkSolution
 
         PhotonNetwork.NetworkingClient.EventReceived += OnEvent;
 
-        PhotonNetwork.LocalPlayer.SetCustomProperties(new() { { Constants.NetworkPropertyKey, Constants.Version } });
+        PhotonNetwork.LocalPlayer.SetCustomProperties(new() { { Constants.NetworkPropertyKey, Melon<Plugin>.Instance.Info.Version } });
     }
 
     public override bool IsCompatiblePlayer(Player player) => true;// player != null && player.CustomProperties.ContainsKey(Constants.NetworkPropertyKey);

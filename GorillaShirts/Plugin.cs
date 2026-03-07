@@ -12,7 +12,7 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(Plugin), "GorillaShirts", "2.4.4", "dev9998")]
+[assembly: MelonInfo(typeof(Plugin), "GorillaShirts", "2.4.5", "dev9998")]
 [assembly: MelonGame("Another Axiom", "Gorilla Tag")]
 
 namespace GorillaShirts;

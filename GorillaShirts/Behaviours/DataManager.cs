@@ -46,7 +46,7 @@ namespace GorillaShirts.Behaviours
             deserializeSettings.Converters.Add(vector3Converter);
             deserializeSettings.Converters.Add(versionConverter);
 
-            dataLocation = Path.Combine(Application.persistentDataPath, $"{Constants.Name}.json");
+            dataLocation = Path.Combine(Application.persistentDataPath, "GorillaShirts.json");
 
             ReadData();
         }
