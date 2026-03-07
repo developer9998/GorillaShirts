@@ -14,6 +14,7 @@ using UnityEngine;
 
 [assembly: MelonInfo(typeof(Plugin), "GorillaShirts", "2.4.5", "dev9998")]
 [assembly: MelonGame("Another Axiom", "Gorilla Tag")]
+[assembly: MelonAdditionalDependencies("GorillaLibrary")]
 
 namespace GorillaShirts;
 
