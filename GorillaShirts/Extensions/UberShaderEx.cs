@@ -56,7 +56,7 @@ namespace GorillaShirts.Extensions
 
             Shader uberShader = UberShader.GetShader();
 
-            if (baseMaterial.shader == uberShader) return baseMaterial;
+            if (baseMaterial.shader.name == uberShader.name) return baseMaterial;
 
             if (!supportedShaderNames.Contains(baseMaterial.shader.name))
             {
