@@ -32,7 +32,8 @@ namespace GorillaShirts.Extensions
 
         private static readonly string[] unsupportedKeywords =
         [
-            "_USE_TEX_ARRAY_ATLAS"
+            "_USE_TEX_ARRAY_ATLAS",
+            "_GT_BASE_MAP_ATLAS_SLICE_SOURCE__PROPERTY"
         ];
 
         private static string[] keywords = null;
@@ -52,8 +53,6 @@ namespace GorillaShirts.Extensions
 
         public static Material CreateUberMaterial(this Material baseMaterial)
         {
-            if (baseMaterial is null || !baseMaterial) throw new ArgumentNullException(nameof(baseMaterial));
-
             Shader uberShader = UberShader.GetShader();
 
             if (baseMaterial.shader.name == uberShader.name) return baseMaterial;
@@ -63,6 +62,8 @@ namespace GorillaShirts.Extensions
                 Logging.Warning($"CreateUberMaterial doesn't support shader: {baseMaterial.shader.name}");
                 return baseMaterial;
             }
+
+            Logging.Message($"{baseMaterial.shader.name}");
 
             GetKeywords();
 
@@ -100,6 +101,8 @@ namespace GorillaShirts.Extensions
 
             uberMaterial.shaderKeywords = keywords;
             uberMaterial.enabledKeywords = [.. keywords.Select(keyword => new LocalKeyword(uberMaterial.shader, keyword))];
+
+            Logging.Info($"{baseMaterial.name} {propertyCount} {hasTexture} {hasColour}");
 
             return uberMaterial;
         }
