@@ -189,6 +189,7 @@ namespace GorillaShirts.Models.Cosmetic
                             bool colourSupport = false;
                             bool customColour = dataJson.infoConfig.customColors;
 
+                            /*
                             if (decendant.TryGetComponent(out Renderer renderer))
                             {
                                 colourSupport = true;
@@ -197,6 +198,7 @@ namespace GorillaShirts.Models.Cosmetic
                                     renderer.materials = [.. renderer.materials.Select(material => material.CreateUberMaterial())];
                                 }
                             }
+                            */
 
                             if (decendant.childCount > 0)
                             {
