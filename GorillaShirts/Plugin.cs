@@ -18,7 +18,7 @@ using UnityEngine;
 
 namespace GorillaShirts;
 
-internal class Plugin : MelonMod
+internal class Plugin : GorillaMod
 {
     public static MelonPreferences_Entry<CharacterPreference> StandCharacter;
 
@@ -28,7 +28,7 @@ internal class Plugin : MelonMod
 
     public override void OnInitializeMelon()
     {
-        MelonPreferences_Category category = MelonPreferences.CreateCategory("GorillaShirts");
+        MelonPreferences_Category category = CreateCategory("GorillaShirts");
         category.SetFilePath(Path.Combine(MelonEnvironment.UserDataDirectory, "GorillaShirts.cfg"));
 
         Favourites = category.CreateEntry("favourites", JsonConvert.SerializeObject(Enumerable.Empty<string>()), "Favourites", "The collection of shirts favourited by the player", false, false, null);
