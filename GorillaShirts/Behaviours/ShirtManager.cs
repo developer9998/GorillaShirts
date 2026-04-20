@@ -8,6 +8,7 @@ using GorillaShirts.Models.StateMachine;
 using GorillaShirts.Models.UI;
 using GorillaShirts.Tools;
 using MelonLoader;
+using MelonLoader.Utils;
 using Newtonsoft.Json;
 using Photon.Realtime;
 using System;
@@ -200,7 +201,11 @@ namespace GorillaShirts.Behaviours
             }
 
             MenuStateMachine.SwitchState(menuState_Load);
-            Content = new ContentLoader(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+
+            string modDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            modDirectory = modDirectory == MelonEnvironment.ModsDirectory ? Path.Combine(modDirectory, "GorillaShirts") : modDirectory;
+
+            Content = new ContentLoader(modDirectory);
             Content.ContentProcessCallback += menuState_Load.SetLoadAppearance;
             Content.OnPacksLoaded += OnPacksLoaded;
             Content.OnPackUnloaded += OnPackUnloaded;
