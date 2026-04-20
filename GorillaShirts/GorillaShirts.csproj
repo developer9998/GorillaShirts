@@ -43,7 +43,7 @@
 			<HintPath>$(GameAssemblyPath)\Fusion.Runtime.dll</HintPath>
 		</Reference>
 		<Reference Include="GorillaLibrary">
-		  <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Gorilla Tag\Mods\GorillaLibrary.dll</HintPath>
+		  <HintPath>$(ModsPath)\GorillaLibrary.dll</HintPath>
 		</Reference>
 		<Reference Include="MelonLoader">
 			<HintPath>$(MelonLoaderAssemblyPath)\MelonLoader.dll</HintPath>

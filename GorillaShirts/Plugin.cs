@@ -37,7 +37,7 @@ internal class Plugin : GorillaMod
 
         DefaultShirtMode = category.CreateEntry("defaultMode", EDefaultShirtMode.None, "Default Shirt Mode", "The method used for how shirts are worn by players without the mod, known as default shirts", false, false, null);
 
-        Events.Game.OnGameInitialized.Subscribe(Initialize);
+        Events.Core.OnGameInitialized.Subscribe(Initialize);
         Events.Rig.OnRigAdded.Subscribe(RigAdded);
         Events.Rig.OnRigRemoved.Subscribe(RigRemoved);
     }
