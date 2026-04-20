@@ -29,7 +29,6 @@ internal class Plugin : GorillaMod
     public override void OnInitializeMelon()
     {
         MelonPreferences_Category category = CreateCategory("GorillaShirts");
-        category.SetFilePath(Path.Combine(MelonEnvironment.UserDataDirectory, "GorillaShirts.cfg"));
 
         Favourites = category.CreateEntry("favourites", JsonConvert.SerializeObject(Enumerable.Empty<string>()), "Favourites", "The collection of shirts favourited by the player", false, false, null);
 
