@@ -1,10 +1,10 @@
 ﻿using GorillaLibrary.Extensions;
+using GorillaLibrary.Models;
 using GorillaShirts.Behaviours.Appearance;
 using GorillaShirts.Models.Cosmetic;
 using GorillaShirts.Patches;
-using UnityEngine;
-using GorillaLibrary.Models;
 using HarmonyLib;
+using UnityEngine;
 
 namespace GorillaShirts.Behaviours
 {

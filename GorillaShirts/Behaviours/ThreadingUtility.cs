@@ -14,7 +14,7 @@ internal class ThreadingUtility : MonoBehaviour
     {
         if (_unityActions != null)
         {
-            foreach(Action action in _unityActions.GetInvocationList().Cast<Action>())
+            foreach (Action action in _unityActions.GetInvocationList().Cast<Action>())
             {
                 try
                 {

@@ -5,10 +5,8 @@ using GorillaShirts.Behaviours.Networking;
 using GorillaShirts.Models.Cosmetic;
 using GorillaShirts.Models.UI;
 using MelonLoader;
-using MelonLoader.Utils;
 using Newtonsoft.Json;
 using System;
-using System.IO;
 using System.Linq;
 using UnityEngine;
 
