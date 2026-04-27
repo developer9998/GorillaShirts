@@ -203,7 +203,9 @@ namespace GorillaShirts.Behaviours
             MenuStateMachine.SwitchState(menuState_Load);
 
             string modDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            modDirectory = modDirectory == MelonEnvironment.ModsDirectory ? Path.Combine(modDirectory, "GorillaShirts") : modDirectory;
+            if (modDirectory == MelonEnvironment.ModsDirectory) modDirectory = Path.Combine(modDirectory, "GorillaShirts");
+
+            if (!Directory.Exists(modDirectory)) Directory.CreateDirectory(modDirectory);
 
             Content = new ContentLoader(modDirectory);
             Content.ContentProcessCallback += menuState_Load.SetLoadAppearance;
