@@ -1,4 +1,6 @@
 ﻿using GorillaExtensions;
+using GorillaLibrary.Extensions;
+using GorillaLibrary.Models;
 using GorillaShirts.Behaviours.Appearance;
 using GorillaShirts.Models.Cosmetic;
 using GorillaShirts.Patches;
@@ -25,14 +27,14 @@ namespace GorillaShirts.Behaviours
 
             IK = Rig.myIk ?? gameObject.GetOrAddComponent<GorillaIK>();
 
-            Head = IK.headBone ?? Rig.headMesh.transform;
-            Body = IK.bodyBone.Find("body");
-            LeftHand = IK.leftHand;
-            RightHand = IK.rightHand;
-            LeftUpper = IK.leftUpperArm ?? IK.bodyBone.Find("shoulder.L");
-            RightUpper = IK.rightUpperArm ?? IK.bodyBone.Find("shoulder.R");
-            LeftLower = IK.leftLowerArm ?? IK.bodyBone.Find("shoulder.L/forearm.L");
-            RightLower = IK.rightLowerArm ?? IK.bodyBone.Find("shoulder.R/forearm.R");
+            Head = Rig.GetBone(GorillaRigBone.Head);
+            Body = Rig.GetBone(GorillaRigBone.Body);
+            LeftHand = Rig.GetBone(GorillaRigBone.LeftHand);
+            RightHand = Rig.GetBone(GorillaRigBone.RightHand);
+            LeftUpper = Rig.GetBone(GorillaRigBone.LeftUpperArm);
+            RightUpper = Rig.GetBone(GorillaRigBone.RightUpperArm);
+            LeftLower = Rig.GetBone(GorillaRigBone.LeftLowerArm);
+            RightLower = Rig.GetBone(GorillaRigBone.RightLowerArm);
 
             MainSkin = Rig.mainSkin;
             FaceSkin = Rig.faceSkin;

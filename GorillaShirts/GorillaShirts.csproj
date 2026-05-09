@@ -61,6 +61,9 @@
 		<Reference Include="Fusion.Runtime">
 		  <HintPath>$(GameAssemblyPath)\Fusion.Runtime.dll</HintPath>
 		</Reference>
+		<Reference Include="GorillaLibrary">
+		  <HintPath>$(PluginsPath)\GorillaLibrary\GorillaLibrary.dll</HintPath>
+		</Reference>
 		<Reference Include="Mono.Security">
 			<HintPath>$(GameAssemblyPath)\Mono.Security.dll</HintPath>
 		</Reference>
