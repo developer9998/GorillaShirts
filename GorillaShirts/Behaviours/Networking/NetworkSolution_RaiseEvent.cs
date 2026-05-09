@@ -1,7 +1,5 @@
 ﻿using ExitGames.Client.Photon;
-using GorillaLibrary.Utilities;
 using GorillaShirts.Tools;
-using MelonLoader;
 using Photon.Pun;
 using Photon.Realtime;
 using System.Linq;
@@ -22,7 +20,7 @@ internal class NetworkSolution_RaiseEvent : NetworkSolution
 
         PhotonNetwork.NetworkingClient.EventReceived += OnEvent;
 
-        PhotonNetwork.LocalPlayer.SetCustomProperties(new() { { Constants.NetworkPropertyKey, Melon<Plugin>.Instance.Info.Version } });
+        PhotonNetwork.LocalPlayer.SetCustomProperties(new() { { Constants.NetworkPropertyKey, Constants.Version } });
     }
 
     public override bool IsCompatiblePlayer(Player player) => true;// player != null && player.CustomProperties.ContainsKey(Constants.NetworkPropertyKey);
@@ -56,7 +54,7 @@ internal class NetworkSolution_RaiseEvent : NetworkSolution
 
         Player player = PhotonNetwork.CurrentRoom.GetPlayer(data.Sender);
         NetPlayer netPlayer = NetworkSystem.Instance.GetPlayer(data.Sender);
-        if (player.IsLocal || !RigUtility.TryGetRig(netPlayer, out RigContainer playerRig) || !playerRig.TryGetComponent(out NetworkedPlayer networkedPlayer)) return;
+        if (player.IsLocal || !VRRigCache.Instance.TryGetVrrig(netPlayer, out RigContainer playerRig) || !playerRig.TryGetComponent(out NetworkedPlayer networkedPlayer)) return;
 
         if (eventData[1] is Hashtable properties)
         {

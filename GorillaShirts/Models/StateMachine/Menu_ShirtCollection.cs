@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using UnityEngine;
 
@@ -129,7 +128,7 @@ namespace GorillaShirts.Models.StateMachine
                         string shirtsDirectoryName = "GorillaShirts";
                         if (string.IsNullOrEmpty(nativePicturesDirectory) || string.IsNullOrWhiteSpace(nativePicturesDirectory) || !Directory.Exists(nativePicturesDirectory))
                         {
-                            nativePicturesDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                            nativePicturesDirectory = Path.GetDirectoryName(Plugin.Info.Location);
                             shirtsDirectoryName = "Photos";
                         }
 

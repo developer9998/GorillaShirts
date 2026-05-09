@@ -194,7 +194,7 @@ namespace GorillaShirts.Models.Cosmetic
                                 colourSupport = true;
                                 if (renderer.materials != null && renderer.materials.Length != 0)
                                 {
-                                    renderer.materials = [.. renderer.sharedMaterials.Select(material => material.CreateUberMaterial())];
+                                    renderer.materials = [.. renderer.materials.Select(material => material.CreateUberMaterial())];
                                 }
                             }
 

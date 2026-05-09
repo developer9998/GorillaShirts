@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 
 #if PLUGIN
+using GorillaShirts.Tools;
 #endif
 
 namespace GorillaShirts.Behaviours.UI

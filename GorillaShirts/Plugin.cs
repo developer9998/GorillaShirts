@@ -1,64 +1,64 @@
-﻿using GorillaLibrary;
-using GorillaShirts;
+﻿using BepInEx;
+using BepInEx.Configuration;
+using BepInEx.Logging;
 using GorillaShirts.Behaviours;
 using GorillaShirts.Behaviours.Networking;
 using GorillaShirts.Models.Cosmetic;
 using GorillaShirts.Models.UI;
-using MelonLoader;
+using HarmonyLib;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(Plugin), "GorillaShirts", "2.4.6", "dev9998")]
-[assembly: MelonGame("Another Axiom", "Gorilla Tag")]
-[assembly: MelonAdditionalDependencies("GorillaLibrary")]
-
-namespace GorillaShirts;
-
-internal class Plugin : GorillaMod
+namespace GorillaShirts
 {
-    public static MelonPreferences_Entry<CharacterPreference> StandCharacter;
-
-    public static MelonPreferences_Entry<string> Favourites;
-
-    public static MelonPreferences_Entry<EDefaultShirtMode> DefaultShirtMode;
-
-    public override void OnInitializeMelon()
+    [BepInPlugin(Constants.GUID, Constants.Name, Constants.Version)]
+    internal class Plugin : BaseUnityPlugin
     {
-        MelonPreferences_Category category = CreateCategory("GorillaShirts");
+        public static bool State;
 
-        Favourites = category.CreateEntry("favourites", JsonConvert.SerializeObject(Enumerable.Empty<string>()), "Favourites", "The collection of shirts favourited by the player", false, false, null);
+        public static event Action<bool> OnStateChanged;
 
-        var characters = Enum.GetValues(typeof(CharacterPreference)).Cast<CharacterPreference>().ToArray();
-        StandCharacter = category.CreateEntry("identity", characters[UnityEngine.Random.Range(0, characters.Length)], "Stand Character Identity", "The gender identity of the character present at the shirt stand", false, false, null);
+        public static new PluginInfo Info;
 
-        DefaultShirtMode = category.CreateEntry("defaultMode", EDefaultShirtMode.None, "Default Shirt Mode", "The method used for how shirts are worn by players without the mod, known as default shirts", false, false, null);
+        public static new ManualLogSource Logger;
 
-        Events.Core.OnGameInitialized.Subscribe(Initialize);
-        Events.Rig.OnRigAdded.Subscribe(RigAdded);
-        Events.Rig.OnRigRemoved.Subscribe(RigRemoved);
-    }
-    public void Initialize()
-    {
-        GameObject root = new("GorillaShirts", typeof(NetworkSolution_RaiseEvent), typeof(DataManager), typeof(ShirtManager), typeof(ThreadingUtility));
-        UnityEngine.Object.DontDestroyOnLoad(root);
-    }
+        public static ConfigEntry<CharacterPreference> StandCharacter;
 
-    public void RigAdded(VRRig rig, NetPlayer player)
-    {
-        if (rig.GetComponent<NetworkedPlayer>()) return;
+        public static ConfigEntry<string> Favourites;
 
-        NetworkedPlayer component = rig.gameObject.AddComponent<NetworkedPlayer>();
-        component.PlayerRig = rig;
-        component.Creator = player;
-    }
+        public static ConfigEntry<EDefaultShirtMode> DefaultShirtMode;
 
-    public void RigRemoved(VRRig rig)
-    {
-        if (rig.TryGetComponent(out NetworkedPlayer component))
+        public void Awake()
         {
-            UnityEngine.Object.Destroy(component);
+            Info = base.Info;
+            Logger = base.Logger;
+
+            Config.SaveOnConfigSet = true;
+
+            Favourites = Config.Bind("Preferences", "Favourites", JsonConvert.SerializeObject(Enumerable.Empty<string>()), "A collection of shirts favourited by the player");
+
+            var characters = Enum.GetValues(typeof(CharacterPreference)).Cast<CharacterPreference>().ToArray();
+            StandCharacter = Config.Bind("Appearance", "Stand Character Identity", characters[UnityEngine.Random.Range(0, characters.Length)], "The gender identity of the character present at the shirt stand");
+
+            DefaultShirtMode = Config.Bind("Appearance", "Default Shirt Mode", EDefaultShirtMode.None, "The method used for how shirts are worn by players without the mod, known as default shirts");
+
+            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), Constants.GUID);
+            GorillaTagger.OnPlayerSpawned(() => DontDestroyOnLoad(new GameObject($"{Constants.Name} {Constants.Version}", typeof(NetworkSolution_RaiseEvent), typeof(DataManager), typeof(ShirtManager))));
+        }
+
+        public void OnEnable()
+        {
+            State = true;
+            OnStateChanged?.Invoke(true);
+        }
+
+        public void OnDisable()
+        {
+            State = false;
+            OnStateChanged?.Invoke(false);
         }
     }
 }
