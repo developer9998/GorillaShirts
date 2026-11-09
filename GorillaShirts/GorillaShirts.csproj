@@ -56,10 +56,10 @@
 			<HintPath>$(BepInExAssemblyPath)\BepInEx.Harmony.dll</HintPath>
 		</Reference>
 		<Reference Include="BoingKit">
-			<HintPath>$(GameAssemblyPath)\BoingKit.dll</HintPath>
+		  <HintPath>D:\SteamLibrary\steamapps\common\Gorilla Tag\Gorilla Tag_Data\Managed\BoingKit.dll</HintPath>
 		</Reference>
-		<Reference Include="Cinemachine">
-			<HintPath>$(GameAssemblyPath)\Cinemachine.dll</HintPath>
+		<Reference Include="CjLib">
+		  <HintPath>D:\SteamLibrary\steamapps\common\Gorilla Tag\Gorilla Tag_Data\Managed\CjLib.dll</HintPath>
 		</Reference>
 		<Reference Include="Fusion.Runtime">
 		  <HintPath>$(GameAssemblyPath)\Fusion.Runtime.dll</HintPath>
@@ -118,8 +118,11 @@
 		<Reference Include="Unity.Burst.Unsafe">
 			<HintPath>$(GameAssemblyPath)\Unity.Burst.Unsafe.dll</HintPath>
 		</Reference>
+		<Reference Include="Unity.Cinemachine">
+		  <HintPath>D:\SteamLibrary\steamapps\common\Gorilla Tag\Gorilla Tag_Data\Managed\Unity.Cinemachine.dll</HintPath>
+		</Reference>
 		<Reference Include="Unity.Collections">
-			<HintPath>$(GameAssemblyPath)\Unity.Collections.dll</HintPath>
+		  <HintPath>D:\SteamLibrary\steamapps\common\Gorilla Tag\Gorilla Tag_Data\Managed\Unity.Collections.dll</HintPath>
 		</Reference>
 		<Reference Include="Unity.InputSystem">
 			<HintPath>$(GameAssemblyPath)\Unity.InputSystem.dll</HintPath>
@@ -222,9 +225,6 @@
 		</Reference>
 		<Reference Include="UnityEngine.PhysicsModule">
 			<HintPath>$(GameAssemblyPath)\UnityEngine.PhysicsModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.ProfilerModule">
-			<HintPath>$(GameAssemblyPath)\UnityEngine.ProfilerModule.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.ScreenCaptureModule">
 			<HintPath>$(GameAssemblyPath)\UnityEngine.ScreenCaptureModule.dll</HintPath>

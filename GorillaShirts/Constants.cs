@@ -6,7 +6,7 @@
 
         public const string Name = "GorillaShirts";
 
-        public const string Version = "2.4.7";
+        public const string Version = "2.4.12";
 
         public const string AssetBundleName = "GorillaShirts.Content.legacyshirtbundle";
 
@@ -18,7 +18,7 @@
 
         public const float NetworkRaiseInterval = 0.25f;
 
-        public const string URL_ModVersion = @"https://raw.githubusercontent.com/developer9998/GorillaShirts/main/Version.txt";
+        public const string URL_ModVersion = @"https://raw.githubusercontent.com/GoldenIsAProtogen/GorillaShirts/main/Version.txt";
 
         public const string URL_PackReleases = @"https://raw.githubusercontent.com/developer9998/GorillaShirts/main/Packs/Packs.json";
     }
