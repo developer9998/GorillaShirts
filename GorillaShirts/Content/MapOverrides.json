@@ -1,0 +1,6 @@
+{
+    "forest": ["forestWithCity", "cityWithSkyJungle"],
+    "city": ["cityNoBuildings"],
+    "ghostReactor": ["ghostReactorTunnel"],
+    "ghostReactorDrill": ["drill"]
+}

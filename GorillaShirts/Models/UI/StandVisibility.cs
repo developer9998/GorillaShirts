@@ -1,6 +1,6 @@
 ﻿namespace GorillaShirts.Models.UI;
 
-internal enum ShirtStandCullLayer
+internal enum StandVisibility
 {
     All,
     // FirstPerson,

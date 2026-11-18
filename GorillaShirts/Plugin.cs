@@ -24,7 +24,7 @@ internal class Plugin : BaseUnityPlugin
     public static ConfigEntry<string> Favourites;
 
     public static ConfigEntry<CharacterPreference> StandCharacter;
-    public static ConfigEntry<ShirtStandCullLayer> StandCulling;
+    public static ConfigEntry<StandVisibility> StandCulling;
 
     public static ConfigEntry<bool> ShirtUpdateShaders;
     public static ConfigEntry<bool> ShirtImportAudio, ShirtImportPhysics;
@@ -42,7 +42,7 @@ internal class Plugin : BaseUnityPlugin
         Favourites = Config.Bind("Preferences", "Favourites", JsonConvert.SerializeObject(Enumerable.Empty<string>()), "A collection of shirts favourited by the player");
 
         // Stand
-        StandCulling = Config.Bind("Stand Appearance", "Stand Culling", ShirtStandCullLayer.All, "The culling bound to the shirt stand, meaning which perspectives can see the shirt stand");
+        StandCulling = Config.Bind("Stand Appearance", "Stand Culling", StandVisibility.All, "The culling bound to the shirt stand, meaning which perspectives can see the shirt stand");
         var characters = Enum.GetValues(typeof(CharacterPreference)).Cast<CharacterPreference>().ToArray();
         StandCharacter = Config.Bind("Stand Appearance", "Stand Character Identity", characters[UnityEngine.Random.Range(0, characters.Length)], "The gender identity of the character present at the shirt stand");
 

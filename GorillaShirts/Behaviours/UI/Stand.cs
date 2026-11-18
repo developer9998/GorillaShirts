@@ -147,12 +147,15 @@ namespace GorillaShirts.Behaviours.UI
             Type baseType = typeof(Location_Base);
             Type[] typeArray = baseType.Assembly.GetTypes();
 
+            var yeah = new Dictionary<string, Location_Base>();
+
             foreach (Type type in typeArray)
             {
                 if (type.IsSubclassOf(baseType))
                 {
                     Location_Base location = (Location_Base)Activator.CreateInstance(type);
-                    location.Zones.Where(zone => !_locationDictionary.ContainsKey(zone)).ForEach(zone => _locationDictionary.Add(zone, location));
+                    yeah.Add(location.Zone.ToString(), location);
+                    //location.Zones.Where(zone => !_locationDictionary.ContainsKey(zone)).ForEach(zone => _locationDictionary.Add(zone, location));
                 }
             }
 
@@ -206,7 +209,7 @@ namespace GorillaShirts.Behaviours.UI
             _standRenderers.ForEach(renderer => renderer.materials = _useUberMaterials ? _uberMaterials[renderer] : _baseMaterials[renderer]);
         }
 
-        public void SetVisibility(ShirtStandCullLayer culling)
+        public void SetVisibility(StandVisibility culling)
         {
             if (Root == null) return;
 
@@ -218,7 +221,7 @@ namespace GorillaShirts.Behaviours.UI
             }
             */
 
-            bool active = culling != ShirtStandCullLayer.None;
+            bool active = culling != StandVisibility.None;
             if (Root.activeSelf != active) Root.SetActive(active);
         }
 
