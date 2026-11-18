@@ -23,10 +23,14 @@
 
 	<ItemGroup>
 	  <None Remove="Content\legacyshirtbundle" />
+	  <None Remove="Content\MapOverrides.json" />
+	  <None Remove="Content\Maps.json" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <EmbeddedResource Include="Content\legacyshirtbundle" />
+	  <EmbeddedResource Include="Content\MapOverrides.json" />
+	  <EmbeddedResource Include="Content\Maps.json" />
 	</ItemGroup>
 
 	<ItemGroup>

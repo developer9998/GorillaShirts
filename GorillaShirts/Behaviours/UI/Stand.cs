@@ -5,12 +5,20 @@ using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 #if PLUGIN
+using Newtonsoft.Json;
+using System.Threading.Tasks;
 using GorillaShirts.Extensions;
 using System;
 using GorillaShirts.Models.Locations;
 using System.Collections.Generic;
 using System.Linq;
 using GorillaShirts.Models.UI;
+#if DEBUG
+using System.IO;
+using System.Reflection;
+#else
+using UnityEngine.Networking;
+#endif
 #endif
 
 namespace GorillaShirts.Behaviours.UI
@@ -132,35 +140,17 @@ namespace GorillaShirts.Behaviours.UI
 
 #if PLUGIN
 
-        private readonly Dictionary<GTZone, Location_Base> _locationDictionary = [];
+        private readonly Dictionary<GTZone, StandLocation> _locationDictionary = [];
 
         private bool _useUberMaterials = false;
 
         private Renderer[] _standRenderers;
 
-        private Dictionary<GameObject, int> _standObjectLayers;
-
         private Dictionary<Renderer, Material[]> _baseMaterials, _uberMaterials;
 
         public void Start()
         {
-            Type baseType = typeof(Location_Base);
-            Type[] typeArray = baseType.Assembly.GetTypes();
-
-            var yeah = new Dictionary<string, Location_Base>();
-
-            foreach (Type type in typeArray)
-            {
-                if (type.IsSubclassOf(baseType))
-                {
-                    Location_Base location = (Location_Base)Activator.CreateInstance(type);
-                    yeah.Add(location.Zone.ToString(), location);
-                    //location.Zones.Where(zone => !_locationDictionary.ContainsKey(zone)).ForEach(zone => _locationDictionary.Add(zone, location));
-                }
-            }
-
             _standRenderers = Root.GetComponentsInChildren<Renderer>(true);
-            _standObjectLayers = _standRenderers.Select(renderer => renderer.gameObject).ToDictionary(gameObject => gameObject, gameObject => gameObject.layer);
             _baseMaterials = _standRenderers.ToDictionary(renderer => renderer, renderer => renderer.materials);
             _uberMaterials = _standRenderers.ToDictionary(renderer => renderer, renderer => renderer.materials.Select(material => material.CreateUberMaterial(true, true)).ToArray());
             SetMaterialState(Shader.IsKeywordEnabled("_ZONE_DYNAMIC_LIGHTS__CUSTOMVERTEX"));
@@ -168,8 +158,72 @@ namespace GorillaShirts.Behaviours.UI
             SetVisibility(Plugin.StandCulling.Value);
             Plugin.StandCulling.SettingChanged += (_, _) => SetVisibility(Plugin.StandCulling.Value);
 
+            InitializeZoneData();
+        }
+
+        private async void InitializeZoneData()
+        {
+            JsonSerializerSettings settings = new()
+            {
+                CheckAdditionalContent = true,
+                Formatting = Formatting.None
+            };
+
+            string mapsText = await GetContent("GorillaShirts/Content/Maps.json");
+            Dictionary<string, StandLocation> mapsDict = JsonConvert.DeserializeObject<Dictionary<string, StandLocation>>(mapsText, settings);
+            foreach (var kvp in mapsDict)
+            {
+                if (!Enum.TryParse(kvp.Key, out GTZone zone))
+                {
+                    Plugin.Logger.LogWarning($"Text '{kvp.Key}' does not fit into GTZone enum");
+                    continue;
+                }
+
+                _locationDictionary.TryAdd(zone, kvp.Value);
+            }
+
+            string mapOverridesText = await GetContent("GorillaShirts/Content/MapOverrides.json");
+            Dictionary<string, string[]> mapOverrideDict = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(mapOverridesText, settings);
+            foreach (var kvp in mapOverrideDict)
+            {
+                if (!Enum.TryParse(kvp.Key, out GTZone baseZone))
+                {
+                    Plugin.Logger.LogWarning($"Text '{kvp.Key}' does not fit into GTZone enum");
+                    continue;
+                }
+
+                StandLocation location = _locationDictionary[baseZone];
+
+                foreach (string zoneName in kvp.Value)
+                {
+                    if (!Enum.TryParse(zoneName, out GTZone additionalZone))
+                    {
+                        Plugin.Logger.LogWarning($"Text '{kvp.Key}' does not fit into GTZone enum");
+                        continue;
+                    }
+
+                    _locationDictionary.TryAdd(additionalZone, location);
+                }
+            }
+
             OnZoneChange(ZoneManagement.instance.zones);
             ZoneManagement.OnZoneChange += OnZoneChange;
+        }
+
+        private async Task<string> GetContent(string path)
+        {
+#if DEBUG
+            using Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(path.Replace('/', '.'));
+            if (stream == null) return string.Empty;
+            using var reader = new StreamReader(stream);
+            return await reader.ReadToEndAsync();
+#else
+            string url = $"https://raw.githubusercontent.com/developer9998/GorillaShirts/refs/heads/main/{path}";
+            using UnityWebRequest request = UnityWebRequest.Get(url);
+            UnityWebRequestAsyncOperation operation = request.SendWebRequest();
+            await operation;
+            return request.result == UnityWebRequest.Result.Success ? request.downloadHandler.text.Trim() : string.Empty;
+#endif
         }
 
         public void OnZoneChange(ZoneData[] zoneData)
@@ -182,7 +236,7 @@ namespace GorillaShirts.Behaviours.UI
         {
             foreach (GTZone zone in activeZones)
             {
-                if (_locationDictionary.TryGetValue(zone, out Location_Base location))
+                if (_locationDictionary.TryGetValue(zone, out StandLocation location))
                 {
                     MoveStand(location.Position, location.EulerAngles);
                     return;
@@ -226,5 +280,5 @@ namespace GorillaShirts.Behaviours.UI
         }
 
 #endif
-    }
+        }
 }
