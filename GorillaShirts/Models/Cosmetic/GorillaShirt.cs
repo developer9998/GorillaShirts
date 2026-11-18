@@ -104,13 +104,19 @@ namespace GorillaShirts.Models.Cosmetic
 
                             FindFeature<AudioSource>(EShirtFeature.Audio, audioSource =>
                             {
+                                if (!Plugin.ShirtImportAudio.Value)
+                                {
+                                    Object.Destroy(audioSource);
+                                    return;
+                                }
+
                                 if (audioSource.spatialBlend == 0)
                                 {
                                     audioSource.spatialBlend = 1f;
                                     audioSource.rolloffMode = AudioRolloffMode.Linear;
                                     audioSource.minDistance = 2f;
                                     audioSource.maxDistance = 30f;
-                                    audioSource.volume = 0.5f;
+                                    audioSource.volume /= 2f;
                                 }
                             });
                             FindFeature<ParticleSystem>(EShirtFeature.Particles);
@@ -126,13 +132,11 @@ namespace GorillaShirts.Models.Cosmetic
                                 if (decendant.TryGetComponent(out Renderer renderer))
                                 {
                                     Logging.Info($"{decendant.gameObject.name} ({renderer.GetType().Name})");
-                                    renderer.materials = [.. renderer.materials.Select(material =>
+
+                                    if (renderer.materials != null && renderer.materials.Length != 0)
                                     {
-                                        Material independentMat = Object.Instantiate(material);
-                                        independentMat.shaderKeywords = material.shaderKeywords;
-                                        independentMat.enabledKeywords = material.enabledKeywords;
-                                        return independentMat;
-                                    })/*.Select(material => material.ResolveUberMaterial())*/];
+                                        renderer.materials = [.. renderer.materials.Select(material => material.CreateUberMaterial(false, true))];
+                                    }
 
                                     if (decendant.TryGetComponent(out ShirtCustomColour customColour))
                                     {
@@ -151,9 +155,7 @@ namespace GorillaShirts.Models.Cosmetic
                                             Texture2D furTexture = await AssetLoader.LoadAsset<Texture2D>(Constants.FurAssetName);
                                             Shader uberShader = UberShader.GetShader();
 
-                                            string[] keywords = (GorillaTagger.Instance.offlineVRRig && GorillaTagger.Instance.offlineVRRig.myDefaultSkinMaterialInstance) ? GorillaTagger.Instance.offlineVRRig.myDefaultSkinMaterialInstance.shaderKeywords : ["_USE_TEXTURE", "_ENVIRONMENTREFLECTIONS_OFF", "_GLOSSYREFLECTIONS_OFF", "_SPECULARHIGHLIGHTS_OFF"];
-                                            keywords = [.. keywords.Except(["_GT_BASE_MAP_ATLAS_SLICE_SOURCE__PROPERTY", "_USE_TEX_ARRAY_ATLAS"])];
-
+                                            string[] keywords = ["_USE_TEXTURE", "_WATER_EFFECT", "_HEIGHT_BASED_WATER_EFFECT", "_ENVIRONMENTREFLECTIONS_OFF", "_GLOSSYREFLECTIONS_OFF", "_SPECULARHIGHLIGHTS_OFF"];
                                             furMaterial = new Material(uberShader)
                                             {
                                                 mainTexture = furTexture,
@@ -168,7 +170,7 @@ namespace GorillaShirts.Models.Cosmetic
                                 }
                             }
 
-                            if (wobbleList.Count > 0)
+                            if (wobbleList.Count > 0 && Plugin.ShirtImportPhysics.Value)
                             {
                                 Logging.Message("Has ShirtWobbleRoot");
                                 Dictionary<(bool LockTranslationX, bool LockTranslationY, bool LockTranslationZ), List<ShirtWobbleRoot>> wobbleDict = [];

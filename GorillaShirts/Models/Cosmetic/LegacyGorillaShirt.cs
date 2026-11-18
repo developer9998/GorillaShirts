@@ -141,19 +141,6 @@ namespace GorillaShirts.Models.Cosmetic
                         Objects |= sectorType;
                         body_part.name = sectorType.ToString();
 
-                        /*
-                        tempSector.gameObject.SetActive(false);
-                        Sector newSector = new()
-                        {
-                            Object = tempSector.gameObject,
-                            Type = sectorType,
-                            Position = tempSector.localPosition,
-                            Euler = tempSector.localEulerAngles,
-                            Scale = tempSector.localScale
-                        };
-                        Descriptor.SectorList.Add(newSector);
-                        */
-
                         ShirtColourProfile colourProfile = body_part.GetOrAddComponent<ShirtColourProfile>();
                         colourProfile.enabled = false;
                         colourProfile.SetCustomColour((Color?)Colour);
@@ -172,6 +159,12 @@ namespace GorillaShirts.Models.Cosmetic
 
                         FindFeature<AudioSource>(EShirtFeature.Audio, audioSource =>
                         {
+                            if (!Plugin.ShirtImportAudio.Value)
+                            {
+                                Object.Destroy(audioSource);
+                                return;
+                            }
+
                             if (audioSource.spatialBlend != 1)
                             {
                                 audioSource.spatialBlend = 1f;
@@ -218,9 +211,7 @@ namespace GorillaShirts.Models.Cosmetic
                                             Texture2D furTexture = await AssetLoader.LoadAsset<Texture2D>(Constants.FurAssetName);
                                             Shader uberShader = UberShader.GetShader();
 
-                                            string[] keywords = (GorillaTagger.Instance.offlineVRRig && GorillaTagger.Instance.offlineVRRig.myDefaultSkinMaterialInstance) ? GorillaTagger.Instance.offlineVRRig.myDefaultSkinMaterialInstance.shaderKeywords : ["_USE_TEXTURE", "_ENVIRONMENTREFLECTIONS_OFF", "_GLOSSYREFLECTIONS_OFF", "_SPECULARHIGHLIGHTS_OFF"];
-                                            keywords = [.. keywords.Except(["_GT_BASE_MAP_ATLAS_SLICE_SOURCE__PROPERTY", "_USE_TEX_ARRAY_ATLAS"])];
-
+                                            string[] keywords = ["_USE_TEXTURE", "_WATER_EFFECT", "_HEIGHT_BASED_WATER_EFFECT", "_ENVIRONMENTREFLECTIONS_OFF", "_GLOSSYREFLECTIONS_OFF", "_SPECULARHIGHLIGHTS_OFF"];
                                             fur_material = new Material(uberShader)
                                             {
                                                 mainTexture = furTexture,
@@ -249,7 +240,7 @@ namespace GorillaShirts.Models.Cosmetic
                             }
                         }
 
-                        if (bones.Count > 0)
+                        if (bones.Count > 0 && Plugin.ShirtImportPhysics.Value)
                         {
                             BoingBones boneComponent = body_part.AddComponent<BoingBones>();
                             boneComponent.LockTranslationX = dataJson.infoConfig.wobbleLockHorizontal;

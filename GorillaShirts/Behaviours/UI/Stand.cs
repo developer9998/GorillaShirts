@@ -10,6 +10,7 @@ using System;
 using GorillaShirts.Models.Locations;
 using System.Collections.Generic;
 using System.Linq;
+using GorillaShirts.Models.UI;
 #endif
 
 namespace GorillaShirts.Behaviours.UI
@@ -131,13 +132,13 @@ namespace GorillaShirts.Behaviours.UI
 
 #if PLUGIN
 
-        private bool _isStandVisible = true;
-
         private readonly Dictionary<GTZone, Location_Base> _locationDictionary = [];
 
         private bool _useUberMaterials = false;
 
         private Renderer[] _standRenderers;
+
+        private Dictionary<GameObject, int> _standObjectLayers;
 
         private Dictionary<Renderer, Material[]> _baseMaterials, _uberMaterials;
 
@@ -156,12 +157,13 @@ namespace GorillaShirts.Behaviours.UI
             }
 
             _standRenderers = Root.GetComponentsInChildren<Renderer>(true);
+            _standObjectLayers = _standRenderers.Select(renderer => renderer.gameObject).ToDictionary(gameObject => gameObject, gameObject => gameObject.layer);
             _baseMaterials = _standRenderers.ToDictionary(renderer => renderer, renderer => renderer.materials);
-            _uberMaterials = _standRenderers.ToDictionary(renderer => renderer, renderer => renderer.materials.Select(material => material.CreateUberMaterial()).ToArray());
+            _uberMaterials = _standRenderers.ToDictionary(renderer => renderer, renderer => renderer.materials.Select(material => material.CreateUberMaterial(true, true)).ToArray());
             SetMaterialState(Shader.IsKeywordEnabled("_ZONE_DYNAMIC_LIGHTS__CUSTOMVERTEX"));
 
-            SetVisibility(Plugin.State);
-            Plugin.OnStateChanged += SetVisibility;
+            SetVisibility(Plugin.StandCulling.Value);
+            Plugin.StandCulling.SettingChanged += (_, _) => SetVisibility(Plugin.StandCulling.Value);
 
             OnZoneChange(ZoneManagement.instance.zones);
             ZoneManagement.OnZoneChange += OnZoneChange;
@@ -204,12 +206,20 @@ namespace GorillaShirts.Behaviours.UI
             _standRenderers.ForEach(renderer => renderer.materials = _useUberMaterials ? _uberMaterials[renderer] : _baseMaterials[renderer]);
         }
 
-        public void SetVisibility(bool isVisible)
+        public void SetVisibility(ShirtStandCullLayer culling)
         {
-            if (_isStandVisible == isVisible) return;
+            if (Root == null) return;
 
-            _isStandVisible = isVisible;
-            Root?.SetActive(_isStandVisible);
+            /*
+            if (culling != ShirtStandCullLayer.None)
+            {
+                mainMenuRoot.GetComponentInParent<Canvas>(true).GetComponentsInChildren<Graphic>(true).Select(graphic => graphic.gameObject).ForEach(gameObject => gameObject.layer = culling == ShirtStandCullLayer.All ? (int)UnityLayer.UI : (int)ShirtStandCullLayer.FirstPerson);
+                _standObjectLayers.ForEach(kvp => kvp.Key.layer = culling == ShirtStandCullLayer.All ? kvp.Value : (int)UnityLayer.FirstPersonOnly);
+            }
+            */
+
+            bool active = culling != ShirtStandCullLayer.None;
+            if (Root.activeSelf != active) Root.SetActive(active);
         }
 
 #endif

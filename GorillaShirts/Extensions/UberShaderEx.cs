@@ -51,11 +51,25 @@ namespace GorillaShirts.Extensions
             keywords = supportedKeywords;
         }
 
-        public static Material CreateUberMaterial(this Material baseMaterial)
+        public static Material CreateUberMaterial(this Material baseMaterial, bool correctLegacyShaders = true, bool correctOutdatedShaders = true)
         {
             Shader uberShader = UberShader.GetShader();
 
-            if (baseMaterial.shader.name == uberShader.name) return baseMaterial;
+            if (baseMaterial.shader.name == uberShader.name)
+            {
+                if (correctOutdatedShaders && Plugin.ShirtUpdateShaders.Value)
+                {
+                    Material replicatedMaterial = baseMaterial; // UnityEngine.Object.Instantiate(baseMaterial);
+                    replicatedMaterial.shader = uberShader;
+                    // replicatedMaterial.shaderKeywords = baseMaterial.shaderKeywords;
+                    // replicatedMaterial.enabledKeywords = baseMaterial.enabledKeywords;
+                    return replicatedMaterial;
+                }
+
+                return baseMaterial;
+            }
+
+            if (!correctLegacyShaders) return baseMaterial;
 
             if (!supportedShaderNames.Contains(baseMaterial.shader.name))
             {
